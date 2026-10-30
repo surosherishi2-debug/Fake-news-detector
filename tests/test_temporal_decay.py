@@ -37,3 +37,20 @@ def test_temporal_decay_missing_dates():
     now = datetime.now(timezone.utc)
     weight = calculate_temporal_decay(claim_time=now, evidence_time=None)
     assert weight == 0.85
+
+def test_temporal_decay_domain_adaptive():
+    """Verify that domain-adaptive decay correctly differentiates political vs science halflives."""
+    from src.nlp.temporal_decay import get_domain_lambda
+    assert get_domain_lambda("Politics") == 0.35
+    assert get_domain_lambda("Space & Astronomy") == 0.01
+
+    now = datetime(2025, 1, 1, tzinfo=timezone.utc)
+    two_years_prior = datetime(2023, 1, 1, tzinfo=timezone.utc)
+
+    # Political claim decays much faster than space science
+    pol_weight = calculate_temporal_decay(now, two_years_prior, domain="politics")
+    sci_weight = calculate_temporal_decay(now, two_years_prior, domain="science")
+
+    assert pol_weight < sci_weight
+    assert sci_weight > 0.95  # Science remains almost 100% valid after 2 years
+    assert pol_weight < 0.55  # Political claim loses over 45% credibility after 2 years

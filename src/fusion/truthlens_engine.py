@@ -82,8 +82,9 @@ class TruthLensEngine:
         temporal_weights: List[float] = []
 
         # 2. Retrieve evidence & compute CEAM alignments with temporal decay
+        domain_context = request.category or request.publisher
         for claim in raw_claims:
-            evidences = self.fact_checker.search_evidence(claim.text, claim_time=now, max_results=3)
+            evidences = self.fact_checker.search_evidence(claim.text, claim_time=now, max_results=3, domain=domain_context)
             best_stance = ClaimStance.NEUTRAL
             best_citation = None
 

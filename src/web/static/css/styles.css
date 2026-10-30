@@ -170,4 +170,60 @@ button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-
   color: #ffffff;
 }
 
+/* Sentence-level truth highlighting */
+.claim-sentence-span {
+  display: inline;
+  padding: 2px 6px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 1px;
+}
+
+.claim-sentence-span:hover {
+  filter: brightness(1.25);
+  box-shadow: 0 0 10px rgba(99, 102, 241, 0.4);
+}
+
+.claim-sentence-verified {
+  background-color: rgba(16, 185, 129, 0.18);
+  border-bottom: 2px solid #10b981;
+  color: #a7f3d0;
+}
+
+.claim-sentence-refuted {
+  background-color: rgba(244, 63, 94, 0.22);
+  border-bottom: 2px solid #f43f5e;
+  color: #fecdd3;
+}
+
+.claim-sentence-void {
+  background-color: rgba(245, 158, 11, 0.22);
+  border-bottom: 2px solid #f59e0b;
+  color: #fde68a;
+}
+
+/* Floating Evidence Proof Tooltip */
+#claim-proof-tooltip {
+  position: fixed;
+  z-index: 9999;
+  max-width: 340px;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 14px;
+  padding: 12px 14px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 8px 10px -6px rgba(0, 0, 0, 0.5);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+#claim-proof-tooltip.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+
 

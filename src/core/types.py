@@ -97,6 +97,7 @@ class VerificationRequest(BaseModel):
     text: str = Field(..., min_length=5, description="Full article or headline text")
     publisher: Optional[str] = Field(default=None, description="Publisher name or domain")
     publication_date: Optional[datetime] = Field(default=None, description="Publication timestamp")
+    category: Optional[str] = Field(default=None, description="Domain or news category for adaptive decay")
     cascade: Optional[SocialCascade] = Field(default=None, description="Optional social graph propagation data")
 
 class VerificationResult(BaseModel):

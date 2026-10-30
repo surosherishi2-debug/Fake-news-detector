@@ -2,8 +2,8 @@
   "project": "FakeX / TruthLens-Omni",
   "version": "1.4.0",
   "description": "Full-Spectrum Epistemic Intelligence & Publishing Integrity Platform",
-  "current_maturity_percentage": 85,
-  "active_phase": 5,
+  "current_maturity_percentage": 90,
+  "active_phase": 6,
   "phases": [
     {
       "id": 1,
@@ -62,6 +62,19 @@
         { "id": "T5.2", "title": "Closed-Loop Pre-Flight Publishing into Persistent Feed", "status": "completed" },
         { "id": "T5.3", "title": "Interactive Knowledge Graph Node Inspector & Feed Filtering", "status": "completed" },
         { "id": "T5.4", "title": "1-Click Downloadable Thesis Defense Dossier (.MD)", "status": "completed" }
+      ]
+    },
+    {
+      "id": 6,
+      "name": "Phase 6: Flagship Capstone Enhancements & Production Hardening",
+      "status": "in_progress",
+      "tasks": [
+        { "id": "T6.1", "title": "Visual Sentence-Level Truth Highlighting & Tooltip Proof Citations", "status": "completed" },
+        { "id": "T6.2", "title": "Domain-Adaptive Temporal Attenuation Lambda w(t, domain)", "status": "completed" },
+        { "id": "T6.3", "title": "Interactive GLTR Token Probability Rank Heatmap & Entropy Inspector", "status": "planned" },
+        { "id": "T6.4", "title": "Knowledge Graph Chronological Playback Time-Slider & Centrality Scaling", "status": "planned" },
+        { "id": "T6.5", "title": "Pre-Flight AI Citation & Neutrality Suggester with SHA-256 Provenance", "status": "planned" },
+        { "id": "T6.6", "title": "Dual-Attack Adversarial Sandbox (TextFooler + DeepWordBug Character Perturbations)", "status": "planned" }
       ]
     }
   ]

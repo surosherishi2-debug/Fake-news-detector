@@ -60,6 +60,7 @@ class FactCheckClient:
         query: str,
         claim_time: Optional[datetime] = None,
         max_results: int = 5,
+        domain: Optional[str] = None,
     ) -> List[Evidence]:
         """
         Search external evidence for a given claim query.
@@ -68,6 +69,7 @@ class FactCheckClient:
             query: Claim assertion text.
             claim_time: Publication date of the claim to assess temporal decay.
             max_results: Maximum evidence sentences to return.
+            domain: Optional topic domain/category for adaptive temporal decay.
             
         Returns:
             List[Evidence]: Top evidence records with calculated temporal decay weights.
@@ -76,14 +78,14 @@ class FactCheckClient:
 
         if self.api_key:
             try:
-                evidence_list = self._fetch_google_fact_check(query, claim_time, max_results)
+                evidence_list = self._fetch_google_fact_check(query, claim_time, max_results, domain=domain)
             except Exception as e:
                 logger.warning("Online Google Fact Check lookup failed (%s). Falling back to local store.", e)
                 evidence_list = []
 
         # If online returned empty or no key provided, query local curated registry
         if not evidence_list:
-            evidence_list = self._search_local_registry(query, claim_time, max_results)
+            evidence_list = self._search_local_registry(query, claim_time, max_results, domain=domain)
 
         return evidence_list
 
@@ -92,6 +94,7 @@ class FactCheckClient:
         query: str,
         claim_time: Optional[datetime],
         max_results: int,
+        domain: Optional[str] = None,
     ) -> List[Evidence]:
         """Query Google Fact Check Tools API."""
         params = {
@@ -110,7 +113,7 @@ class FactCheckClient:
         for item in data.get("claims", []):
             for review in item.get("claimReview", []):
                 pub_date = self._parse_iso_date(review.get("reviewDate"))
-                temp_weight = calculate_temporal_decay(claim_time, pub_date)
+                temp_weight = calculate_temporal_decay(claim_time, pub_date, domain=domain)
                 sim_score = 0.85  # Calibrated baseline for verified API matches
 
                 evidence = Evidence(
@@ -134,6 +137,7 @@ class FactCheckClient:
         query: str,
         claim_time: Optional[datetime],
         max_results: int,
+        domain: Optional[str] = None,
     ) -> List[Evidence]:
         """Fallback keyword-weighted search over offline fact store."""
         query_words = set(query.lower().split())
@@ -150,7 +154,7 @@ class FactCheckClient:
 
         for score, rec in matched[:max_results]:
             pub_date = self._parse_iso_date(rec.get("publish_date"))
-            temp_weight = calculate_temporal_decay(claim_time, pub_date)
+            temp_weight = calculate_temporal_decay(claim_time, pub_date, domain=domain)
             final = round(score * temp_weight, 3)
 
             results.append(

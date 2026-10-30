@@ -17,6 +17,16 @@ document.addEventListener('DOMContentLoaded', () => {
     selectedKgEntity: null,
   };
 
+  function escapeHtml(str) {
+    if (!str) return '';
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;')
+      .replace(/'/g, '&#039;');
+  }
+
   const tabButtons = document.querySelectorAll('.nav-tab-btn');
   const pageSections = document.querySelectorAll('.page-view');
   const roleBadge = document.getElementById('user-role-badge');
@@ -946,6 +956,7 @@ document.addEventListener('DOMContentLoaded', () => {
       updateMetricCards(result);
       renderClaimsList();
       renderActiveClaimDetail();
+      renderAnnotatedReader(result, text);
     } catch (err) {
       alert('Verification Error: ' + err.message);
     } finally {
@@ -1068,6 +1079,73 @@ document.addEventListener('DOMContentLoaded', () => {
     `;
   }
 
+  function renderAnnotatedReader(result, rawText) {
+    const container = document.getElementById('annotated-story-reader');
+    if (!container) return;
+
+    const claims = state.claims || [];
+    if (!claims.length) {
+      container.innerHTML = `<span class="text-slate-300">${escapeHtml(rawText || '')}</span>`;
+      return;
+    }
+
+    container.innerHTML = claims.map((ca, idx) => {
+      const claimObj = ca.claim || ca;
+      const status = ca.stance || ca.status || claimObj.highlight_status || 'VERIFIED';
+      const isRefuted = status === 'REFUTED' || status === 'REFUTES' || status === 'FAKE';
+      const isVerified = status === 'VERIFIED' || status === 'SUPPORTS' || status === 'REAL';
+      const highlightClass = isVerified
+        ? 'claim-sentence-verified'
+        : (isRefuted ? 'claim-sentence-refuted' : 'claim-sentence-void');
+      const claimText = claimObj.text || 'Assertion statement';
+
+      return `<span class="claim-sentence-span ${highlightClass}" data-idx="${idx}" onmouseenter="showClaimTooltip(event, ${idx})" onmouseleave="hideClaimTooltip()" onclick="selectClaim(${idx})">${escapeHtml(claimText)}</span>`;
+    }).join(' ');
+  }
+
+  window.showClaimTooltip = function(e, idx) {
+    const tooltip = document.getElementById('claim-proof-tooltip');
+    if (!tooltip || !state.claims || !state.claims[idx]) return;
+
+    const ca = state.claims[idx];
+    const ev = ca.evidence;
+    const claimObj = ca.claim || ca;
+    const status = ca.stance || ca.status || claimObj.highlight_status || 'VERIFIED';
+    const isRefuted = status === 'REFUTED' || status === 'REFUTES' || status === 'FAKE';
+    const isVerified = status === 'VERIFIED' || status === 'SUPPORTS' || status === 'REAL';
+
+    const sourceEl = document.getElementById('tooltip-source');
+    const statusEl = document.getElementById('tooltip-status');
+    const snippetEl = document.getElementById('tooltip-snippet');
+    const scoreEl = document.getElementById('tooltip-score');
+
+    if (sourceEl) sourceEl.innerText = ev?.publisher || 'Accredited Fact Archive';
+    if (statusEl) {
+      statusEl.innerText = status;
+      statusEl.className = `px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+        isVerified ? 'bg-emerald-500/20 text-emerald-300' : (isRefuted ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300')
+      }`;
+    }
+    if (snippetEl) snippetEl.innerText = ev?.snippet ? `"${ev.snippet}"` : 'Data Void: No contradictory or corroborating fact-check indexed.';
+    if (scoreEl) scoreEl.innerText = (ca.alignment_score ?? 0.85).toFixed(2);
+
+    const x = Math.min(window.innerWidth - 360, Math.max(10, e.clientX + 10));
+    const y = Math.min(window.innerHeight - 150, Math.max(10, e.clientY + 15));
+
+    tooltip.style.left = `${x}px`;
+    tooltip.style.top = `${y}px`;
+    tooltip.classList.remove('hidden');
+    tooltip.classList.add('is-visible');
+  };
+
+  window.hideClaimTooltip = function() {
+    const tooltip = document.getElementById('claim-proof-tooltip');
+    if (tooltip) {
+      tooltip.classList.remove('is-visible');
+      tooltip.classList.add('hidden');
+    }
+  };
+
   window.loadSample = function(type) {
     if (type === 'microchip') {
       inputTextInput.value = "Viral reports claim COVID-19 mRNA vaccines contain microscopic graphene oxide microcircuits communicating via 5G cellular towers.";
@@ -1079,6 +1157,7 @@ document.addEventListener('DOMContentLoaded', () => {
       inputTextInput.value = "NASA Announces Strategic Initiative to Colonize the Sun by Landing Exclusively at Night.";
       publisherInput.value = "theonion.com";
     }
+    executeVerification();
   };
 
   // ==========================================
