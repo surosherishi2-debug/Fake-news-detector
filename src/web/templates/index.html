@@ -7,7 +7,7 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="/static/css/styles.css">
   <script>
     tailwind.config = {
@@ -15,6 +15,7 @@
         extend: {
           fontFamily: {
             sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+            mono: ['"JetBrains Mono"', 'monospace'],
           },
         }
       }
@@ -61,6 +62,9 @@
       <button data-tab="consensus" class="nav-tab-btn px-4 py-2 rounded-full text-xs font-semibold transition text-slate-300 hover:text-white whitespace-nowrap">
         ⚖️ Community Notes
       </button>
+      <button data-tab="guide" class="nav-tab-btn px-4 py-2 rounded-full text-xs font-semibold transition text-slate-300 hover:text-white whitespace-nowrap">
+        🎓 Guide Mode
+      </button>
       <button data-tab="profile" class="nav-tab-btn px-4 py-2 rounded-full text-xs font-semibold transition text-slate-300 hover:text-white whitespace-nowrap">
         ⚙️ Settings
       </button>
@@ -89,15 +93,25 @@
           <h2 class="text-xl font-bold text-slate-900 tracking-tight">Daily Grounded Epistemic Feed</h2>
           <p class="text-xs text-slate-500">Curated multi-domain news pre-audited with empirical fact-checking citations and cascade risk.</p>
         </div>
-        <!-- Feed Filters -->
+        <!-- Feed Actions & Filters -->
         <div class="flex items-center gap-2 flex-wrap">
+          <input id="feed-search-input" type="text" placeholder="Search news & claims..." class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5] w-40 md:w-48">
           <select id="feed-filter-category" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-medium focus:ring-2 focus:ring-[#5E4BF5]">
             <option value="All">All Categories</option>
             <option value="Science & Tech">Science & Tech</option>
             <option value="Health">Health</option>
             <option value="Politics">Politics</option>
             <option value="Finance">Finance</option>
+            <option value="Climate">Climate</option>
+            <option value="Infrastructure">Infrastructure</option>
             <option value="Satire">Satire</option>
+            <option value="Tech Forensics">Tech Forensics</option>
+          </select>
+          <select id="feed-filter-language" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-medium focus:ring-2 focus:ring-[#5E4BF5]">
+            <option value="All">All Languages</option>
+            <option value="en">English (EN)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+            <option value="mr">मराठी (Marathi)</option>
           </select>
           <select id="feed-filter-status" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-medium focus:ring-2 focus:ring-[#5E4BF5]">
             <option value="All">All Statuses</option>
@@ -107,6 +121,9 @@
             <option value="SYNTHETIC">🤖 AI Synthetic</option>
             <option value="DATA_VOID">🟡 Breaking Data-Void</option>
           </select>
+          <button id="btn-sync-feeds" class="px-3.5 py-1.5 bg-[#5E4BF5] hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
+            🔄 Sync RSS Feeds
+          </button>
         </div>
       </div>
 
@@ -133,7 +150,8 @@
 
         <textarea id="preflight-draft-text" rows="4" placeholder="Write or paste your article draft here to audit its factual grounding and bias..." class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5]"></textarea>
 
-        <div class="flex justify-end">
+        <div class="flex items-center justify-between text-xs text-slate-400">
+          <span id="preflight-word-count">0 words | Estimated read: 0 min</span>
           <button id="btn-run-preflight" class="px-6 py-2.5 bg-[#5E4BF5] hover:bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 transition">
             Audit My Story Before Publishing
           </button>
@@ -170,7 +188,7 @@
         <div class="flex items-center justify-between flex-wrap gap-2">
           <div>
             <h2 class="text-xl font-bold text-slate-900 tracking-tight">Synthetic Media & AI Hallucination Forensics</h2>
-            <p class="text-xs text-slate-500">Measures sentence burstiness, token entropy, and LLM generative rhetorical patterns to detect AI-generated text.</p>
+            <p class="text-xs text-slate-500">Measures sentence burstiness, token entropy, and GLTR token predictability to detect AI-generated synthetic sludge.</p>
           </div>
           <div class="flex gap-2">
             <button onclick="loadForensicsSample('ai')" class="px-2.5 py-1 bg-cyan-50 text-cyan-700 rounded-lg text-xs font-semibold border border-cyan-200">
@@ -191,7 +209,7 @@
         </div>
       </div>
 
-      <!-- Forensics Metrics -->
+      <!-- Forensics Metrics Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
           <span class="text-xs text-slate-400 font-semibold uppercase">AI Probability</span>
@@ -201,7 +219,7 @@
         <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
           <span class="text-xs text-slate-400 font-semibold uppercase">Sentence Burstiness</span>
           <p id="forensics-burstiness" class="text-3xl font-extrabold text-slate-900 mt-2 tabular">--</p>
-          <span class="text-xs text-slate-500 block mt-1">Variance across sentence lengths</span>
+          <span class="text-xs text-slate-500 block mt-1">Sentence length standard deviation</span>
         </div>
         <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
           <span class="text-xs text-slate-400 font-semibold uppercase">Type-Token Ratio</span>
@@ -209,12 +227,34 @@
           <span class="text-xs text-slate-500 block mt-1">Lexical vocabulary entropy</span>
         </div>
         <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
-          <span class="text-xs text-slate-400 font-semibold uppercase">Audit Status</span>
-          <p class="text-2xl font-extrabold text-slate-900 mt-2">Entropy Guard</p>
-          <span class="text-xs text-emerald-600 block mt-1 font-semibold">Statistical validation</span>
+          <span class="text-xs text-slate-400 font-semibold uppercase">Top-10 Predictable</span>
+          <p id="forensics-gltr-top10" class="text-3xl font-extrabold text-slate-900 mt-2 tabular">--</p>
+          <span class="text-xs text-emerald-600 block mt-1 font-semibold">GLTR Rank Density</span>
         </div>
       </div>
 
+      <!-- GLTR Token Rank Heatmap Visualizer -->
+      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+        <div class="flex items-center justify-between flex-wrap gap-2">
+          <div>
+            <h3 class="text-sm font-bold text-slate-900">GLTR Token Predictability Spectrum</h3>
+            <p class="text-xs text-slate-500">LLMs overwhelmingly sample from Top-10 predictable words (Green). Humans show higher lexical entropy (Yellow, Red, Purple).</p>
+          </div>
+          <!-- Legend -->
+          <div class="flex items-center gap-3 text-[11px] font-semibold">
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500"></span> Top-10</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500"></span> Top-100</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-rose-500"></span> Top-1000</span>
+            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-purple-500"></span> Rare / Creative</span>
+          </div>
+        </div>
+
+        <div id="gltr-heatmap-container" class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-sm leading-relaxed flex flex-wrap gap-1 min-h-[100px] items-center">
+          <span class="text-xs text-slate-400">Run forensics to generate token-by-token entropy heatmap.</span>
+        </div>
+      </div>
+
+      <!-- Clichés & Explanation -->
       <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-3">
         <span class="text-xs text-slate-400 font-semibold uppercase tracking-wider block">Detected LLM Clichés & Statistical Rationale</span>
         <p id="forensics-explanation" class="text-xs text-slate-700 leading-relaxed font-medium">Input a text sample to evaluate.</p>
@@ -391,7 +431,119 @@
     </section>
 
     <!-- ======================================================================= -->
-    <!-- TAB 8: PROFILE & SETTINGS                                               -->
+    <!-- TAB 8: GUIDE & THESIS PRESENTATION MODE                                -->
+    <!-- ======================================================================= -->
+    <section id="page-guide" class="page-view hidden space-y-6">
+      <!-- Guide Dossier Header -->
+      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+        <div>
+          <div class="flex items-center gap-2">
+            <span class="px-2.5 py-0.5 rounded-full bg-indigo-50 text-indigo-700 text-xs font-bold border border-indigo-200">ACADEMIC CAPSTONE DEFENSE</span>
+            <span class="text-xs text-slate-400">IEEE TNN 2024 & IJAIS Grounded</span>
+          </div>
+          <h2 class="text-xl font-bold text-slate-900 tracking-tight mt-1">Mathematical Foundations & Empirical Benchmark Suite</h2>
+          <p class="text-xs text-slate-500">Formal formulations, adversarial stress-testing, and comparative benchmark against NLP baselines.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <select id="benchmark-dataset-select" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-medium focus:ring-2 focus:ring-[#5E4BF5]">
+            <option value="pune_fakenews_2024">PuneFakeNews-2024 (Indic & Regional)</option>
+            <option value="liar_plus">LIAR-Plus (Political Fact-Checks)</option>
+            <option value="coaid">CoAID (COVID-19 Health Claims)</option>
+          </select>
+          <button id="btn-refresh-benchmarks" class="px-3.5 py-1.5 bg-[#5E4BF5] hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold shadow-sm transition">
+            Run Benchmark
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Mathematical Formulation Cards -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-[#111622] rounded-3xl p-5 border border-slate-800 text-white space-y-2">
+          <span class="text-[11px] font-mono text-indigo-400 uppercase tracking-wider block">Temporal Decay</span>
+          <div class="p-2.5 bg-black/40 rounded-xl font-mono text-xs text-emerald-400 text-center">
+            w(t) = exp(-λ · Δt)
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">Attenuates historical fact-checks exponentially so outdated debunks do not invalidate verified new events.</p>
+        </div>
+
+        <div class="bg-[#111622] rounded-3xl p-5 border border-slate-800 text-white space-y-2">
+          <span class="text-[11px] font-mono text-indigo-400 uppercase tracking-wider block">Community Notes SVD</span>
+          <div class="p-2.5 bg-black/40 rounded-xl font-mono text-xs text-cyan-400 text-center">
+            r̂_ui = μ + b_u + b_i + p_uᵀ q_i
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">Low-rank Matrix Factorization isolates bridge-building consensus across opposing ideological raters.</p>
+        </div>
+
+        <div class="bg-[#111622] rounded-3xl p-5 border border-slate-800 text-white space-y-2">
+          <span class="text-[11px] font-mono text-indigo-400 uppercase tracking-wider block">CEAM Cross-Attention</span>
+          <div class="p-2.5 bg-black/40 rounded-xl font-mono text-xs text-amber-400 text-center">
+            Attn = softmax(QKᵀ/√d · w(t)) V
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">Cross-attention between decomposed Claims and primary Evidence, temporally modulated.</p>
+        </div>
+
+        <div class="bg-[#111622] rounded-3xl p-5 border border-slate-800 text-white space-y-2">
+          <span class="text-[11px] font-mono text-indigo-400 uppercase tracking-wider block">Multimodal Gating</span>
+          <div class="p-2.5 bg-black/40 rounded-xl font-mono text-xs text-purple-400 text-center">
+            h_fused = z ⊙ h_text + (1-z) ⊙ h_g
+          </div>
+          <p class="text-[11px] text-slate-400 leading-relaxed">Gated fusion uniting semantic textual embeddings with Heterogeneous Graph cascade embeddings.</p>
+        </div>
+      </div>
+
+      <!-- Comparative Empirical Benchmark Table -->
+      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 class="text-base font-bold text-slate-900">Comparative Architecture Performance Matrix</h3>
+          <span class="text-xs text-slate-400 font-mono">Sample Size: 250+ Ground-Truth Instances</span>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-xs text-left">
+            <thead>
+              <tr class="border-b border-slate-200 text-slate-500 font-semibold uppercase tracking-wider">
+                <th class="py-3 px-3">Model Architecture</th>
+                <th class="py-3 px-3">Accuracy</th>
+                <th class="py-3 px-3">Precision</th>
+                <th class="py-3 px-3">Recall</th>
+                <th class="py-3 px-3">Macro F1</th>
+                <th class="py-3 px-3">TextFooler F1 (20% Swaps)</th>
+                <th class="py-3 px-3">Robustness Retention</th>
+                <th class="py-3 px-3">Indic (Hindi/Marathi) F1</th>
+                <th class="py-3 px-3">Latency</th>
+              </tr>
+            </thead>
+            <tbody id="benchmark-table-body" class="divide-y divide-slate-100 font-medium">
+              <!-- Dynamically populated via app.js -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Interactive Adversarial Attack Simulator -->
+      <div class="bg-[#0F131D] rounded-3xl p-6 border border-slate-800 shadow-xl text-white space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-base font-bold text-white">Interactive Adversarial Attack Sandbox (TextFooler Heuristic)</h3>
+            <p class="text-xs text-slate-400">Demonstrates how Text-Only models collapse when synonyms are substituted, while TruthLens remains grounded.</p>
+          </div>
+          <span class="text-xs px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full font-mono">Perturbation Budget: 25%</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input id="adv-input-text" type="text" value="The FDA confirmed the approved vaccine is safe and proven effective in clinical trials." class="md:col-span-2 px-4 py-2.5 rounded-xl bg-[#181D2A] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5]">
+          <button id="btn-run-adv-test" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-bold transition flex items-center justify-center gap-2">
+            ⚡ Inject Synonym Attack
+          </button>
+        </div>
+
+        <div id="adv-results-box" class="p-4 bg-black/40 rounded-2xl border border-white/10 text-xs space-y-3 hidden">
+          <!-- Adversarial Results rendered by app.js -->
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- TAB 9: PROFILE & SETTINGS                                               -->
     <!-- ======================================================================= -->
     <section id="page-profile" class="page-view hidden space-y-6">
       <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6">

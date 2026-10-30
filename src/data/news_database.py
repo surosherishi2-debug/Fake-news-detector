@@ -90,7 +90,7 @@ class EpistemicDatabase:
             cursor = conn.cursor()
             cursor.execute("SELECT COUNT(*) FROM articles")
             count = cursor.fetchone()[0]
-            if count > 0:
+            if count >= 12:
                 return
 
             now = datetime.now(timezone.utc)
@@ -99,40 +99,40 @@ class EpistemicDatabase:
             seed_articles = [
                 # 1. Authentic Science & Space News
                 {
-                    "id": "art-isro-001",
-                    "title": "ISRO Pragyan Rover Confirms Presence of Sulfur and Minerals Near Lunar South Pole",
-                    "content": "Official spectral analysis from the Laser-Induced Breakdown Spectroscopy (LIBS) instrument on board the Chandrayaan-3 Pragyan rover has unambiguously confirmed the presence of sulfur (S) on the lunar surface near the south pole. Telemetry recorded standard volcanic and mineral regolith compositions.",
-                    "publisher": "Press Information Bureau / ISRO",
-                    "domain": "pib.gov.in",
+                    "id": "art-isro-pragyan-001",
+                    "title": "ISRO Confirms Chandrayaan-3 Pragyan Rover Discovered Elemental Sulphur at Lunar South Pole",
+                    "content": "The Laser-Induced Breakdown Spectroscopy (LIBS) instrument onboard the Pragyan rover unequivocally confirmed the presence of sulphur (S) in the lunar surface near the south pole through in-situ measurements, providing unambiguous geochemical data previously inaccessible from orbital orbiters.",
+                    "publisher": "ISRO Science Mission Directorate",
+                    "domain": "isro.gov.in",
                     "category": "Science & Tech",
                     "publish_date": (now - timedelta(days=2)).isoformat(),
                     "status": "REAL",
-                    "truth_score": 96.4,
-                    "cib_risk": 0.05,
+                    "truth_score": 99.4,
+                    "cib_risk": 0.01,
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("LIBS instrument confirmed presence of sulfur near lunar south pole.", 0.88, "VERIFIED", "ISRO Scientific Telemetry Report PIB-2023"),
-                        ("Pragyan rover executed automated spectroscopic surface sampling.", 0.72, "VERIFIED", "ISRO Mission Operations Center"),
+                        ("LIBS instrument confirmed elemental sulphur on lunar south pole.", 0.96, "VERIFIED", "ISRO Official Press Release"),
+                        ("Pragyan rover completed in-situ elemental spectroscopy.", 0.88, "VERIFIED", "Current Science Journal vol. 125"),
                     ],
                 },
-                # 2. Debunked Medical Misinformation
+                # 2. Viral Health Misinformation (Debunked)
                 {
-                    "id": "art-vaccine-microchip-002",
-                    "title": "Viral Video Claims COVID-19 Vaccines Contain RFID Microchips for Biometric Tracking",
-                    "content": "A viral claim circulated across private messaging apps asserts that mRNA COVID-19 vaccines contain metallic nanobots and injectable microchips engineered for remote biometric surveillance. Over 15 unverified accounts broadcast identical video clips within seconds.",
-                    "publisher": "Daily Conspiracy Wire",
-                    "domain": "dailyconspiracy.net",
+                    "id": "art-5g-graphene-002",
+                    "title": "Viral Post Claims COVID-19 mRNA Vaccines Contain Self-Assembling 5G Graphene Microcircuits",
+                    "content": "A widely circulated viral video asserts that COVID-19 mRNA vaccines contain microscopic graphene oxide sheets that assemble into wireless transceivers powered by 5G mobile towers. Biomedical electron microscopy studies published in nature and FDA filings confirmed zero graphene components in lipid nanoparticle formulations.",
+                    "publisher": "HealthGuard Wire / FactCheck.org",
+                    "domain": "healthguard.org",
                     "category": "Health",
                     "publish_date": (now - timedelta(days=5)).isoformat(),
                     "status": "FAKE",
                     "truth_score": 12.0,
-                    "cib_risk": 0.88,
+                    "cib_risk": 0.84,
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("COVID-19 vaccines contain injectable biometric RFID tracking microchips.", 0.95, "REFUTED", "World Health Organization & Reuters Clinical Review"),
-                        ("Vaccine components connect to 5G cellular communication towers.", 0.89, "REFUTED", "FDA Biological Product Characterization Division"),
+                        ("COVID mRNA vaccines contain self-assembling graphene oxide microcircuits.", 0.95, "REFUTED", "Nature Nanotechnology / FDA Ingredient Disclosure"),
+                        ("Lipid nanoparticles transmit wireless biometric telemetry to 5G cellular towers.", 0.89, "REFUTED", "FDA Biological Product Characterization Division"),
                     ],
                 },
                 # 3. Political Fact-Check
@@ -246,18 +246,90 @@ class EpistemicDatabase:
                         ("Private orbital booster lost telemetry over Pacific Ocean tracking zone.", 0.85, "DATA_VOID", "Pending official flight telemetry data release"),
                     ],
                 },
+                # 9. Climate Science (Real News)
+                {
+                    "id": "art-copernicus-009",
+                    "title": "Global Mean Ocean Surface Temperatures Hit 21.1C Setting All-Time Marine Heatwave Record",
+                    "content": "The National Oceanic and Atmospheric Administration (NOAA) and European Copernicus Marine Service recorded an unprecedented average global sea surface temperature of 21.1 degrees Celsius, driven by strong marine heatwaves across the North Atlantic and Pacific basins.",
+                    "publisher": "NOAA Climate Science",
+                    "domain": "noaa.gov",
+                    "category": "Climate",
+                    "publish_date": (now - timedelta(days=4)).isoformat(),
+                    "status": "REAL",
+                    "truth_score": 98.7,
+                    "cib_risk": 0.02,
+                    "language": "en",
+                    "is_synthetic": 0,
+                    "claims": [
+                        ("Global ocean surface temperatures reached 21.1C all-time marine record.", 0.95, "VERIFIED", "NOAA National Centers for Environmental Information"),
+                    ],
+                },
+                # 10. Regional Marathi Civic News (PuneFakeNews Benchmark)
+                {
+                    "id": "art-marathi-metro-010",
+                    "title": "पुणे मेट्रोच्या भूमीगत मार्गावर पुराचे पाणी शिरल्याचा दावा महामेट्रोने फेटाळला",
+                    "content": "सोशल मीडियावर व्हायरल झालेल्या ऑडिओ मेसेजमध्ये दावा केला होता की मुसळधार पावसामुळे बंडगार्डन जवळील मेट्रो बोगद्यात पाणी साचले आहे. महामेट्रोच्या अधिकाऱ्यांनी प्रत्यक्ष पाहणी करून बोगदा पूर्णपणे सुरक्षित आणि कोरडा असल्याचे अधिकृतपणे जाहीर केले.",
+                    "publisher": "MahaMetro Public Relations",
+                    "domain": "punemetrorail.org",
+                    "category": "Infrastructure",
+                    "publish_date": (now - timedelta(days=3)).isoformat(),
+                    "status": "REAL",
+                    "truth_score": 97.0,
+                    "cib_risk": 0.06,
+                    "language": "mr",
+                    "is_synthetic": 0,
+                    "claims": [
+                        ("महामेट्रोने बंडगार्डन मेट्रो बोगद्यात पाणी शिरल्याचा दावा फेटाळला.", 0.93, "VERIFIED", "महामेट्रो अधिकृत प्रसिद्धीपत्रक"),
+                    ],
+                },
+                # 11. Tech/AI Deepfake Scandal
+                {
+                    "id": "art-deepfake-bank-011",
+                    "title": "Forensic Analysis Confirms Multimillion-Dollar Corporate Wire Transfer Triggered by Deepfake Video Call",
+                    "content": "Hong Kong Police Cyber Security and Technology Crime Bureau confirmed fraudsters used real-time generative AI video avatars of corporate CFO and staff during a group video conference, convincing an employee to transfer $25 million across multiple accounts.",
+                    "publisher": "Financial Times / HK Police",
+                    "domain": "ft.com",
+                    "category": "Tech Forensics",
+                    "publish_date": (now - timedelta(days=9)).isoformat(),
+                    "status": "REAL",
+                    "truth_score": 96.5,
+                    "cib_risk": 0.05,
+                    "language": "en",
+                    "is_synthetic": 0,
+                    "claims": [
+                        ("Fraudsters used real-time AI deepfake video call to conduct $25M heist.", 0.94, "VERIFIED", "Hong Kong Police Cyber Security Bureau Press Briefing"),
+                    ],
+                },
+                # 12. Satirical Parody (Faking News / Babble)
+                {
+                    "id": "art-satire-gym-012",
+                    "title": "Local Man Resolves to Go to Gym Twice a Day Starting Next Monday for 8th Consecutive Year",
+                    "content": "In a solemn annual declaration, 26-year-old software engineer revealed bold aspirations to master intermittent fasting and Olympic deadlifts starting next Monday, citing peak motivational video absorption.",
+                    "publisher": "Faking News Network",
+                    "domain": "fakingnews.com",
+                    "category": "Satire",
+                    "publish_date": (now - timedelta(days=11)).isoformat(),
+                    "status": "SATIRE",
+                    "truth_score": 50.0,
+                    "cib_risk": 0.05,
+                    "language": "en",
+                    "is_synthetic": 0,
+                    "claims": [
+                        ("Individual resolved to enter Olympic deadlift regime next Monday.", 0.70, "OPINION", "Satirical lifestyle commentary"),
+                    ],
+                }
             ]
 
             for a in seed_articles:
                 cursor.execute("""
-                    INSERT INTO articles (id, title, content, publisher, domain, category, publish_date, status, truth_score, cib_risk, language, is_synthetic)
+                    INSERT OR REPLACE INTO articles (id, title, content, publisher, domain, category, publish_date, status, truth_score, cib_risk, language, is_synthetic)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
                 """, (a["id"], a["title"], a["content"], a["publisher"], a["domain"], a["category"], a["publish_date"], a["status"], a["truth_score"], a["cib_risk"], a["language"], a["is_synthetic"]))
 
                 for c_text, c_worth, c_stat, c_cit in a["claims"]:
                     c_id = f"clm-{abs(hash(c_text)) % 1000000}"
                     cursor.execute("""
-                        INSERT INTO claims (id, article_id, text, check_worthiness, status, citation)
+                        INSERT OR REPLACE INTO claims (id, article_id, text, check_worthiness, status, citation)
                         VALUES (?, ?, ?, ?, ?, ?)
                     """, (c_id, a["id"], c_text, c_worth, c_stat, c_cit))
 
@@ -272,9 +344,14 @@ class EpistemicDatabase:
                 ("ent-rbi", "Reserve Bank of India", "AGENCY", 0.97),
                 ("ent-theonion", "The Onion", "SATIRE_OUTLET", 0.85),
                 ("ent-dailyconspiracy", "Daily Conspiracy Wire", "UNVERIFIED_BLOG", 0.15),
+                ("ent-noaa", "NOAA Climate Service", "AGENCY", 0.98),
+                ("ent-copernicus", "Copernicus Climate Service", "AGENCY", 0.97),
+                ("ent-mahametro", "MahaMetro Pune", "CIVIC_AGENCY", 0.93),
+                ("ent-boomlive", "BoomLive FactCheck", "IFCN_VERIFIER", 0.96),
+                ("ent-quantumvitality", "Quantum Vitality Network", "SYNTHETIC_BOTNET", 0.10),
             ]
             for e_id, e_name, e_type, e_trust in entities:
-                cursor.execute("INSERT OR IGNORE INTO entities VALUES (?, ?, ?, ?)", (e_id, e_name, e_type, e_trust))
+                cursor.execute("INSERT OR REPLACE INTO entities VALUES (?, ?, ?, ?)", (e_id, e_name, e_type, e_trust))
 
             edges = [
                 ("ent-isro", "ent-pragyan", "OPERATES", 1.0),
@@ -282,9 +359,14 @@ class EpistemicDatabase:
                 ("ent-isro", "ent-pib", "PUBLISHES_THROUGH", 0.9),
                 ("ent-who", "ent-mrna", "VERIFIES_SAFETY", 1.0),
                 ("ent-dailyconspiracy", "ent-mrna", "FABRICATES_CLAIMS", 0.9),
+                ("ent-noaa", "ent-copernicus", "COLLABORATES_WITH", 0.95),
+                ("ent-mahametro", "ent-pib", "RELEASES_STATEMENTS", 0.88),
+                ("ent-boomlive", "ent-dailyconspiracy", "DEBUNKS", 1.0),
+                ("ent-boomlive", "ent-quantumvitality", "DEBUNKS", 1.0),
+                ("ent-rbi", "ent-pib", "NOTIFIES_MONETARY_POLICY", 0.95),
             ]
             for s, t, r, w in edges:
-                cursor.execute("INSERT OR IGNORE INTO entity_edges VALUES (?, ?, ?, ?)", (s, t, r, w))
+                cursor.execute("INSERT OR REPLACE INTO entity_edges VALUES (?, ?, ?, ?)", (s, t, r, w))
 
             conn.commit()
 
@@ -324,7 +406,6 @@ class EpistemicDatabase:
             results = []
             for r in rows:
                 art = dict(r)
-                # Fetch claims
                 cursor.execute("SELECT * FROM claims WHERE article_id = ?", (art["id"],))
                 art["claims"] = [dict(c) for c in cursor.fetchall()]
                 results.append(art)
@@ -339,6 +420,15 @@ class EpistemicDatabase:
 
             cursor.execute("SELECT * FROM entity_edges")
             edges = [dict(r) for r in cursor.fetchall()]
+
+            # Compute degree centrality for node sizing
+            degrees: Dict[str, int] = {}
+            for e in edges:
+                degrees[e["source"]] = degrees.get(e["source"], 0) + 1
+                degrees[e["target"]] = degrees.get(e["target"], 0) + 1
+
+            for n in nodes:
+                n["degree"] = degrees.get(n["id"], 1)
 
             return {"nodes": nodes, "edges": edges}
 

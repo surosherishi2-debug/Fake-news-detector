@@ -1,9 +1,9 @@
 {
   "project": "FakeX / TruthLens-Omni",
-  "version": "1.2.0",
+  "version": "1.3.0",
   "description": "Full-Spectrum Epistemic Intelligence & Publishing Integrity Platform",
-  "current_maturity_percentage": 55,
-  "active_phase": 3,
+  "current_maturity_percentage": 70,
+  "active_phase": 4,
   "phases": [
     {
       "id": 1,
@@ -37,17 +37,29 @@
         { "id": "T3.1", "title": "Persistent Epistemic SQLite Knowledge Database & Benchmark Splits", "status": "completed" },
         { "id": "T3.2", "title": "Daily Info Grounded Newsfeed with Category & Status Filters", "status": "completed" },
         { "id": "T3.3", "title": "Pre-Flight Self-News Studio (Authoring Draft Fact-Checker)", "status": "completed" },
-        { "id": "T3.4", "title": "Synthetic AI vs Human Forensics (Burstiness & Entropy Detector)", "status": "completed" },
+        { "id": "T3.4", "title": "Synthetic AI vs Human Forensics (GLTR Token Rank Heatmap & Entropy)", "status": "completed" },
         { "id": "T3.5", "title": "The Living Knowledge Graph (Entity-Event-Claim Network)", "status": "completed" }
       ]
     },
     {
       "id": 4,
-      "name": "Phase 4: Commercial Hardening, vLLM Optimization & Chrome Extension",
+      "name": "Phase 4: Academic Rigor, Model Refinements & Empirical Benchmarking",
+      "status": "completed",
+      "tasks": [
+        { "id": "T4.1", "title": "Context-Enhanced Attention Mechanism (CEAM) PyTorch Architecture", "status": "completed" },
+        { "id": "T4.2", "title": "Academic Benchmark Loaders (PuneFakeNews-2024, LIAR-Plus, CoAID)", "status": "completed" },
+        { "id": "T4.3", "title": "Live RSS News Crawler & Ingestion Pipeline", "status": "completed" },
+        { "id": "T4.4", "title": "Adversarial Attack Simulation Suite (TextFooler Synonym Perturbation)", "status": "completed" },
+        { "id": "T4.5", "title": "Guide & Thesis Defense Dashboard with Empirical Performance Matrix", "status": "completed" }
+      ]
+    },
+    {
+      "id": 5,
+      "name": "Phase 5: Commercial Hardening, WhatsApp Bot & Browser Extension",
       "status": "pending",
       "tasks": [
-        { "id": "T4.1", "title": "Chrome Extension (Manifest V3)", "status": "pending" },
-        { "id": "T4.2", "title": "Adversarial Stress-Testing Suite (TextFooler)", "status": "pending" }
+        { "id": "T5.1", "title": "Chrome Extension (Manifest V3) for Real-Time Feed Ingestion", "status": "pending" },
+        { "id": "T5.2", "title": "WhatsApp Web Forward Verifier Hook", "status": "pending" }
       ]
     }
   ]

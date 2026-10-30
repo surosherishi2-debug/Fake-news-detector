@@ -142,3 +142,17 @@ def test_api_endpoints():
     # 6. Forensics endpoint
     forensics = detect_synthetic_ai_text(ForensicsRequest(text="It is crucial to note that technology evolves."))
     assert forensics.ai_generated_probability >= 0.0
+
+    # 7. Benchmarks & Guide Dossier endpoints
+    from src.api.server import get_empirical_benchmarks, get_guide_presentation_dossier, run_adversarial_perturbation, AdversarialRequest
+    bench = get_empirical_benchmarks("pune_fakenews_2024")
+    assert len(bench.models) >= 4
+
+    dossier = get_guide_presentation_dossier()
+    assert len(dossier["theoretical_innovations"]) == 4
+    assert len(dossier["datasets_integrated"]) == 4
+
+    # 8. Adversarial endpoint
+    adv_res = run_adversarial_perturbation(AdversarialRequest(text="The FDA approved the safe medicine in trials.", budget=0.30))
+    assert "perturbed_text" in adv_res
+    assert "clean_verdict" in adv_res
