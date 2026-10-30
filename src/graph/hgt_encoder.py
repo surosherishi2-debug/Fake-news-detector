@@ -5,11 +5,17 @@ Heterogeneous representation of Article, User, and Publisher nodes and their sha
 """
 
 from typing import Dict, List, Optional
-import torch
-import torch.nn as nn
+try:
+    import torch
+    import torch.nn as nn
+    ModuleBase = nn.Module
+except ImportError:
+    torch = None
+    nn = None
+    ModuleBase = object
 from src.core.types import SocialCascade, NodeType, RelationType
 
-class HeteroGraphEncoder(nn.Module):
+class HeteroGraphEncoder(ModuleBase):
     """
     Lightweight PyTorch neural encoder for heterogeneous propagation cascades.
     Combines node type projections, neighbor aggregation, and structural anomaly scoring.

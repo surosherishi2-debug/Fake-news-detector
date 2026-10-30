@@ -21,7 +21,7 @@ class Settings:
     TAVILY_API_KEY: Optional[str] = os.getenv("TAVILY_API_KEY", None)
     
     # Server settings
-    HOST: str = os.getenv("HOST", "127.0.0.1")
+    HOST: str = os.getenv("HOST", "0.0.0.0")
     PORT: int = int(os.getenv("PORT", "8000"))
 
 settings = Settings()

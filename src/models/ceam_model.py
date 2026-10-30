@@ -7,11 +7,18 @@ and Heterogeneous Graph Transformer (HGT) social cascade embeddings via Gated Cr
 
 import math
 from typing import Optional, Tuple, Dict, Any
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
+try:
+    import torch
+    import torch.nn as nn
+    import torch.nn.functional as F
+    ModuleBase = nn.Module
+except ImportError:
+    torch = None
+    nn = None
+    F = None
+    ModuleBase = object
 
-class CrossAttentionLayer(nn.Module):
+class CrossAttentionLayer(ModuleBase):
     """
     Multi-Head Cross-Attention between Query (Claim) and Key/Value (Evidence).
     Applies temporal decay attenuation directly to attention logits:
@@ -70,7 +77,7 @@ class CrossAttentionLayer(nn.Module):
 
         return output, attn_weights
 
-class MultimodalGatedFusion(nn.Module):
+class MultimodalGatedFusion(ModuleBase):
     """
     Gated Fusion mechanism combining textual cross-attended context with
     graph cascade embeddings from the Heterogeneous Graph Transformer (HGT).
@@ -101,7 +108,7 @@ class MultimodalGatedFusion(nn.Module):
         fused = gate * h_text + (1.0 - gate) * h_graph_proj
         return self.layer_norm(fused)
 
-class CEAMTruthLensModel(nn.Module):
+class CEAMTruthLensModel(ModuleBase):
     """
     Full PyTorch implementation of the Context-Enhanced Attention TruthLens architecture.
     4 output classes: 0: REAL, 1: FAKE, 2: SATIRE, 3: DATA_VOID
