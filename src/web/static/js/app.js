@@ -40,13 +40,38 @@ document.addEventListener('DOMContentLoaded', () => {
     state.activeTab = tabName;
     window.location.hash = tabName;
 
-    // Update Top Pill Bar
-    tabButtons.forEach((btn) => {
+    // Update Top Navigation Tab & Dropdown Button Styles
+    const allNavButtons = document.querySelectorAll('.nav-tab-btn');
+    allNavButtons.forEach((btn) => {
       const target = btn.getAttribute('data-tab');
+      const isDropdownItem = btn.classList.contains('nav-dropdown-item');
+
       if (target === tabName) {
-        btn.className = 'nav-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600 text-white shadow-xs whitespace-nowrap';
+        if (isDropdownItem) {
+          btn.classList.add('is-active', 'bg-indigo-600', 'text-white');
+        } else {
+          btn.className = 'nav-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600 text-white shadow-xs whitespace-nowrap';
+        }
       } else {
-        btn.className = 'nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap';
+        if (isDropdownItem) {
+          btn.classList.remove('is-active', 'bg-indigo-600', 'text-white');
+        } else {
+          btn.className = 'nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap';
+        }
+      }
+    });
+
+    // Highlight active dropdown group trigger
+    const groupContainers = document.querySelectorAll('.nav-dropdown-group');
+    groupContainers.forEach((group) => {
+      const activeChild = group.querySelector(`[data-tab="${tabName}"]`);
+      const triggerBtn = group.querySelector('.nav-group-trigger');
+      if (triggerBtn) {
+        if (activeChild) {
+          triggerBtn.className = 'nav-group-trigger px-3.5 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 flex items-center gap-1 shadow-xs';
+        } else {
+          triggerBtn.className = 'nav-group-trigger px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1 transition';
+        }
       }
     });
 
@@ -77,6 +102,8 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     }
   }
+
+  window.switchTab = switchTab;
 
   tabButtons.forEach((btn) => {
     btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
@@ -194,19 +221,26 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const langBadge = art.language === 'mr' ? 'मराठी' : (art.language === 'hi' ? 'हिन्दी' : 'EN');
         const shortId = art.id.length > 14 ? art.id.substring(0, 14) + '...' : art.id;
+        const pubInitial = (art.publisher || 'TL').substring(0, 2).toUpperCase();
 
         return `
-          <div onclick="selectFeedArticle('${art.id}')" class="p-4 rounded-2xl border ${cardBg} cursor-pointer transition-all duration-150 space-y-2">
+          <div onclick="selectFeedArticle('${art.id}')" class="p-4 rounded-2xl border ${cardBg} cursor-pointer transition-all duration-150 space-y-2.5">
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center gap-1.5">
                 <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusBadge}">${statusIcon}</span>
                 <span class="px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono text-[9px] font-bold border border-white/5">${langBadge}</span>
+                <span class="px-2 py-0.5 rounded-full bg-white/5 text-slate-400 text-[9px] font-medium hidden sm:inline-block">${art.category || 'News'}</span>
               </div>
               <span class="text-[11px] font-mono text-slate-400">${shortId}</span>
             </div>
-            <h4 class="text-xs font-semibold text-slate-100 line-clamp-1 leading-snug">${art.title}</h4>
+            <h4 class="text-xs font-semibold text-slate-100 line-clamp-2 leading-snug">${art.title}</h4>
             <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-white/10 text-slate-400">
-              <span class="truncate max-w-[160px] text-slate-300">${art.publisher}</span>
+              <div class="flex items-center gap-2 truncate max-w-[200px]">
+                <div class="w-5 h-5 rounded-full bg-indigo-600/40 text-indigo-200 border border-indigo-400/30 flex items-center justify-center font-bold text-[9px]">
+                  ${pubInitial}
+                </div>
+                <span class="truncate text-slate-300 font-medium">${art.publisher}</span>
+              </div>
               <span class="tabular font-semibold ${truthColor}">${art.truth_score}% Integrity</span>
             </div>
           </div>
@@ -367,6 +401,25 @@ document.addEventListener('DOMContentLoaded', () => {
         <p class="text-xs text-slate-300 leading-relaxed font-normal">${art.content}</p>
       </div>
 
+      <!-- Auditor Profile & Provenance Card (Finnova Style) -->
+      <div class="flex items-center justify-between p-3.5 bg-white/[0.06] border border-white/10 rounded-2xl flex-wrap gap-3">
+        <div class="flex items-center gap-3">
+          <div class="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-indigo-400/40">
+            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Auditor" class="w-full h-full object-cover">
+            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-1 ring-[#151624]"></span>
+          </div>
+          <div>
+            <div class="text-xs font-bold text-white leading-tight">Dr. Rhea Sen</div>
+            <div class="text-[10px] text-slate-300">Lead Fact Examiner • Accredited Fact-Checking Desk</div>
+          </div>
+        </div>
+        <div class="flex items-center gap-2">
+          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-white/10 text-indigo-200 border border-white/15">
+            <span>🛡️</span> Zero-Assumption Audit
+          </span>
+        </div>
+      </div>
+
       <!-- 3 Key Metric Chips (Finnova Translucent Glass Cards) -->
       <div class="grid grid-cols-3 gap-3">
         <div class="p-3.5 rounded-2xl bg-white/[0.08] border border-white/10 backdrop-blur-sm">
@@ -410,14 +463,14 @@ document.addEventListener('DOMContentLoaded', () => {
       <div class="pt-4 border-t border-white/10 flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center gap-2">
           <button onclick="inspectFeedArticle('${art.id}', '${encodeURIComponent(art.title)}', '${encodeURIComponent(art.content)}', '${art.domain}')" class="px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs rounded-full shadow-md transition flex items-center gap-2">
-            <span>Verify in Deep Tri-Modal →</span>
+            <span>Verify in Deep Fact Checker →</span>
           </button>
           <button onclick="switchTab('graph')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium text-xs rounded-full border border-white/15 transition">
             Knowledge Graph
           </button>
         </div>
         <button onclick="switchTab('cascades')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium text-xs rounded-full border border-white/15 transition">
-          Cascades Radar
+          Botnet Radar
         </button>
       </div>
     `;
