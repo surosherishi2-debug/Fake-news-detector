@@ -1,0 +1,114 @@
+{
+  "project": "FakeX / TruthLens-Omni",
+  "version": "1.0.0",
+  "description": "Real-Time Multimodal Misinformation Intelligence & Consensus Engine",
+  "active_phase": 1,
+  "phases": [
+    {
+      "id": 1,
+      "name": "Phase 1: Foundations, Dynamic RAG & Temporal Evidence Alignment",
+      "status": "completed",
+      "tasks": [
+        {
+          "id": "T1.1",
+          "title": "Core Architecture & Type System Setup",
+          "description": "Implement Pydantic schemas for Claim, Evidence, SocialCascade, and VerificationResult.",
+          "status": "completed"
+        },
+        {
+          "id": "T1.2",
+          "title": "Temporal Credibility Decay Module",
+          "description": "Implement w(t) = exp(-lambda * delta_t) decay function with date parsing and unit tests.",
+          "status": "completed"
+        },
+        {
+          "id": "T1.3",
+          "title": "Atomic Claim Decomposition Engine",
+          "description": "Extract check-worthy factual assertions from raw news text.",
+          "status": "completed"
+        },
+        {
+          "id": "T1.4",
+          "title": "Fact-Checking Knowledge Base & ClaimReview Client",
+          "description": "Implement Google Fact Check Tools API client with ClaimReview parsing and local cache fallback.",
+          "status": "completed"
+        },
+        {
+          "id": "T1.5",
+          "title": "Heterogeneous Cascade Graph Module (PGE)",
+          "description": "PyTorch Geometric cascade model for article-user-publisher diffusion topologies.",
+          "status": "completed"
+        },
+        {
+          "id": "T1.6",
+          "title": "TruthLens End-to-End Fusion Engine & FastAPI Service",
+          "description": "Unify CEAM, PGE, and temporal decay into sub-second verification API with test suite.",
+          "status": "completed"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "name": "Phase 2: Graph Cascades, Coordinated Inauthentic Behavior & Indic Robustness",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "T2.1",
+          "title": "Bluesky AT Protocol Jetstream Consumer",
+          "description": "Ingest live public social graph stream for real-time cascade tracking.",
+          "status": "pending"
+        },
+        {
+          "id": "T2.2",
+          "title": "IndicBERT & MuRIL Multilingual Backbone",
+          "description": "Close the 7.2% English-to-Hindi performance gap on PuneFakeNews-2024.",
+          "status": "pending"
+        },
+        {
+          "id": "T2.3",
+          "title": "Satire Contrastive Disentanglement Head",
+          "description": "Implement contrastive loss to distinguish satire mimicry from malicious disinformation.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "name": "Phase 3: Multimodal Verification & Bridging Consensus Engine",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "T3.1",
+          "title": "SigLIP Text-Image Entailment",
+          "description": "Zero-shot visual-textual contradiction detector for out-of-context memes.",
+          "status": "pending"
+        },
+        {
+          "id": "T3.2",
+          "title": "Community Notes Matrix Factorization Engine",
+          "description": "Implement Twitter/X bridging consensus algorithm to eliminate censorship bias.",
+          "status": "pending"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "name": "Phase 4: Production Scale, Edge Delivery & Public Defense Suite",
+      "status": "pending",
+      "tasks": [
+        {
+          "id": "T4.1",
+          "title": "Chrome Extension (Manifest V3)",
+          "description": "In-feed contextual nutrition cards for Twitter/X, Reddit, and WhatsApp Web.",
+          "status": "pending"
+        },
+        {
+          "id": "T4.2",
+          "title": "Next.js 15 3D WebGL Intelligence Dashboard",
+          "description": "High-density real-time monitoring dashboard with Sigma.js cascade graphs.",
+          "status": "pending"
+        }
+      ]
+    }
+  ]
+}
