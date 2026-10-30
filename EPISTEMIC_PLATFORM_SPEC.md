@@ -41,3 +41,4 @@ To eliminate the appearance of a hardcoded toy app, the system is backed by an *
 - **Real Benchmark Records:** Curated splits from `PuneFakeNews-2024` (bilingual English/Hindi), `FakeNewsNet` (PolitiFact + GossipCop), and `LIAR`.
 - **Live RSS Multi-Source Ingestion:** Automated collectors monitoring news wires (Reuters, PIB, BBC, Nature, The Hindu, BoomLive) and satire feeds (The Onion).
 - **Persistent Historical Entity Store:** Mapping 500+ global entities, medical terms, government agencies, and political actors to their official verification records.
+

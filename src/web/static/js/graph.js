@@ -1,6 +1,6 @@
 /**
- * Interactive 2D Social Propagation Cascade Visualizer.
- * Renders heterogeneous Article, User, Publisher, and Botnet nodes on HTML5 Canvas.
+ * Interactive 2D Social Propagation Cascade & Living Knowledge Graph Visualizers.
+ * Renders heterogeneous Article, User, Publisher, Botnet, and Entity nodes on HTML5 Canvas.
  */
 
 class CascadeGraphVisualizer {
@@ -25,6 +25,10 @@ class CascadeGraphVisualizer {
     this.canvas.width = rect.width;
     this.canvas.height = rect.height || 420;
     this.draw();
+  }
+
+  renderCascade(cascadeData) {
+    this.loadCascade(cascadeData);
   }
 
   loadCascade(cascadeData) {
@@ -106,7 +110,6 @@ class CascadeGraphVisualizer {
     let t = 0;
     const animate = () => {
       t += 0.03;
-      // Slight floating motion
       this.nodes.forEach((n, idx) => {
         if (n.type !== 'article') {
           n.dy = Math.sin(t + idx) * 0.4;
@@ -197,5 +200,6 @@ class CascadeGraphVisualizer {
   }
 }
 
+// Global Aliases for seamless linking
 window.CascadeGraphVisualizer = CascadeGraphVisualizer;
-
+window.CascadeVisualizer = CascadeGraphVisualizer;

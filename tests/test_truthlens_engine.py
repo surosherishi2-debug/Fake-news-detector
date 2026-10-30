@@ -156,3 +156,24 @@ def test_api_endpoints():
     adv_res = run_adversarial_perturbation(AdversarialRequest(text="The FDA approved the safe medicine in trials.", budget=0.30))
     assert "perturbed_text" in adv_res
     assert "clean_verdict" in adv_res
+
+    # 9. Preflight Publish to Daily Feed & Knowledge Graph
+    from src.api.server import publish_story_draft, PublishDraftRequest, get_entity_subgraph, export_guide_dossier_markdown
+    pub_res = publish_story_draft(PublishDraftRequest(
+        title="Student Grounded Investigation: Local Clean Energy Microgrid",
+        content="Engineers validated 100kW rooftop solar microgrid deployment.",
+        category="Climate",
+        assertions=[{"text": "Rooftop solar microgrid generated 100kW power.", "is_supported": True}]
+    ))
+    assert pub_res["success"] is True
+    assert "article_id" in pub_res
+
+    # 10. Entity Details Subgraph
+    ent_sub = get_entity_subgraph("ent-isro")
+    assert ent_sub["name"] == "ISRO"
+    assert "connections" in ent_sub
+
+    # 11. Markdown Dossier Export
+    md_dossier = export_guide_dossier_markdown()
+    assert "# TruthLens-Omni" in md_dossier
+    assert "Temporal Decay" in md_dossier

@@ -248,3 +248,4 @@ class RSSNewsCrawler:
                 ))
 
             conn.commit()
+

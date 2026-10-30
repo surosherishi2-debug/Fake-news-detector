@@ -96,3 +96,4 @@ class AdversarialAttackSimulator:
         actual_mod_rate = len(substitutions) / max(1, len(words))
 
         return perturbed_final, substitutions, round(actual_mod_rate, 4)
+

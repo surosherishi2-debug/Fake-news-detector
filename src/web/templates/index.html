@@ -148,13 +148,30 @@
           </button>
         </div>
 
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+          <input id="preflight-title" type="text" placeholder="Draft Story Headline (e.g. Breakthrough In Situ Mineral Spectroscopy Results)" class="md:col-span-2 px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5]">
+          <select id="preflight-category" class="px-3 py-2 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-medium focus:ring-2 focus:ring-[#5E4BF5]">
+            <option value="Science & Tech">Science & Tech</option>
+            <option value="Health">Health</option>
+            <option value="Politics">Politics</option>
+            <option value="Finance">Finance</option>
+            <option value="Climate">Climate</option>
+            <option value="General">General</option>
+          </select>
+        </div>
+
         <textarea id="preflight-draft-text" rows="4" placeholder="Write or paste your article draft here to audit its factual grounding and bias..." class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5]"></textarea>
 
-        <div class="flex items-center justify-between text-xs text-slate-400">
+        <div class="flex items-center justify-between text-xs text-slate-400 flex-wrap gap-2">
           <span id="preflight-word-count">0 words | Estimated read: 0 min</span>
-          <button id="btn-run-preflight" class="px-6 py-2.5 bg-[#5E4BF5] hover:bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 transition">
-            Audit My Story Before Publishing
-          </button>
+          <div class="flex items-center gap-2">
+            <button id="btn-run-preflight" class="px-5 py-2.5 bg-[#5E4BF5] hover:bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 transition">
+              Audit Story Before Publishing
+            </button>
+            <button id="btn-publish-story" class="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold shadow-md shadow-emerald-500/20 transition flex items-center gap-1.5">
+              🚀 Publish to Epistemic Store
+            </button>
+          </div>
         </div>
       </div>
 
@@ -281,6 +298,21 @@
 
         <div class="w-full h-[460px] bg-slate-50 rounded-2xl border border-slate-200 overflow-hidden relative">
           <canvas id="kg-canvas" class="w-full h-full block"></canvas>
+        </div>
+
+        <!-- Entity Node Inspector -->
+        <div id="kg-entity-inspector" class="p-4 bg-slate-50 rounded-2xl border border-slate-200 text-xs space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-800">Entity Node Inspector: <span id="kg-inspector-name" class="text-[#5E4BF5]">Click any node on the graph above to inspect</span></span>
+            <span id="kg-inspector-trust" class="text-[11px] font-mono px-2 py-0.5 rounded bg-slate-200 text-slate-700">Trust: --</span>
+          </div>
+          <div id="kg-inspector-details" class="text-slate-600 flex items-center justify-between flex-wrap gap-2">
+            <span>Type: <b id="kg-inspector-type">--</b></span>
+            <span>Relational Degree: <b id="kg-inspector-degree">--</b></span>
+            <button id="btn-kg-filter-feed" class="px-3 py-1 bg-indigo-50 hover:bg-indigo-100 text-[#5E4BF5] font-semibold rounded-lg text-xs transition">
+              Find Stories Mentioning This Entity →
+            </button>
+          </div>
         </div>
       </div>
     </section>
@@ -452,6 +484,9 @@
           </select>
           <button id="btn-refresh-benchmarks" class="px-3.5 py-1.5 bg-[#5E4BF5] hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold shadow-sm transition">
             Run Benchmark
+          </button>
+          <button id="btn-export-dossier" class="px-3.5 py-1.5 bg-[#111622] hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
+            📥 Export Dossier (.MD)
           </button>
         </div>
       </div>

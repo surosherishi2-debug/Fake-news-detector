@@ -82,3 +82,4 @@ def test_rss_crawler_offline_fallback():
     assert result.articles_ingested >= 3
     assert result.claims_extracted >= 3
     assert result.mode == "OFFLINE_ARCHIVE_FALLBACK"
+

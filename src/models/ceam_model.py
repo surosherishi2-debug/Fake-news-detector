@@ -197,3 +197,4 @@ class CEAMTruthLensModel(nn.Module):
             "probabilities": {labels[i]: round(probs[i], 4) for i in range(len(labels))},
             "temporal_weight_applied": float(temporal_decay_weights.item()) if temporal_decay_weights is not None else 1.0
         }
+

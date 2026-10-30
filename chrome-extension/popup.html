@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TruthLens-Omni Extension</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      width: 360px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+      background: #F4F5FA;
+      color: #0F172A;
+      padding: 16px;
+    }
+    header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 12px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid #E2E8F0;
+    }
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .logo {
+      width: 28px;
+      height: 28px;
+      background: #5E4BF5;
+      color: #fff;
+      font-weight: bold;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 13px;
+    }
+    h1 { font-size: 14px; font-weight: 700; color: #1E293B; }
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #10B981;
+    }
+    .quick-actions {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    button {
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 600;
+      border-radius: 10px;
+      padding: 8px 12px;
+      border: none;
+      transition: all 0.2s;
+    }
+    .btn-primary {
+      background: #5E4BF5;
+      color: #ffffff;
+      flex: 1;
+    }
+    .btn-primary:hover { background: #4D3AE0; }
+    .btn-secondary {
+      background: #111622;
+      color: #ffffff;
+    }
+    .btn-secondary:hover { background: #1E293B; }
+    textarea {
+      width: 100%;
+      height: 70px;
+      padding: 8px 10px;
+      font-size: 11px;
+      border: 1px solid #CBD5E1;
+      border-radius: 10px;
+      margin-bottom: 10px;
+      resize: none;
+      outline: none;
+      font-family: inherit;
+    }
+    textarea:focus { border-color: #5E4BF5; }
+    .result-card {
+      background: #ffffff;
+      border: 1px solid #E2E8F0;
+      border-radius: 12px;
+      padding: 12px;
+      display: none;
+      margin-top: 8px;
+    }
+    .verdict-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .verdict-badge {
+      font-size: 10px;
+      font-weight: 700;
+      padding: 3px 8px;
+      border-radius: 12px;
+      text-transform: uppercase;
+    }
+    .verdict-VERIFIED { background: #ECFDF5; color: #047857; border: 1px solid #A7F3D0; }
+    .verdict-REFUTED { background: #FEF2F2; color: #B91C1C; border: 1px solid #FECACA; }
+    .verdict-UNCERTAIN { background: #FFFBEB; color: #B45309; border: 1px solid #FDE68A; }
+    .score { font-size: 16px; font-weight: 800; color: #0F172A; }
+    .nutrition-text { font-size: 11px; color: #475569; line-height: 1.4; margin-top: 6px; }
+    footer {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 10px;
+      color: #94A3B8;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <div class="logo">TL</div>
+      <h1>TruthLens-Omni</h1>
+    </div>
+    <div style="display:flex; align-items:center; gap:4px; font-size:10px; color:#64748B;">
+      <span class="status-dot"></span> Local Engine Active
+    </div>
+  </header>
+
+  <div class="quick-actions">
+    <button id="btn-verify-tab" class="btn-primary">⚡ Audit Active Tab</button>
+  </div>
+
+  <textarea id="popup-input-text" placeholder="Or paste highlighted sentence/claim to verify..."></textarea>
+  <button id="btn-verify-text" class="btn-secondary" style="width:100%;">Audit Assertion</button>
+
+  <div id="popup-result" class="result-card">
+    <div class="verdict-header">
+      <span id="popup-verdict-badge" class="verdict-badge">VERIFIED</span>
+      <span id="popup-truth-score" class="score">94.8%</span>
+    </div>
+    <div style="font-size:10px; color:#64748B;">Temporal Freshness: <b id="popup-freshness" style="color:#0F172A;">w(t) = 0.95</b></div>
+    <p id="popup-nutrition" class="nutrition-text">Contextual nutrition summary will appear here.</p>
+  </div>
+
+  <footer>Connected to TruthLens API at http://127.0.0.1:8000</footer>
+
+  <script src="popup.js"></script>
+</body>
+</html>

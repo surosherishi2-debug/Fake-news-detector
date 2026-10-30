@@ -432,4 +432,90 @@ class EpistemicDatabase:
 
             return {"nodes": nodes, "edges": edges}
 
+    def publish_article(
+        self,
+        article_data: Dict[str, Any],
+        claims_data: List[Dict[str, Any]],
+        entities_data: Optional[List[Dict[str, Any]]] = None,
+    ) -> str:
+        """
+        Publish newly audited draft from Self-News Studio into the persistent epistemic store.
+        Connects authoring directly to the daily feed and knowledge graph.
+        """
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            art_id = article_data.get("id") or f"art-self-{int(datetime.now().timestamp())}"
+            cursor.execute("""
+                INSERT OR REPLACE INTO articles 
+                (id, title, content, publisher, domain, category, publish_date, status, truth_score, cib_risk, language, is_synthetic)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            """, (
+                art_id,
+                article_data["title"],
+                article_data["content"],
+                article_data.get("publisher", "Independent Journalist"),
+                article_data.get("domain", "self-published.org"),
+                article_data.get("category", "General"),
+                article_data.get("publish_date", datetime.now(timezone.utc).isoformat()),
+                article_data.get("status", "VERIFIED"),
+                article_data.get("truth_score", 85.0),
+                article_data.get("cib_risk", 0.05),
+                article_data.get("language", "en"),
+                article_data.get("is_synthetic", 0)
+            ))
+
+            for j, c in enumerate(claims_data):
+                c_id = f"{art_id}-c{j}"
+                cursor.execute("""
+                    INSERT OR REPLACE INTO claims 
+                    (id, article_id, text, check_worthiness, status, citation)
+                    VALUES (?, ?, ?, ?, ?, ?)
+                """, (
+                    c_id,
+                    art_id,
+                    c.get("text", ""),
+                    c.get("check_worthiness", 0.75),
+                    c.get("status", "VERIFIED"),
+                    c.get("citation", "Author Grounded Source")
+                ))
+
+            if entities_data:
+                for ent in entities_data:
+                    e_id = ent.get("id", f"ent-{ent['name'].lower().replace(' ', '-')}")
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO entities (id, name, entity_type, trust_score)
+                        VALUES (?, ?, ?, ?)
+                    """, (e_id, ent["name"], ent.get("type", "TOPIC"), ent.get("trust_score", 0.90)))
+
+                    cursor.execute("""
+                        INSERT OR IGNORE INTO entity_edges (source, target, relation, weight)
+                        VALUES (?, ?, ?, ?)
+                    """, (art_id, e_id, "DISCUSSES_ENTITY", 1.0))
+
+            conn.commit()
+            return art_id
+
+    def get_entity_details(self, entity_id: str) -> Optional[Dict[str, Any]]:
+        """Retrieve detailed relational subgraph and connected articles for an entity."""
+        with self._get_connection() as conn:
+            cursor = conn.cursor()
+            cursor.execute("SELECT * FROM entities WHERE id = ?", (entity_id,))
+            ent = cursor.fetchone()
+            if not ent:
+                return None
+
+            result = dict(ent)
+            cursor.execute("SELECT * FROM entity_edges WHERE source = ? OR target = ?", (entity_id, entity_id))
+            result["connections"] = [dict(r) for r in cursor.fetchall()]
+
+            # Fetch related articles mentioning this entity
+            cursor.execute("""
+                SELECT * FROM articles 
+                WHERE title LIKE ? OR content LIKE ? 
+                LIMIT 5
+            """, (f"%{result['name']}%", f"%{result['name']}%"))
+            result["related_articles"] = [dict(r) for r in cursor.fetchall()]
+
+            return result
+
 db = EpistemicDatabase()

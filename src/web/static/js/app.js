@@ -7,11 +7,14 @@
 document.addEventListener('DOMContentLoaded', () => {
   const state = {
     activeTab: 'feed',
-    currentRole: 'journalist',
+    currentRole: localStorage.getItem('truthlens_role') || 'journalist',
     claims: [],
     selectedClaimIndex: 0,
     latestResult: null,
     graphVisualizer: null,
+    latestPreflightReport: null,
+    kgNodePositions: {},
+    selectedKgEntity: null,
   };
 
   const tabButtons = document.querySelectorAll('.nav-tab-btn');
@@ -232,6 +235,7 @@ document.addEventListener('DOMContentLoaded', () => {
   };
 
   function renderPreflightReport(report) {
+    state.latestPreflightReport = report;
     const scoreBox = document.getElementById('preflight-score');
     const assertionsBox = document.getElementById('preflight-assertions-list');
     const recsBox = document.getElementById('preflight-recs-list');
@@ -269,6 +273,48 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
       `;
     }).join('');
+  }
+
+  const publishStoryBtn = document.getElementById('btn-publish-story');
+  if (publishStoryBtn) {
+    publishStoryBtn.addEventListener('click', async () => {
+      const title = document.getElementById('preflight-title')?.value.trim() || 'Audited Independent Story';
+      const draft_text = preflightDraftInput?.value.trim() || '';
+      const category = document.getElementById('preflight-category')?.value || 'General';
+
+      if (!draft_text) return alert('Please enter story content before publishing.');
+
+      publishStoryBtn.innerText = 'Publishing to Store...';
+      publishStoryBtn.disabled = true;
+
+      try {
+        const resp = await fetch('/api/v1/preflight/publish', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            title,
+            content: draft_text,
+            category,
+            publisher: state.currentRole === 'journalist' ? 'Investigative Journalist' : 'Digital Citizen',
+            assertions: state.latestPreflightReport?.assertions || [],
+            truth_score: state.latestPreflightReport?.audit_readiness_score || 85.0
+          })
+        });
+        const res = await resp.json();
+        if (res.success) {
+          alert(res.message);
+          switchTab('feed');
+          loadDailyFeed();
+        } else {
+          alert('Publication error: ' + (res.message || 'Unknown error'));
+        }
+      } catch (err) {
+        alert('Network error while publishing story: ' + err.message);
+      } finally {
+        publishStoryBtn.innerText = '🚀 Publish to Epistemic Store';
+        publishStoryBtn.disabled = false;
+      }
+    });
   }
 
   // ==========================================
@@ -420,6 +466,42 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.fillStyle = '#1E293B';
       ctx.fillText(n.name, n.x, n.y + 24);
     });
+
+    state.kgNodePositions = nodePositions;
+
+    // Attach click inspection to kg-canvas if not already attached
+    if (!canvas.dataset.hasClickListener) {
+      canvas.dataset.hasClickListener = 'true';
+      canvas.addEventListener('click', (e) => {
+        const rect = canvas.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+
+        for (const n of Object.values(state.kgNodePositions)) {
+          const dist = Math.hypot(n.x - mx, n.y - my);
+          if (dist < 20) {
+            state.selectedKgEntity = n.name;
+            document.getElementById('kg-inspector-name').innerText = n.name;
+            document.getElementById('kg-inspector-trust').innerText = `Trust: ${(n.trust_score * 100).toFixed(0)}%`;
+            document.getElementById('kg-inspector-type').innerText = n.entity_type;
+            document.getElementById('kg-inspector-degree').innerText = n.degree || 1;
+            break;
+          }
+        }
+      });
+    }
+  }
+
+  const kgFilterFeedBtn = document.getElementById('btn-kg-filter-feed');
+  if (kgFilterFeedBtn) {
+    kgFilterFeedBtn.addEventListener('click', () => {
+      if (!state.selectedKgEntity) return alert('Click a node on the knowledge graph first.');
+      const searchBox = document.getElementById('feed-search-input');
+      if (searchBox) searchBox.value = state.selectedKgEntity;
+      switchTab('feed');
+      loadDailyFeed();
+    });
+  }
   }
 
   // ==========================================
@@ -783,6 +865,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   window.selectRole = function(role) {
     state.currentRole = role;
+    localStorage.setItem('truthlens_role', role);
     if (roleBadge) {
       roleBadge.innerText = role.toUpperCase();
     }
@@ -793,6 +876,36 @@ document.addEventListener('DOMContentLoaded', () => {
     else if (role === 'officer') switchTab('cascades');
     else if (role === 'guide') switchTab('guide');
   };
+
+  const exportDossierBtn = document.getElementById('btn-export-dossier');
+  if (exportDossierBtn) {
+    exportDossierBtn.addEventListener('click', async () => {
+      exportDossierBtn.innerText = 'Generating Dossier...';
+      exportDossierBtn.disabled = true;
+      try {
+        const resp = await fetch('/api/v1/guide/dossier/markdown');
+        const mdText = await resp.text();
+        const blob = new Blob([mdText], { type: 'text/markdown;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'TruthLens_Omni_Academic_Defense_Dossier.md');
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        alert('Failed to export dossier: ' + err.message);
+      } finally {
+        exportDossierBtn.innerText = '📥 Export Dossier (.MD)';
+        exportDossierBtn.disabled = false;
+      }
+    });
+  }
+
+  // Restore saved role on load
+  const savedRole = localStorage.getItem('truthlens_role') || 'journalist';
+  if (roleBadge) roleBadge.innerText = savedRole.toUpperCase();
 
   // Kickstart router
   initRouting();

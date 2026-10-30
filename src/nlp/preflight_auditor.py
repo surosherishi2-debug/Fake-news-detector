@@ -116,3 +116,4 @@ class PreflightAuditor:
             if re.search(c, text, re.I):
                 score += 25.0
         return min(95.0, score)
+
