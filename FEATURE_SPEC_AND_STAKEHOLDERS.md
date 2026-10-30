@@ -266,3 +266,4 @@ Article header includes photo of lunar surface.
    - *"We avoided Botometer's feature extraction because LLMs made stylometric bot detection obsolete."*
    - *"We added bridging matrix factorization so our system cannot be accused of centralized political bias."*
 3. **Clear Path to 45% Completion:** Connecting the existing Phase 1 backend to Features 1, 2, 4, and 10 produces an end-to-end demonstrable platform that can be tested live during any evaluation.
+

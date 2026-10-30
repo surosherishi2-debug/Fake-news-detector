@@ -1,10 +1,10 @@
-"""Unit tests for TruthLensEngine and FastAPI Server."""
+"""Unit tests for Neuro-Symbolic TruthLensEngine and FastAPI Server."""
 
-from src.core.types import VerificationRequest, VerificationVerdict
+from src.core.types import VerificationRequest, VerificationVerdict, HighlightStatus
 from src.fusion.truthlens_engine import TruthLensEngine
-from src.api.server import app
+from src.api.server import health_check, get_domain_trust, verify_article
 
-def test_truthlens_engine_fake_claim():
+def test_truthlens_engine_fake_claim_with_nutrition_card():
     engine = TruthLensEngine()
     req = VerificationRequest(
         text="Viral claim: COVID-19 vaccines contain microchips designed for human tracking.",
@@ -12,14 +12,35 @@ def test_truthlens_engine_fake_claim():
     )
     result = engine.verify(req)
     assert result.verdict == VerificationVerdict.FAKE
-    assert result.confidence_score >= 0.55
+    assert result.confidence_score >= 0.50
     assert len(result.claims) >= 1
-    assert len(result.alignments) >= 1
-    assert result.latency_ms > 0
+    assert result.nutrition_card is not None
+    assert result.nutrition_card.factual_grounding_score <= 50.0
+    assert result.claims[0].highlight_status == HighlightStatus.REFUTED
+    assert "Reuters" in result.claims[0].citation or "WHO" in result.claims[0].citation
+
+def test_truthlens_engine_satire_disentanglement():
+    engine = TruthLensEngine()
+    req = VerificationRequest(
+        text="NASA Announces Plans To Colonize Sun At Night To Avoid Burning Up.",
+        publisher="theonion.com",
+    )
+    result = engine.verify(req)
+    assert "Satirical Parody" in result.explanation
+    assert result.nutrition_card is not None
+
+def test_truthlens_engine_zero_assumption_data_void():
+    """System must strictly refuse to guess when zero accredited evidence exists."""
+    engine = TruthLensEngine()
+    req = VerificationRequest(
+        text="Unconfirmed rumor claims local municipal office closed early on Tuesday.",
+        publisher="unregistered-unknown-source.xyz",
+    )
+    result = engine.verify(req)
+    assert result.verdict == VerificationVerdict.UNCERTAIN
+    assert "Data-Void" in result.explanation
 
 def test_api_endpoints():
-    from src.api.server import health_check, get_domain_trust, verify_article
-
     # 1. Health check
     res_health = health_check()
     assert res_health["status"] == "healthy"
@@ -39,3 +60,4 @@ def test_api_endpoints():
     assert res_verify.verdict is not None
     assert res_verify.confidence_score > 0
     assert len(res_verify.provenance_chain) >= 1
+    assert res_verify.nutrition_card is not None

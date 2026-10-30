@@ -8,6 +8,15 @@ Usage:
 import sys
 import argparse
 import uvicorn
+
+# Ensure UTF-8 console output on Windows
+if sys.platform.startswith("win"):
+    try:
+        sys.stdout.reconfigure(encoding="utf-8")
+        sys.stderr.reconfigure(encoding="utf-8")
+    except Exception:
+        pass
+
 from src.core.config import settings
 from src.core.types import VerificationRequest
 from src.fusion.truthlens_engine import TruthLensEngine
@@ -22,39 +31,57 @@ def run_server():
     uvicorn.run("src.api.server:app", host=settings.HOST, port=settings.PORT, reload=False)
 
 def run_demo():
-    """Execute live verification on sample claims."""
-    print("\n[+] Initializing TruthLens-Omni Tri-Modal Engine...\n")
+    """Execute live verification on sample claims demonstrating Neuro-Symbolic grounding."""
+    print("\n[+] Initializing TruthLens-Omni Neuro-Symbolic Engine...\n")
     engine = TruthLensEngine()
 
     samples = [
         {
-            "title": "Sample 1: Viral Microchip Conspiracy (Fake News)",
+            "title": "Sample 1: Viral Microchip Conspiracy (Ground-Truth Refutation)",
             "text": "Viral social media posts claim COVID-19 vaccines contain secret microchips designed for human tracking.",
             "publisher": "dailyconspiracy.net",
         },
         {
-            "title": "Sample 2: Space Exploration Milestone (Real News)",
-            "text": "Scientists at ISRO confirmed that the Pragyan rover analyzed lunar soil and detected sulfur near the lunar south pole.",
-            "publisher": "pib.gov.in",
+            "title": "Sample 2: Satirical News Parody (The Onion Disentanglement)",
+            "text": "NASA Announces Plans To Colonize Sun At Night To Avoid Burning Up.",
+            "publisher": "theonion.com",
         },
         {
-            "title": "Sample 3: Breaking Unconfirmed Event (Uncertain / Pending Consensus)",
-            "text": "Breaking reports suggest sudden unverified market fluctuations in private equity transactions.",
-            "publisher": "randomblog123.org",
+            "title": "Sample 3: Zero-Assumption Data-Void (Strict Non-Guessing)",
+            "text": "Unverified rumor claims local municipal office closed early on Tuesday.",
+            "publisher": "unregistered-unknown-source.xyz",
         },
     ]
 
     for item in samples:
-        print(f"--- {item['title']} ---")
+        print(f"===========================================================")
+        print(f"  {item['title']}")
+        print(f"===========================================================")
         req = VerificationRequest(text=item["text"], publisher=item["publisher"])
         res = engine.verify(req)
         print(f"Verdict:        {res.verdict.value}")
         print(f"Confidence:     {res.confidence_score:.1%}")
         print(f"Latency:        {res.latency_ms:.1f} ms")
-        print(f"Explanation:    {res.explanation}")
-        print("Provenance Chain:")
+        print(f"\n[Explanation]:\n  {res.explanation}")
+
+        if res.nutrition_card:
+            card = res.nutrition_card
+            print("\n[Contextual Nutrition Card (Feature 1)]:")
+            print(f"  * Factual Grounding:       {card.factual_grounding_score:.1f} / 100")
+            print(f"  * Source Transparency:     {card.source_transparency_score:.1f} / 100")
+            print(f"  * Organic Diffusion:       {card.organic_diffusion_score:.1f} / 100")
+            print(f"  * Rhetorical Clickbait:    {card.sensationalism_score:.1f} / 100")
+            print(f"  * Temporal Freshness w(t): {card.temporal_freshness_score:.1f} / 100")
+
+        print("\n[Sentence-Level Check-Worthiness Highlighting (Feature 2)]:")
+        for c in res.claims:
+            tag = "[REFUTED]" if c.highlight_status.value == "REFUTED" else ("[VERIFIED]" if c.highlight_status.value == "VERIFIED" else "[DATA_VOID]")
+            citation_str = f" [Cited: {c.citation}]" if c.citation else ""
+            print(f"  {tag} \"{c.text}\" (Worthiness: {c.check_worthiness:.2f}){citation_str}")
+
+        print("\n[Deterministic Provenance Chain]:")
         for step in res.provenance_chain:
-            print(f"  • {step}")
+            print(f"  * {step}")
         print()
 
 if __name__ == "__main__":
@@ -66,4 +93,3 @@ if __name__ == "__main__":
         run_demo()
     else:
         run_server()
-
