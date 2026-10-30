@@ -1,11 +1,11 @@
-"""Extended FastAPI Service for TruthLens-Omni Shippable Product."""
+"""Extended FastAPI Service for TruthLens-Omni Epistemic Platform."""
 
 import os
 from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import HTMLResponse, FileResponse
+from fastapi.responses import HTMLResponse
 from pydantic import BaseModel, Field
 
 from src.core.config import settings
@@ -25,11 +25,14 @@ from src.graph.consensus_matrix import (
     NoteRating,
     NoteScoringResult,
 )
+from src.data.news_database import db
+from src.nlp.preflight_auditor import PreflightAuditor, PreflightAuditReport
+from src.nlp.synthetic_detector import SyntheticDetector, SyntheticForensicReport
 
 app = FastAPI(
     title=settings.PROJECT_NAME,
     version=settings.VERSION,
-    description="Real-Time Multimodal Misinformation Intelligence & Consensus Engine API",
+    description="Full-Spectrum Epistemic Intelligence & Publishing Integrity Platform API",
 )
 
 app.add_middleware(
@@ -43,8 +46,10 @@ app.add_middleware(
 engine = TruthLensEngine()
 scraper = URLScraper()
 consensus_engine = BridgingConsensusEngine()
+auditor = PreflightAuditor()
+synthetic_detector = SyntheticDetector()
 
-# Ensure web directories exist
+# Mount Static Files
 STATIC_DIR = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web", "static")
 os.makedirs(STATIC_DIR, exist_ok=True)
 app.mount("/static", StaticFiles(directory=STATIC_DIR), name="static")
@@ -64,6 +69,12 @@ class ScrapeResponse(BaseModel):
 class ConsensusRequest(BaseModel):
     ratings: List[NoteRating]
 
+class AuditRequest(BaseModel):
+    draft_text: str
+
+class ForensicsRequest(BaseModel):
+    text: str
+
 @app.get("/", response_class=HTMLResponse)
 def index_page():
     """Serve the primary TruthLens-Omni SPA dashboard."""
@@ -71,7 +82,7 @@ def index_page():
     if os.path.exists(index_path):
         with open(index_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
-    return HTMLResponse("<h1>TruthLens-Omni API Running. Frontend template loading...</h1>")
+    return HTMLResponse("<h1>TruthLens-Omni Platform Running.</h1>")
 
 @app.get("/api/v1/health")
 def health_check():
@@ -86,13 +97,50 @@ def health_check():
 
 @app.post("/api/v1/verify", response_model=VerificationResult)
 def verify_article(request: VerificationRequest):
-    """
-    Verify an article or claim text using the Neuro-Symbolic Tri-Modal Pipeline.
-    """
+    """Verify an article or claim text using the Neuro-Symbolic Tri-Modal Pipeline."""
     try:
         return engine.verify(request)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Verification failed: {str(e)}")
+
+@app.get("/api/v1/feed")
+def get_daily_news_feed(
+    category: Optional[str] = None,
+    status: Optional[str] = None,
+    language: Optional[str] = None,
+    search: Optional[str] = None,
+    limit: int = 50,
+):
+    """Retrieve daily epistemic newsfeed from persistent knowledge store."""
+    try:
+        articles = db.get_articles(category=category, status=status, language=language, search_query=search, limit=limit)
+        return {"total": len(articles), "articles": articles}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch feed: {str(e)}")
+
+@app.get("/api/v1/knowledge-graph")
+def get_living_knowledge_graph():
+    """Return nodes and edges for the Living Knowledge Graph."""
+    try:
+        return db.get_knowledge_graph()
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch graph: {str(e)}")
+
+@app.post("/api/v1/preflight/audit", response_model=PreflightAuditReport)
+def audit_story_draft(request: AuditRequest):
+    """Execute pre-flight verification on author's draft before publication (Self-News Studio)."""
+    try:
+        return auditor.audit_draft(request.draft_text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Draft audit failed: {str(e)}")
+
+@app.post("/api/v1/forensics/synthetic", response_model=SyntheticForensicReport)
+def detect_synthetic_ai_text(request: ForensicsRequest):
+    """Analyze statistical burstiness and entropy to detect AI-generated text / hallucinations."""
+    try:
+        return synthetic_detector.analyze_text(request.text)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Forensics failed: {str(e)}")
 
 @app.post("/api/v1/scrape", response_model=ScrapeResponse)
 def scrape_article_url(request: ScrapeRequest):

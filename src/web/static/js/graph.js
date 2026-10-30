@@ -198,3 +198,4 @@ class CascadeGraphVisualizer {
 }
 
 window.CascadeGraphVisualizer = CascadeGraphVisualizer;
+
