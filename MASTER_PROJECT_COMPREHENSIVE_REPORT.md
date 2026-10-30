@@ -224,3 +224,4 @@ Evaluated across the **`PuneFakeNews-2024`**, **`LIAR-Plus`**, and **`CoAID`** b
    - Deploy a lightweight Twilio or Baileys WhatsApp bot allowing Indian users to forward suspicious messages directly to TruthLens for instant verification cards.
 4. **Federated Community Notes Matrix Factorization:**
    - Implement federated low-rank matrix factorization so user ratings never leave their local device, ensuring zero-knowledge privacy for political raters.
+

@@ -65,7 +65,19 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabName === 'feed') loadDailyFeed();
     if (tabName === 'graph') loadLivingKnowledgeGraph();
     if (tabName === 'guide') loadBenchmarks();
-    if (tabName === 'cascades' && !state.graphVisualizer) setTimeout(() => initCascadePage(), 100);
+    if (tabName === 'cascades') setTimeout(() => initCascadePage(), 100);
+    if (tabName === 'forensics') {
+      const fInput = document.getElementById('forensics-text');
+      if (fInput && !fInput.value) {
+        window.loadForensicsSample('ai');
+      }
+    }
+    if (tabName === 'preflight') {
+      const pInput = document.getElementById('preflight-draft-text');
+      if (pInput && !pInput.value) {
+        window.loadPreflightSample();
+      }
+    }
   }
 
   tabButtons.forEach((btn) => {
@@ -75,73 +87,346 @@ document.addEventListener('DOMContentLoaded', () => {
   // ==========================================
   // TAB 1: DAILY EPISTEMIC FEED ("Daily Info")
   // ==========================================
+  state.feedArticles = [];
+  state.selectedFeedArticleId = null;
+
   async function loadDailyFeed() {
     const container = document.getElementById('feed-articles-container');
+    const dossier = document.getElementById('feed-active-dossier');
     if (!container) return;
 
-    container.innerHTML = '<div class="p-8 text-center text-slate-400">Loading verified epistemic daily feed...</div>';
+    container.innerHTML = '<div class="p-8 text-center text-slate-400">Loading verified epistemic daily stream...</div>';
 
     const category = document.getElementById('feed-filter-category')?.value || 'All';
     const status = document.getElementById('feed-filter-status')?.value || 'All';
     const language = document.getElementById('feed-filter-language')?.value || 'All';
     const search = document.getElementById('feed-search-input')?.value || '';
 
+    // Update active filter badge count
+    const activeBadge = document.getElementById('feed-active-filter-badge');
+    if (activeBadge) {
+      let count = 0;
+      if (category !== 'All') count++;
+      if (status !== 'All') count++;
+      if (language !== 'All') count++;
+      if (search) count++;
+      activeBadge.innerText = count === 0 ? 'All' : count;
+    }
+
+    // Sync sub-tabs active styling
+    const statusPills = document.querySelectorAll('.feed-status-pill');
+    statusPills.forEach(pill => {
+      const pStatus = pill.getAttribute('data-status');
+      if (pStatus === status) {
+        pill.className = 'feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#5E4BF5] text-white shadow-sm transition';
+      } else {
+        pill.className = 'feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition';
+      }
+    });
+
     try {
-      const params = new URLSearchParams({ category, status, language, search, limit: '25' });
+      const params = new URLSearchParams({ category, status, language, search, limit: '50' });
       const resp = await fetch(`/api/v1/feed?${params.toString()}`);
       const data = await resp.json();
+      state.feedArticles = data.articles || [];
 
-      if (!data.articles || data.articles.length === 0) {
-        container.innerHTML = '<div class="p-8 text-center text-slate-400">No stories match active filters. Try resetting search or category.</div>';
+      // Update Top KPI Cards dynamically if elements exist
+      updateFeedKpiCards(state.feedArticles);
+
+      // Update Article Total Badge
+      const totalBadge = document.getElementById('feed-article-total-badge');
+      if (totalBadge) totalBadge.innerText = `${state.feedArticles.length} loaded`;
+
+      if (state.feedArticles.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-[#141A29] rounded-2xl border border-slate-800 space-y-3">
+            <div class="text-3xl">🔍</div>
+            <div class="text-sm font-bold text-white">No stories match active filters</div>
+            <p class="text-xs text-slate-400">Try broadening your search term or category filter.</p>
+            <button onclick="resetFeedFilters()" class="px-3.5 py-1.5 bg-[#5E4BF5] hover:bg-[#4E3BE3] text-white rounded-xl text-xs font-semibold transition">
+              Reset All Filters
+            </button>
+          </div>
+        `;
+        if (dossier) {
+          dossier.innerHTML = `
+            <div class="p-12 text-center text-slate-400 space-y-2">
+              <div class="text-4xl">📄</div>
+              <h3 class="text-base font-bold text-white">No Active Article Selected</h3>
+              <p class="text-xs text-slate-400">Select an article from the left list once search filters are reset.</p>
+            </div>
+          `;
+        }
         return;
       }
 
-      container.innerHTML = data.articles.map(art => {
-        let statusBadge = 'bg-emerald-500/15 text-emerald-700 border-emerald-200';
-        let statusIcon = '🟢 VERIFIED REAL';
+      // Check if previously selected article is still in filtered results
+      if (!state.selectedFeedArticleId || !state.feedArticles.some(a => a.id === state.selectedFeedArticleId)) {
+        state.selectedFeedArticleId = state.feedArticles[0].id;
+      }
+
+      // Render Left Articles List
+      container.innerHTML = state.feedArticles.map(art => {
+        const isSelected = art.id === state.selectedFeedArticleId;
+        const cardBg = isSelected 
+          ? 'bg-[#241D58] border-[#5E4BF5] ring-2 ring-[#5E4BF5]/70 shadow-lg' 
+          : 'bg-[#141A29] hover:bg-[#1D243A] border-slate-800/80';
+
+        let statusBadge = 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30';
+        let statusIcon = '🟢 VERIFIED';
+        let truthColor = 'text-emerald-400';
+
         if (art.status === 'FAKE') {
-          statusBadge = 'bg-rose-500/15 text-rose-700 border-rose-200';
-          statusIcon = '🔴 DEBUNKED FAKE';
+          statusBadge = 'bg-rose-500/15 text-rose-400 border-rose-500/30';
+          statusIcon = '🔴 DEBUNKED';
+          truthColor = 'text-rose-400';
         } else if (art.status === 'SATIRE') {
-          statusBadge = 'bg-purple-500/15 text-purple-700 border-purple-200';
-          statusIcon = '🟣 SATIRE PARODY';
+          statusBadge = 'bg-purple-500/15 text-purple-400 border-purple-500/30';
+          statusIcon = '🟣 SATIRE';
+          truthColor = 'text-purple-400';
         } else if (art.status === 'SYNTHETIC') {
-          statusBadge = 'bg-cyan-500/15 text-cyan-700 border-cyan-200';
-          statusIcon = '🤖 AI SYNTHETIC';
+          statusBadge = 'bg-cyan-500/15 text-cyan-400 border-cyan-500/30';
+          statusIcon = '🤖 AI SYNTH';
+          truthColor = 'text-cyan-400';
         } else if (art.status === 'DATA_VOID') {
-          statusBadge = 'bg-amber-500/15 text-amber-700 border-amber-200';
-          statusIcon = '🟡 BREAKING VOID';
+          statusBadge = 'bg-amber-500/15 text-amber-400 border-amber-500/30';
+          statusIcon = '🟡 DATA-VOID';
+          truthColor = 'text-amber-400';
         }
 
         const langBadge = art.language === 'mr' ? 'मराठी' : (art.language === 'hi' ? 'हिन्दी' : 'EN');
+        const shortId = art.id.length > 14 ? art.id.substring(0, 14) + '...' : art.id;
 
         return `
-          <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm hover:border-indigo-300 transition space-y-3">
+          <div onclick="selectFeedArticle('${art.id}')" class="p-3.5 rounded-2xl border ${cardBg} cursor-pointer transition-all duration-150 space-y-2">
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center gap-1.5">
-                <span class="px-2.5 py-0.5 rounded-full font-semibold border ${statusBadge}">${statusIcon}</span>
-                <span class="px-2 py-0.5 rounded bg-slate-100 text-slate-600 font-mono text-[10px] font-bold">${langBadge}</span>
+                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold border ${statusBadge}">${statusIcon}</span>
+                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[9px] font-bold">${langBadge}</span>
               </div>
-              <span class="text-slate-400">${art.category} • ${art.publisher}</span>
+              <span class="text-[11px] font-mono text-slate-400">${shortId}</span>
             </div>
-            <h3 class="text-base font-bold text-slate-900 leading-snug">${art.title}</h3>
-            <p class="text-xs text-slate-600 line-clamp-2 leading-relaxed">${art.content}</p>
-            <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
-              <div class="flex items-center gap-3 text-slate-500">
-                <span>Integrity: <b class="text-slate-800">${art.truth_score}%</b></span>
-                <span>Cascade Risk: <b class="text-slate-800">${(art.cib_risk * 100).toFixed(0)}%</b></span>
-              </div>
-              <button onclick="inspectFeedArticle('${art.id}', '${encodeURIComponent(art.title)}', '${encodeURIComponent(art.content)}', '${art.domain}')" class="px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-[#5E4BF5] font-semibold text-xs transition">
-                Deep Audit →
-              </button>
+            <h4 class="text-xs font-bold text-white line-clamp-1 leading-snug">${art.title}</h4>
+            <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/60 text-slate-400">
+              <span class="truncate max-w-[160px]">${art.publisher}</span>
+              <span class="tabular font-bold ${truthColor}">${art.truth_score}% Integrity</span>
             </div>
           </div>
         `;
       }).join('');
+
+      // Render Right Inspection Dossier
+      const activeArt = state.feedArticles.find(a => a.id === state.selectedFeedArticleId) || state.feedArticles[0];
+      if (activeArt) {
+        renderActiveDossier(activeArt);
+      }
+
     } catch (err) {
-      container.innerHTML = `<div class="p-8 text-center text-rose-500">Failed to load feed: ${err.message}</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-rose-400">Failed to load feed: ${err.message}</div>`;
     }
   }
+
+  function updateFeedKpiCards(articles) {
+    if (!articles || articles.length === 0) return;
+
+    let debunkCount = 0;
+    let verifiedCount = 0;
+    let satireCount = 0;
+    let synthCount = 0;
+    let voidCount = 0;
+    let totalScore = 0;
+    let totalCib = 0;
+
+    articles.forEach(a => {
+      totalScore += (a.truth_score || 0);
+      totalCib += (a.cib_risk || 0);
+      if (a.status === 'FAKE') debunkCount++;
+      else if (a.status === 'REAL' || a.status === 'VERIFIED') verifiedCount++;
+      else if (a.status === 'SATIRE') satireCount++;
+      else if (a.status === 'SYNTHETIC') synthCount++;
+      else if (a.status === 'DATA_VOID') voidCount++;
+    });
+
+    const avgScore = (totalScore / articles.length).toFixed(1);
+    const avgCib = ((totalCib / articles.length) * 100).toFixed(1);
+
+    // Update KPI card stats if present
+    const debunkEl = document.getElementById('stat-card-debunked');
+    if (debunkEl) debunkEl.innerText = `${debunkCount} Claims`;
+
+    const verifiedEl = document.getElementById('stat-card-verified');
+    if (verifiedEl) verifiedEl.innerText = `${verifiedCount} Stories`;
+
+    const truthEl = document.getElementById('stat-card-truth');
+    if (truthEl) truthEl.innerText = `${avgScore}%`;
+
+    const cibEl = document.getElementById('stat-card-cib');
+    if (cibEl) cibEl.innerText = `${avgCib}% Risk`;
+
+    // Update sub-tab count badges
+    const cAll = document.getElementById('count-all');
+    if (cAll) cAll.innerText = articles.length;
+    const cReal = document.getElementById('count-real');
+    if (cReal) cReal.innerText = verifiedCount;
+    const cFake = document.getElementById('count-fake');
+    if (cFake) cFake.innerText = debunkCount;
+    const cSatire = document.getElementById('count-satire');
+    if (cSatire) cSatire.innerText = satireCount;
+    const cSynth = document.getElementById('count-synth');
+    if (cSynth) cSynth.innerText = synthCount;
+    const cVoid = document.getElementById('count-void');
+    if (cVoid) cVoid.innerText = voidCount;
+  }
+
+  window.selectFeedArticle = function(artId) {
+    state.selectedFeedArticleId = artId;
+    const activeArt = state.feedArticles.find(a => a.id === artId);
+    if (activeArt) {
+      renderActiveDossier(activeArt);
+      // Update left card selection visual without full reload
+      const container = document.getElementById('feed-articles-container');
+      if (container) {
+        const cards = container.children;
+        state.feedArticles.forEach((art, idx) => {
+          if (cards[idx]) {
+            if (art.id === artId) {
+              cards[idx].className = 'p-3.5 rounded-2xl border bg-[#241D58] border-[#5E4BF5] ring-2 ring-[#5E4BF5]/70 shadow-lg cursor-pointer transition-all duration-150 space-y-2';
+            } else {
+              cards[idx].className = 'p-3.5 rounded-2xl border bg-[#141A29] hover:bg-[#1D243A] border-slate-800/80 cursor-pointer transition-all duration-150 space-y-2';
+            }
+          }
+        });
+      }
+    }
+  };
+
+  function renderActiveDossier(art) {
+    const dossier = document.getElementById('feed-active-dossier');
+    if (!dossier) return;
+
+    let statusBadge = 'bg-emerald-500/20 text-emerald-300 border-emerald-400/40';
+    let statusLabel = '🟢 VERIFIED GROUND TRUTH';
+    let truthColor = 'text-emerald-400';
+
+    if (art.status === 'FAKE') {
+      statusBadge = 'bg-rose-500/20 text-rose-300 border-rose-400/40';
+      statusLabel = '🔴 DEBUNKED DISINFORMATION';
+      truthColor = 'text-rose-400';
+    } else if (art.status === 'SATIRE') {
+      statusBadge = 'bg-purple-500/20 text-purple-300 border-purple-400/40';
+      statusLabel = '🟣 SATIRICAL PARODY';
+      truthColor = 'text-purple-400';
+    } else if (art.status === 'SYNTHETIC') {
+      statusBadge = 'bg-cyan-500/20 text-cyan-300 border-cyan-400/40';
+      statusLabel = '🤖 AI SYNTHETIC ARTIFACT';
+      truthColor = 'text-cyan-400';
+    } else if (art.status === 'DATA_VOID') {
+      statusBadge = 'bg-amber-500/20 text-amber-300 border-amber-400/40';
+      statusLabel = '🟡 BREAKING ZERO-ASSUMPTION VOID';
+      truthColor = 'text-amber-400';
+    }
+
+    const claims = art.claims || [];
+    const claimsHtml = claims.length > 0 ? claims.map(c => {
+      const isRefuted = c.status === 'REFUTED' || art.status === 'FAKE';
+      const cIcon = isRefuted ? '❌' : (c.status === 'DATA_VOID' ? '⏳' : '✓');
+      const cColor = isRefuted ? 'text-rose-400' : (c.status === 'DATA_VOID' ? 'text-amber-400' : 'text-emerald-400');
+      return `
+        <div class="p-2.5 rounded-xl bg-[#1A1448]/80 border border-indigo-500/20 flex items-start gap-2.5">
+          <span class="${cColor} font-bold text-xs mt-0.5">${cIcon}</span>
+          <div class="space-y-1 flex-1">
+            <p class="text-xs text-slate-200 font-medium">${c.text}</p>
+            <div class="text-[10px] text-indigo-300 flex items-center justify-between">
+              <span>Citation: <b>${c.citation || 'IFCN Accredited Archive'}</b></span>
+              <span class="font-mono">Worthiness: ${(c.check_worthiness * 100).toFixed(0)}%</span>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('') : '<div class="text-xs text-slate-400 italic">No decomposed claims recorded for this entry.</div>';
+
+    dossier.innerHTML = `
+      <!-- Dossier Header -->
+      <div class="flex items-center justify-between flex-wrap gap-2 pb-4 border-b border-indigo-500/20">
+        <div class="flex items-center gap-2">
+          <span class="px-2.5 py-1 rounded-full text-xs font-bold border ${statusBadge}">${statusLabel}</span>
+          <span class="font-mono text-xs text-indigo-200">${art.id}</span>
+        </div>
+        <div class="flex items-center gap-2 text-xs">
+          <span class="text-slate-300 font-semibold">${art.publisher}</span>
+          <span class="px-2 py-0.5 rounded bg-indigo-900/60 text-indigo-200 font-mono text-[10px] border border-indigo-400/30">${art.domain}</span>
+        </div>
+      </div>
+
+      <!-- Main Headline & Excerpt -->
+      <div class="space-y-2">
+        <h3 class="text-lg md:text-xl font-extrabold text-white leading-snug tracking-tight">${art.title}</h3>
+        <p class="text-xs text-slate-300 leading-relaxed">${art.content}</p>
+      </div>
+
+      <!-- 3 Key Metric Chips (Finnova FinTech pattern) -->
+      <div class="grid grid-cols-3 gap-3">
+        <div class="p-3 rounded-xl bg-[#1A1448]/90 border border-indigo-500/20 text-center">
+          <div class="text-[11px] text-slate-400 font-medium">Truth Score</div>
+          <div class="text-xl font-extrabold ${truthColor} tabular mt-0.5">${art.truth_score}%</div>
+        </div>
+        <div class="p-3 rounded-xl bg-[#1A1448]/90 border border-indigo-500/20 text-center">
+          <div class="text-[11px] text-slate-400 font-medium">Cascade Risk</div>
+          <div class="text-xl font-extrabold text-slate-200 tabular mt-0.5">${(art.cib_risk * 100).toFixed(0)}%</div>
+        </div>
+        <div class="p-3 rounded-xl bg-[#1A1448]/90 border border-indigo-500/20 text-center">
+          <div class="text-[11px] text-slate-400 font-medium">Claims Audited</div>
+          <div class="text-xl font-extrabold text-indigo-300 tabular mt-0.5">${claims.length} Claims</div>
+        </div>
+      </div>
+
+      <!-- Decomposed Claims Breakdown -->
+      <div class="space-y-2">
+        <div class="flex items-center justify-between text-xs font-bold text-indigo-200">
+          <span>Empirical Claims & Provenance Verification</span>
+          <span class="text-[10px] text-slate-400">Temporal Lambda λ=0.1</span>
+        </div>
+        <div class="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+          ${claimsHtml}
+        </div>
+      </div>
+
+      <!-- Action Footer Bar -->
+      <div class="pt-4 border-t border-indigo-500/20 flex items-center justify-between flex-wrap gap-2">
+        <div class="flex items-center gap-2">
+          <button onclick="inspectFeedArticle('${art.id}', '${encodeURIComponent(art.title)}', '${encodeURIComponent(art.content)}', '${art.domain}')" class="px-4 py-2 bg-white hover:bg-slate-100 text-[#241D58] font-bold text-xs rounded-xl shadow-md transition flex items-center gap-1.5">
+            <span>🔬</span> Send to Deep Verify →
+          </button>
+          <button onclick="switchTab('graph')" class="px-3 py-2 bg-indigo-900/60 hover:bg-indigo-900 text-indigo-200 font-semibold text-xs rounded-xl border border-indigo-500/30 transition">
+            🕸️ View Graph
+          </button>
+        </div>
+        <button onclick="switchTab('cascades')" class="px-3 py-2 bg-indigo-900/60 hover:bg-indigo-900 text-indigo-200 font-semibold text-xs rounded-xl border border-indigo-500/30 transition">
+          🌐 Cascades Radar
+        </button>
+      </div>
+    `;
+  }
+
+  window.setFeedStatusFilter = function(status) {
+    const sel = document.getElementById('feed-filter-status');
+    if (sel) sel.value = status;
+    loadDailyFeed();
+  };
+
+  window.resetFeedFilters = function() {
+    const cat = document.getElementById('feed-filter-category');
+    const stat = document.getElementById('feed-filter-status');
+    const lang = document.getElementById('feed-filter-language');
+    const search = document.getElementById('feed-search-input');
+
+    if (cat) cat.value = 'All';
+    if (stat) stat.value = 'All';
+    if (lang) lang.value = 'All';
+    if (search) search.value = '';
+
+    loadDailyFeed();
+  };
 
   window.inspectFeedArticle = function(id, titleEnc, contentEnc, domain) {
     const title = decodeURIComponent(titleEnc);
@@ -162,8 +447,10 @@ document.addEventListener('DOMContentLoaded', () => {
   if (feedFilterStatus) feedFilterStatus.addEventListener('change', loadDailyFeed);
   if (feedFilterLanguage) feedFilterLanguage.addEventListener('change', loadDailyFeed);
   if (feedSearchInput) {
-    feedSearchInput.addEventListener('keyup', (e) => {
-      if (e.key === 'Enter') loadDailyFeed();
+    feedSearchInput.addEventListener('input', () => {
+      // Debounce search input
+      clearTimeout(window._searchDebounce);
+      window._searchDebounce = setTimeout(loadDailyFeed, 300);
     });
   }
 
@@ -226,6 +513,8 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   window.loadPreflightSample = function() {
+    const titleEl = document.getElementById('preflight-title');
+    if (titleEl) titleEl.value = "Investigation: Moon Ice Discoveries and Bio-Surveillance Rumors";
     preflightDraftInput.value = (
       "Scientists at ISRO confirmed water ice near the lunar south pole yesterday. " +
       "However, viral internet posts claim COVID-19 vaccines contain secret biometric microchips for surveillance. " +
@@ -501,7 +790,6 @@ document.addEventListener('DOMContentLoaded', () => {
       switchTab('feed');
       loadDailyFeed();
     });
-  }
   }
 
   // ==========================================

@@ -88,15 +88,126 @@
     <!-- TAB 1: DAILY EPISTEMIC FEED ("Daily Info")                              -->
     <!-- ======================================================================= -->
     <section id="page-feed" class="page-view space-y-6">
-      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-        <div>
-          <h2 class="text-xl font-bold text-slate-900 tracking-tight">Daily Grounded Epistemic Feed</h2>
-          <p class="text-xs text-slate-500">Curated multi-domain news pre-audited with empirical fact-checking citations and cascade risk.</p>
+      
+      <!-- Top Title & Quick Actions Row -->
+      <div class="flex items-center justify-between flex-wrap gap-4">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-full bg-white border border-slate-200 flex items-center justify-center text-slate-700 shadow-sm cursor-pointer hover:bg-slate-50 transition" onclick="loadDailyFeed()">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+          </div>
+          <div>
+            <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Epistemic Intelligence Stream</h2>
+            <p class="text-xs text-slate-500 font-medium">Empirically pre-audited news with multi-modal provenance, IFCN fact checks & cascade risk.</p>
+          </div>
         </div>
-        <!-- Feed Actions & Filters -->
+        <div class="flex items-center gap-2">
+          <button onclick="resetFeedFilters()" class="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-sm transition" title="Reset Filters">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+          </button>
+          <button id="btn-sync-feeds" class="px-4 py-2 bg-[#5E4BF5] hover:bg-[#4E3BE3] text-white rounded-xl text-xs font-semibold shadow-md shadow-indigo-500/20 transition flex items-center gap-2">
+            <span>🔄</span> Sync RSS Feeds
+          </button>
+          <button onclick="switchTab('preflight')" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
+            <span>+</span> Draft New Story
+          </button>
+        </div>
+      </div>
+
+      <!-- 4 Finnova KPI Metric Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1: Misinformation Debunked -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between h-44 hover:shadow-md transition">
+          <div class="flex items-center justify-between text-xs text-slate-500 font-semibold">
+            <span>Disinformation Debunked</span>
+            <span class="w-6 h-6 rounded-full bg-rose-50 border border-rose-200 text-rose-600 flex items-center justify-center text-xs font-bold">!</span>
+          </div>
+          <div>
+            <div id="stat-card-debunked" class="text-3xl font-extrabold text-slate-900 tabular tracking-tight">14 Claims</div>
+            <div class="text-xs text-rose-600 font-medium mt-1 flex items-center gap-1">
+              <span>↑ 12.5%</span> <span class="text-slate-400">from last week</span>
+            </div>
+          </div>
+          <div class="pt-2 border-t border-slate-100 flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700 border border-rose-200">High Risk CIB Active</span>
+            <span class="text-[11px] text-slate-400">3 Blocked Today</span>
+          </div>
+        </div>
+
+        <!-- Card 2: Empirically Verified Stories -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between h-44 hover:shadow-md transition">
+          <div class="flex items-center justify-between text-xs text-slate-500 font-semibold">
+            <span>Empirically Grounded</span>
+            <span class="w-6 h-6 rounded-full bg-indigo-50 border border-indigo-200 text-[#5E4BF5] flex items-center justify-center text-xs">📅</span>
+          </div>
+          <div>
+            <div id="stat-card-verified" class="text-3xl font-extrabold text-slate-900 tabular tracking-tight">22 Stories</div>
+            <div class="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
+              <span>↑ 8.2%</span> <span class="text-slate-400">indexing depth</span>
+            </div>
+          </div>
+          <!-- Mini CSS Bar Chart (Finnova style) -->
+          <div class="flex items-end gap-1.5 h-8 pt-1">
+            <div class="flex-1 bg-indigo-100 hover:bg-[#5E4BF5] rounded-t transition-all h-3" title="Mon"></div>
+            <div class="flex-1 bg-indigo-100 hover:bg-[#5E4BF5] rounded-t transition-all h-5" title="Tue"></div>
+            <div class="flex-1 bg-indigo-200 hover:bg-[#5E4BF5] rounded-t transition-all h-7" title="Wed"></div>
+            <div class="flex-1 bg-[#5E4BF5] rounded-t transition-all h-8" title="Thu"></div>
+            <div class="flex-1 bg-indigo-200 hover:bg-[#5E4BF5] rounded-t transition-all h-6" title="Fri"></div>
+            <div class="flex-1 bg-[#5E4BF5] rounded-t transition-all h-7" title="Sat"></div>
+          </div>
+        </div>
+
+        <!-- Card 3: Average Truth Integrity -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between h-44 hover:shadow-md transition">
+          <div class="flex items-center justify-between text-xs text-slate-500 font-semibold">
+            <span>Average Truth Integrity</span>
+            <span class="w-6 h-6 rounded-full bg-cyan-50 border border-cyan-200 text-cyan-600 flex items-center justify-center text-xs">⏱</span>
+          </div>
+          <div>
+            <div id="stat-card-truth" class="text-3xl font-extrabold text-slate-900 tabular tracking-tight">94.8%</div>
+            <div class="text-xs text-emerald-600 font-medium mt-1 flex items-center gap-1">
+              <span>↑ 3.4%</span> <span class="text-slate-400">bipartisan consensus</span>
+            </div>
+          </div>
+          <!-- Mini Sparkline SVG -->
+          <div class="w-full h-8 pt-1">
+            <svg class="w-full h-full overflow-visible" viewBox="0 0 100 25" preserveAspectRatio="none">
+              <path d="M 0,20 Q 20,22 40,15 T 70,8 T 100,5" fill="none" stroke="#5E4BF5" stroke-width="2.5" stroke-linecap="round"></path>
+              <circle cx="100" cy="5" r="3.5" fill="#5E4BF5"></circle>
+            </svg>
+          </div>
+        </div>
+
+        <!-- Card 4: Propagation Health & Guard -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between h-44 hover:shadow-md transition">
+          <div class="flex items-center justify-between text-xs text-slate-500 font-semibold">
+            <span>Cascade Botnet Shield</span>
+            <span class="w-6 h-6 rounded-full bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center text-xs">🔒</span>
+          </div>
+          <div>
+            <div id="stat-card-cib" class="text-3xl font-extrabold text-slate-900 tabular tracking-tight">3.4% Risk</div>
+            <div class="text-xs text-slate-500 font-medium mt-1 flex items-center gap-1">
+              <span>Status:</span> <span class="text-emerald-600 font-semibold">Optimal Diffusion</span>
+            </div>
+          </div>
+          <div class="flex items-center justify-between gap-2 pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-1">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              <span class="text-[11px] font-semibold text-slate-600">Shield Active</span>
+            </div>
+            <button onclick="switchTab('verify')" class="px-2.5 py-1 bg-slate-900 hover:bg-[#5E4BF5] text-white text-[11px] font-semibold rounded-lg transition">
+              Audit Now →
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Active Filters Toolbar (Finnova style) -->
+      <div class="flex items-center justify-between flex-wrap gap-3 py-1">
         <div class="flex items-center gap-2 flex-wrap">
-          <input id="feed-search-input" type="text" placeholder="Search news & claims..." class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5] w-40 md:w-48">
-          <select id="feed-filter-category" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-medium focus:ring-2 focus:ring-[#5E4BF5]">
+          <span class="px-3 py-1.5 rounded-full bg-slate-200/70 text-slate-700 text-xs font-bold flex items-center gap-1.5">
+            Active filters <span id="feed-active-filter-badge" class="w-4 h-4 rounded-full bg-slate-800 text-white flex items-center justify-center text-[10px]">All</span>
+          </span>
+          <select id="feed-filter-category" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-semibold focus:ring-2 focus:ring-[#5E4BF5] shadow-sm">
             <option value="All">All Categories</option>
             <option value="Science & Tech">Science & Tech</option>
             <option value="Health">Health</option>
@@ -107,13 +218,7 @@
             <option value="Satire">Satire</option>
             <option value="Tech Forensics">Tech Forensics</option>
           </select>
-          <select id="feed-filter-language" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-medium focus:ring-2 focus:ring-[#5E4BF5]">
-            <option value="All">All Languages</option>
-            <option value="en">English (EN)</option>
-            <option value="hi">हिन्दी (Hindi)</option>
-            <option value="mr">मराठी (Marathi)</option>
-          </select>
-          <select id="feed-filter-status" class="px-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-medium focus:ring-2 focus:ring-[#5E4BF5]">
+          <select id="feed-filter-status" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-semibold focus:ring-2 focus:ring-[#5E4BF5] shadow-sm">
             <option value="All">All Statuses</option>
             <option value="REAL">🟢 Verified Real</option>
             <option value="FAKE">🔴 Debunked Fake</option>
@@ -121,16 +226,74 @@
             <option value="SYNTHETIC">🤖 AI Synthetic</option>
             <option value="DATA_VOID">🟡 Breaking Data-Void</option>
           </select>
-          <button id="btn-sync-feeds" class="px-3.5 py-1.5 bg-[#5E4BF5] hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5 whitespace-nowrap">
-            🔄 Sync RSS Feeds
-          </button>
+          <select id="feed-filter-language" class="px-3.5 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white font-semibold focus:ring-2 focus:ring-[#5E4BF5] shadow-sm">
+            <option value="All">All Languages</option>
+            <option value="en">English (EN)</option>
+            <option value="hi">हिन्दी (Hindi)</option>
+            <option value="mr">मराठी (Marathi)</option>
+          </select>
+        </div>
+        <div class="relative w-full sm:w-64">
+          <input id="feed-search-input" type="text" placeholder="Search news, claims, entities..." class="w-full pl-9 pr-3 py-1.5 rounded-xl border border-slate-200 text-xs text-slate-700 bg-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5] shadow-sm">
+          <svg class="w-4 h-4 text-slate-400 absolute left-3 top-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
         </div>
       </div>
 
-      <!-- Feed Cards Container -->
-      <div id="feed-articles-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-        <!-- Dynamically injected via app.js -->
+      <!-- Master Dark Finnova Container (#0F131D) with Split Screen -->
+      <div class="bg-[#0F131D] text-white rounded-3xl p-5 md:p-6 shadow-2xl border border-slate-800 space-y-5">
+        <!-- Sub-tabs row -->
+        <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-slate-800/80">
+          <div class="flex items-center gap-1.5 flex-wrap" id="feed-status-tabs">
+            <button onclick="setFeedStatusFilter('All')" data-status="All" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-[#5E4BF5] text-white transition">
+              All Stories (<span id="count-all">22</span>)
+            </button>
+            <button onclick="setFeedStatusFilter('REAL')" data-status="REAL" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+              🟢 Verified (<span id="count-real">13</span>)
+            </button>
+            <button onclick="setFeedStatusFilter('FAKE')" data-status="FAKE" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+              🔴 Debunked (<span id="count-fake">5</span>)
+            </button>
+            <button onclick="setFeedStatusFilter('SATIRE')" data-status="SATIRE" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+              🟣 Satire (<span id="count-satire">2</span>)
+            </button>
+            <button onclick="setFeedStatusFilter('SYNTHETIC')" data-status="SYNTHETIC" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+              🤖 AI Synthetic (<span id="count-synth">1</span>)
+            </button>
+            <button onclick="setFeedStatusFilter('DATA_VOID')" data-status="DATA_VOID" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+              🟡 Data-Void (<span id="count-void">1</span>)
+            </button>
+          </div>
+          <div class="flex items-center gap-2 text-slate-400 text-xs">
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>Realtime Stream Connected</span>
+          </div>
+        </div>
+
+        <!-- Split Layout: Left Articles List & Right Elevated Inspection Dossier -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+          
+          <!-- Left Column (5/12): Scrollable Article List -->
+          <div class="lg:col-span-5 flex flex-col space-y-3">
+            <div class="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
+              <span>Audited Articles Stream</span>
+              <span id="feed-article-total-badge" class="tabular">22 loaded</span>
+            </div>
+            <div id="feed-articles-container" class="space-y-2.5 max-h-[640px] overflow-y-auto pr-2 custom-scrollbar">
+              <!-- Dynamically injected via app.js -->
+            </div>
+          </div>
+
+          <!-- Right Column (7/12): Elevated Finnova Dossier Pane (#282161) -->
+          <div class="lg:col-span-7">
+            <div id="feed-active-dossier" class="bg-[#241D58] rounded-2xl p-6 border border-indigo-500/30 shadow-2xl text-white space-y-5 lg:sticky lg:top-6 transition-all duration-200">
+              <!-- Dynamically rendered active article dossier -->
+              <div class="p-8 text-center text-slate-300">Select an article from the left stream to inspect epistemic claims and provenance.</div>
+            </div>
+          </div>
+
+        </div>
       </div>
+
     </section>
 
     <!-- ======================================================================= -->

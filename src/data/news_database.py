@@ -386,8 +386,11 @@ class EpistemicDatabase:
             query += " AND category = ?"
             params.append(category)
         if status and status != "All":
-            query += " AND status = ?"
-            params.append(status)
+            if status in ("REAL", "VERIFIED"):
+                query += " AND status IN ('REAL', 'VERIFIED')"
+            else:
+                query += " AND status = ?"
+                params.append(status)
         if language and language != "All":
             query += " AND language = ?"
             params.append(language)
