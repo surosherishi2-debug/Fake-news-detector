@@ -22,96 +22,126 @@
     }
   </script>
 </head>
-<body class="bg-[#F8FAFC] text-slate-900 font-sans antialiased min-h-screen flex flex-col p-3 md:p-6 lg:p-8">
+<body class="bg-[#EDEFF5] text-slate-900 font-sans antialiased min-h-screen flex flex-col p-2 sm:p-4 md:p-6 lg:p-8">
 
   <!-- ========================================================================= -->
-  <!-- TOP NAVIGATION PILL BAR                                                   -->
+  <!-- FINNOVA MASTER DASHBOARD WRAPPER CARD                                      -->
   <!-- ========================================================================= -->
-  <header class="w-full max-w-7xl mx-auto flex items-center justify-between pb-6 flex-wrap gap-4">
-    <!-- Brand Logo -->
-    <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.hash='feed'">
-      <div class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-extrabold text-base tracking-wider shadow-sm shadow-indigo-600/30">
-        TL
-      </div>
-      <div>
-        <div class="flex items-center gap-1.5">
-          <h1 class="text-base font-extrabold text-slate-900 tracking-tight leading-none">TruthLens</h1>
-          <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 leading-none">OMNI</span>
+  <div class="w-full max-w-[1440px] mx-auto bg-white rounded-3xl md:rounded-[36px] p-5 sm:p-7 md:p-9 shadow-[0_25px_60px_-15px_rgba(15,23,42,0.07)] border border-slate-200/90 flex flex-col space-y-6">
+
+    <!-- ======================================================================= -->
+    <!-- TOP NAVIGATION PILL BAR                                                 -->
+    <!-- ======================================================================= -->
+    <header class="w-full flex items-center justify-between pb-4 flex-wrap gap-4 border-b border-slate-100">
+      <!-- Brand Logo -->
+      <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.hash='feed'">
+        <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white font-extrabold text-lg tracking-wider shadow-md shadow-indigo-600/30">
+          TL
         </div>
-        <p class="text-[11px] text-slate-500 font-medium tracking-tight mt-0.5">Information Integrity & Epistemic Intelligence</p>
-      </div>
-    </div>
-
-    <!-- Center Navigation Pill Bar -->
-    <nav class="flex items-center bg-[#0F172A] p-1.5 rounded-full shadow-md border border-slate-800/90 overflow-x-auto max-w-full">
-      <button data-tab="feed" class="nav-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600 text-white shadow-xs whitespace-nowrap">
-        Daily Feed
-      </button>
-      <button data-tab="preflight" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        Draft Studio
-      </button>
-      <button data-tab="forensics" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        AI Forensics
-      </button>
-      <button data-tab="verify" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        Deep Verify
-      </button>
-      <button data-tab="graph" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        Knowledge Graph
-      </button>
-      <button data-tab="cascades" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        Cascades Radar
-      </button>
-      <button data-tab="consensus" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        Consensus Matrix
-      </button>
-      <button data-tab="guide" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        Research Dossier
-      </button>
-      <button data-tab="profile" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
-        Settings
-      </button>
-    </nav>
-
-    <!-- Right Controls: Role Badge -->
-    <div class="flex items-center gap-2">
-      <button onclick="openAuthModal()" class="px-3.5 py-1.5 bg-white border border-slate-200/90 rounded-full text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs flex items-center gap-2 transition">
-        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
-        <span id="user-role-badge">JOURNALIST</span>
-      </button>
-    </div>
-  </header>
-
-  <!-- ========================================================================= -->
-  <!-- MAIN APP CONTAINER                                                        -->
-  <!-- ========================================================================= -->
-  <main class="w-full max-w-7xl mx-auto flex-1">
-
-    <!-- ======================================================================= -->
-    <!-- TAB 1: DAILY EPISTEMIC FEED ("Daily Info")                              -->
-    <!-- ======================================================================= -->
-    <section id="page-feed" class="page-view space-y-6">
-      
-      <!-- Top Title & Quick Actions Row -->
-      <div class="flex items-center justify-between flex-wrap gap-4 pt-1">
         <div>
-          <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Epistemic Intelligence Stream</h2>
-          <p class="text-xs text-slate-500 font-medium mt-0.5">Continuous empirical fact-checking, provenance tracking, and coordinated botnet detection.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <button onclick="resetFeedFilters()" class="p-2 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition" title="Reset Filters">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-          </button>
-          <button id="btn-sync-feeds" class="px-3.5 py-2 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-2">
-            <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-            <span>Sync Feeds</span>
-          </button>
-          <button onclick="switchTab('preflight')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-sm transition flex items-center gap-1.5">
-            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
-            <span>Draft New Story</span>
-          </button>
+          <div class="flex items-center gap-1.5">
+            <h1 class="text-base font-extrabold text-slate-900 tracking-tight leading-none">TruthLens</h1>
+            <span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/60 leading-none">OMNI</span>
+          </div>
+          <p class="text-[11px] text-slate-500 font-medium tracking-tight mt-0.5">Information Integrity & Epistemic Intelligence</p>
         </div>
       </div>
+
+      <!-- Center Navigation Pill Bar -->
+      <div class="flex items-center gap-2">
+        <span class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/80 text-slate-700 font-bold text-xs flex items-center justify-center shadow-xs">24</span>
+        <nav class="flex items-center bg-[#151624] p-1.5 rounded-full shadow-lg border border-slate-800/90 overflow-x-auto max-w-full">
+          <button data-tab="feed" class="nav-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600 text-white shadow-xs whitespace-nowrap">
+            Daily Feed
+          </button>
+          <button data-tab="preflight" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            Draft Studio
+          </button>
+          <button data-tab="forensics" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            AI Forensics
+          </button>
+          <button data-tab="verify" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            Deep Verify
+          </button>
+          <button data-tab="graph" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            Knowledge Graph
+          </button>
+          <button data-tab="cascades" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            Cascades Radar
+          </button>
+          <button data-tab="consensus" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            Consensus Matrix
+          </button>
+          <button data-tab="guide" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            Research Dossier
+          </button>
+          <button data-tab="profile" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
+            Settings
+          </button>
+        </nav>
+      </div>
+
+      <!-- Right Controls: Finnova Utility Icons & User Avatar -->
+      <div class="flex items-center gap-2">
+        <button onclick="switchTab('guide')" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition shadow-2xs" title="Documentation">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+        </button>
+        <button onclick="switchTab('graph')" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition shadow-2xs" title="Network Matrix">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+        </button>
+        <button onclick="switchTab('cascades')" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition shadow-2xs relative" title="Alerts & Botnets">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+          <span class="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-rose-500 ring-2 ring-white"></span>
+        </button>
+        <button onclick="switchTab('profile')" class="w-8 h-8 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition shadow-2xs" title="Settings">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+        </button>
+        <!-- Profile Avatar Pill with Role -->
+        <button onclick="openAuthModal()" class="pl-1 pr-3.5 py-1 bg-white border border-slate-200/90 rounded-full text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-xs flex items-center gap-2 transition">
+          <div class="w-6 h-6 rounded-full bg-slate-900 text-white flex items-center justify-center font-bold text-[10px]">
+            DR
+          </div>
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span id="user-role-badge" class="tracking-tight text-[11px]">JOURNALIST</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ======================================================================= -->
+    <!-- MAIN APP CONTAINER                                                      -->
+    <!-- ======================================================================= -->
+    <main class="w-full flex-1">
+
+      <!-- ===================================================================== -->
+      <!-- TAB 1: DAILY EPISTEMIC FEED ("Daily Info")                            -->
+      <!-- ===================================================================== -->
+      <section id="page-feed" class="page-view space-y-6">
+        
+        <!-- Top Title & Quick Actions Row -->
+        <div class="flex items-center justify-between flex-wrap gap-4 pt-1">
+          <div class="flex items-center gap-3">
+            <button onclick="resetFeedFilters()" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm font-bold transition shadow-xs" title="Reset View">
+              ←
+            </button>
+            <div>
+              <h2 class="text-2xl font-extrabold text-slate-900 tracking-tight">Epistemic Intelligence Stream</h2>
+              <p class="text-xs text-slate-500 font-medium mt-0.5">Continuous empirical fact-checking, provenance tracking, and coordinated botnet detection.</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="resetFeedFilters()" class="p-2.5 rounded-xl bg-white border border-slate-200 text-slate-600 hover:text-slate-900 hover:bg-slate-50 shadow-xs transition" title="Reset Filters">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+            </button>
+            <button id="btn-sync-feeds" class="px-4 py-2.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-full text-xs font-semibold shadow-xs transition flex items-center gap-2">
+              <svg class="w-3.5 h-3.5 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+              <span>Sync Feeds</span>
+            </button>
+            <button onclick="switchTab('preflight')" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-bold shadow-md shadow-indigo-600/25 transition flex items-center gap-1.5">
+              <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 4v16m8-8H4"></path></svg>
+              <span>+ Draft New Story</span>
+            </button>
+          </div>
+        </div>
 
       <!-- 4 Finnova KPI Metric Cards -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -249,55 +279,63 @@
         </div>
       </div>
 
-      <!-- Master Dark Finnova Container (#0B0F19) with Split Screen -->
-      <div class="bg-[#0B0F19] text-white rounded-2xl md:rounded-3xl p-5 md:p-6 shadow-xl border border-slate-800/90 space-y-5">
+      <!-- Master Dark Finnova Container (#151624) with Split Screen -->
+      <div class="bg-[#151624] text-white rounded-3xl p-5 md:p-7 shadow-2xl border border-white/5 space-y-6">
         <!-- Sub-tabs row -->
-        <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-slate-800/80">
-          <div class="flex items-center gap-1.5 flex-wrap" id="feed-status-tabs">
-            <button onclick="setFeedStatusFilter('All')" data-status="All" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-600 text-white shadow-xs transition">
-              All Stories (<span id="count-all">24</span>)
-            </button>
-            <button onclick="setFeedStatusFilter('REAL')" data-status="REAL" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
-              Verified (<span id="count-real">13</span>)
-            </button>
-            <button onclick="setFeedStatusFilter('FAKE')" data-status="FAKE" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
-              Debunked (<span id="count-fake">5</span>)
-            </button>
-            <button onclick="setFeedStatusFilter('SATIRE')" data-status="SATIRE" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
-              Satire (<span id="count-satire">2</span>)
-            </button>
-            <button onclick="setFeedStatusFilter('SYNTHETIC')" data-status="SYNTHETIC" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
-              AI Synthetic (<span id="count-synth">1</span>)
-            </button>
-            <button onclick="setFeedStatusFilter('DATA_VOID')" data-status="DATA_VOID" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
-              Data-Void (<span id="count-void">1</span>)
-            </button>
+        <div class="flex items-center justify-between flex-wrap gap-3 pb-3 border-b border-white/5">
+          <div class="flex items-center gap-2 flex-wrap">
+            <h3 class="text-sm font-extrabold text-white tracking-wide mr-2">Corpus Stream</h3>
+            <div class="flex items-center bg-[#1F2136] p-1 rounded-full border border-white/5 flex-wrap" id="feed-status-tabs">
+              <button onclick="setFeedStatusFilter('All')" data-status="All" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-600 text-white shadow-xs transition">
+                All Stories (<span id="count-all">24</span>)
+              </button>
+              <button onclick="setFeedStatusFilter('REAL')" data-status="REAL" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+                Verified (<span id="count-real">13</span>)
+              </button>
+              <button onclick="setFeedStatusFilter('FAKE')" data-status="FAKE" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+                Debunked (<span id="count-fake">5</span>)
+              </button>
+              <button onclick="setFeedStatusFilter('SATIRE')" data-status="SATIRE" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+                Satire (<span id="count-satire">2</span>)
+              </button>
+              <button onclick="setFeedStatusFilter('SYNTHETIC')" data-status="SYNTHETIC" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+                Synthetic (<span id="count-synth">1</span>)
+              </button>
+              <button onclick="setFeedStatusFilter('DATA_VOID')" data-status="DATA_VOID" class="feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition">
+                Data-Void (<span id="count-void">1</span>)
+              </button>
+            </div>
           </div>
           <div class="flex items-center gap-2 text-slate-400 text-xs">
-            <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
-            <span class="font-mono text-[11px]">Realtime Epistemic Stream</span>
+            <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span class="font-mono text-[11px] text-slate-300">Live Epistemic Stream</span>
           </div>
         </div>
 
         <!-- Split Layout: Left Articles List & Right Elevated Inspection Dossier -->
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-5 items-start">
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
           
           <!-- Left Column (5/12): Scrollable Article List -->
           <div class="lg:col-span-5 flex flex-col space-y-3">
             <div class="flex items-center justify-between text-xs font-bold text-slate-400 px-1">
               <span>Verified Corpus Feed</span>
-              <span id="feed-article-total-badge" class="tabular font-mono text-[11px]">24 loaded</span>
+              <span id="feed-article-total-badge" class="tabular font-mono text-[11px] text-indigo-300">24 loaded</span>
             </div>
             <div id="feed-articles-container" class="space-y-2.5 max-h-[640px] overflow-y-auto pr-2 custom-scrollbar">
               <!-- Dynamically injected via app.js -->
             </div>
           </div>
 
-          <!-- Right Column (7/12): Elevated Finnova Dossier Pane (#131A2B) -->
+          <!-- Right Column (7/12): Elevated Finnova Dossier Pane (linear-gradient) -->
           <div class="lg:col-span-7">
-            <div id="feed-active-dossier" class="bg-[#131A2B] rounded-2xl p-6 border border-slate-700/60 shadow-xl text-white space-y-5 lg:sticky lg:top-6 transition-all duration-200">
+            <div id="feed-active-dossier" class="bg-gradient-to-br from-[#373268] to-[#221E48] rounded-[26px] p-6 md:p-7 border border-indigo-400/20 shadow-2xl text-white space-y-5 lg:sticky lg:top-6 transition-all duration-200">
               <!-- Dynamically rendered active article dossier -->
-              <div class="p-8 text-center text-slate-400">Select an article from the left stream to inspect epistemic claims and provenance.</div>
+              <div class="p-8 text-center text-slate-300">Select an article from the left stream to inspect epistemic claims and provenance.</div>
+            </div>
+          </div>
+
+        </div>
+      </div>
             </div>
           </div>
 
@@ -780,6 +818,7 @@
     </section>
 
   </main>
+  </div> <!-- Close Finnova Master Dashboard Wrapper Card -->
 
   <!-- Role Selection Modal -->
   <div id="auth-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">

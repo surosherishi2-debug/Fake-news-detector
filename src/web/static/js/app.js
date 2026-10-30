@@ -167,8 +167,8 @@ document.addEventListener('DOMContentLoaded', () => {
       container.innerHTML = state.feedArticles.map(art => {
         const isSelected = art.id === state.selectedFeedArticleId;
         const cardBg = isSelected 
-          ? 'bg-[#1C253D] border-indigo-500 ring-1 ring-indigo-500/80 shadow-md' 
-          : 'bg-[#131A2B] hover:bg-[#1A233A] border-slate-800/80';
+          ? 'bg-[#2E2A5C] border-indigo-500 ring-1 ring-indigo-500/80 shadow-md text-white' 
+          : 'bg-[#1C1E32] hover:bg-[#232640] border-white/5 text-slate-200';
 
         let statusBadge = 'bg-emerald-950/60 text-emerald-400 border-emerald-800/60';
         let statusIcon = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> Verified';
@@ -196,17 +196,17 @@ document.addEventListener('DOMContentLoaded', () => {
         const shortId = art.id.length > 14 ? art.id.substring(0, 14) + '...' : art.id;
 
         return `
-          <div onclick="selectFeedArticle('${art.id}')" class="p-3.5 rounded-xl border ${cardBg} cursor-pointer transition-all duration-150 space-y-2">
+          <div onclick="selectFeedArticle('${art.id}')" class="p-4 rounded-2xl border ${cardBg} cursor-pointer transition-all duration-150 space-y-2">
             <div class="flex items-center justify-between text-xs">
               <div class="flex items-center gap-1.5">
-                <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded text-[10px] font-semibold border ${statusBadge}">${statusIcon}</span>
-                <span class="px-1.5 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[9px] font-bold">${langBadge}</span>
+                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusBadge}">${statusIcon}</span>
+                <span class="px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono text-[9px] font-bold border border-white/5">${langBadge}</span>
               </div>
               <span class="text-[11px] font-mono text-slate-400">${shortId}</span>
             </div>
             <h4 class="text-xs font-semibold text-slate-100 line-clamp-1 leading-snug">${art.title}</h4>
-            <div class="flex items-center justify-between text-[11px] pt-1 border-t border-slate-800/60 text-slate-400">
-              <span class="truncate max-w-[160px] text-slate-400">${art.publisher}</span>
+            <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-white/10 text-slate-400">
+              <span class="truncate max-w-[160px] text-slate-300">${art.publisher}</span>
               <span class="tabular font-semibold ${truthColor}">${art.truth_score}% Integrity</span>
             </div>
           </div>
@@ -288,9 +288,9 @@ document.addEventListener('DOMContentLoaded', () => {
         state.feedArticles.forEach((art, idx) => {
           if (cards[idx]) {
             if (art.id === artId) {
-              cards[idx].className = 'p-3.5 rounded-xl border bg-[#1C253D] border-indigo-500 ring-1 ring-indigo-500/80 shadow-md cursor-pointer transition-all duration-150 space-y-2';
+              cards[idx].className = 'p-4 rounded-2xl border bg-[#2E2A5C] border-indigo-500 ring-1 ring-indigo-500/80 shadow-md text-white cursor-pointer transition-all duration-150 space-y-2';
             } else {
-              cards[idx].className = 'p-3.5 rounded-xl border bg-[#131A2B] hover:bg-[#1A233A] border-slate-800/80 cursor-pointer transition-all duration-150 space-y-2';
+              cards[idx].className = 'p-4 rounded-2xl border bg-[#1C1E32] hover:bg-[#232640] border-white/5 text-slate-200 cursor-pointer transition-all duration-150 space-y-2';
             }
           }
         });
@@ -302,25 +302,25 @@ document.addEventListener('DOMContentLoaded', () => {
     const dossier = document.getElementById('feed-active-dossier');
     if (!dossier) return;
 
-    let statusBadge = 'bg-emerald-950/60 text-emerald-400 border-emerald-800/60';
-    let statusLabel = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> Verified Ground Truth';
+    let statusBadge = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
+    let statusLabel = '<span class="w-2 h-2 rounded-full bg-emerald-400 inline-block mr-1"></span> Verified Ground Truth';
     let truthColor = 'text-emerald-400';
 
     if (art.status === 'FAKE') {
-      statusBadge = 'bg-rose-950/60 text-rose-400 border-rose-800/60';
-      statusLabel = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400 inline-block"></span> Debunked Misinformation';
+      statusBadge = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
+      statusLabel = '<span class="w-2 h-2 rounded-full bg-rose-400 inline-block mr-1"></span> Debunked Misinformation';
       truthColor = 'text-rose-400';
     } else if (art.status === 'SATIRE') {
-      statusBadge = 'bg-indigo-950/60 text-indigo-300 border-indigo-800/60';
-      statusLabel = '<span class="w-1.5 h-1.5 rounded-full bg-indigo-400 inline-block"></span> Satirical Parody';
+      statusBadge = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40';
+      statusLabel = '<span class="w-2 h-2 rounded-full bg-indigo-400 inline-block mr-1"></span> Satirical Parody';
       truthColor = 'text-indigo-400';
     } else if (art.status === 'SYNTHETIC') {
-      statusBadge = 'bg-sky-950/60 text-sky-400 border-sky-800/60';
-      statusLabel = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 inline-block"></span> AI Synthetic Text';
+      statusBadge = 'bg-sky-500/20 text-sky-300 border-sky-500/40';
+      statusLabel = '<span class="w-2 h-2 rounded-full bg-sky-400 inline-block mr-1"></span> AI Synthetic Text';
       truthColor = 'text-sky-400';
     } else if (art.status === 'DATA_VOID') {
-      statusBadge = 'bg-amber-950/60 text-amber-400 border-amber-800/60';
-      statusLabel = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span> Breaking Unconfirmed Void';
+      statusBadge = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
+      statusLabel = '<span class="w-2 h-2 rounded-full bg-amber-400 inline-block mr-1"></span> Breaking Data-Void';
       truthColor = 'text-amber-400';
     }
 
@@ -328,65 +328,78 @@ document.addEventListener('DOMContentLoaded', () => {
     const claimsHtml = claims.length > 0 ? claims.map(c => {
       const isRefuted = c.status === 'REFUTED' || art.status === 'FAKE';
       const cIcon = isRefuted 
-        ? '<svg class="w-3.5 h-3.5 text-rose-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg>'
+        ? '<div class="w-5 h-5 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 flex-shrink-0"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg></div>'
         : (c.status === 'DATA_VOID'
-          ? '<svg class="w-3.5 h-3.5 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>'
-          : '<svg class="w-3.5 h-3.5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg>');
+          ? '<div class="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>'
+          : '<div class="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 flex-shrink-0"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg></div>');
       
       return `
-        <div class="p-3 rounded-xl bg-[#0B0F19]/90 border border-slate-800 flex items-start gap-3">
+        <div class="p-3.5 rounded-2xl bg-[#151624]/80 border border-white/10 flex items-start gap-3">
           <div class="mt-0.5">${cIcon}</div>
-          <div class="space-y-1 flex-1">
-            <p class="text-xs text-slate-200 font-medium leading-relaxed">${c.text}</p>
-            <div class="text-[10px] text-slate-400 flex items-center justify-between pt-0.5">
-              <span>Citation: <b class="text-slate-300">${c.citation || 'IFCN Accredited Archive'}</b></span>
-              <span class="font-mono">Check Worthiness: ${(c.check_worthiness * 100).toFixed(0)}%</span>
+          <div class="space-y-1 flex-1 min-w-0">
+            <p class="text-xs text-slate-100 font-medium leading-relaxed">${c.text}</p>
+            <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5 flex-wrap gap-1">
+              <span>Citation: <b class="text-indigo-300 font-semibold">${c.citation || 'IFCN Accredited Archive'}</b></span>
+              <span class="font-mono text-slate-400">Worthiness: ${(c.check_worthiness * 100).toFixed(0)}%</span>
             </div>
           </div>
         </div>
       `;
-    }).join('') : '<div class="text-xs text-slate-400 italic">No decomposed claims recorded for this entry.</div>';
+    }).join('') : '<div class="text-xs text-slate-400 italic p-3">No decomposed claims recorded for this entry.</div>';
 
     dossier.innerHTML = `
       <!-- Dossier Header -->
-      <div class="flex items-center justify-between flex-wrap gap-2 pb-4 border-b border-slate-700/60">
+      <div class="flex items-center justify-between flex-wrap gap-2 pb-4 border-b border-white/10">
         <div class="flex items-center gap-2">
-          <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold border ${statusBadge}">${statusLabel}</span>
-          <span class="font-mono text-xs text-slate-400">${art.id}</span>
+          <span class="text-[10px] font-mono text-indigo-300 tracking-wider uppercase font-semibold">Article Details</span>
+          <span class="font-mono text-xs font-bold text-white"># ${art.id}</span>
+          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${statusBadge}">${statusLabel}</span>
         </div>
         <div class="flex items-center gap-2 text-xs">
-          <span class="text-slate-300 font-semibold">${art.publisher}</span>
-          <span class="px-2 py-0.5 rounded bg-slate-800 text-slate-300 font-mono text-[10px] border border-slate-700">${art.domain}</span>
+          <span class="text-slate-200 font-semibold">${art.publisher}</span>
+          <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-slate-200 font-mono text-[10px] border border-white/15">${art.domain}</span>
         </div>
       </div>
 
       <!-- Main Headline & Excerpt -->
       <div class="space-y-2">
-        <h3 class="text-xl font-bold text-white leading-snug tracking-tight">${art.title}</h3>
+        <h3 class="text-xl md:text-2xl font-extrabold text-white leading-snug tracking-tight">${art.title}</h3>
         <p class="text-xs text-slate-300 leading-relaxed font-normal">${art.content}</p>
       </div>
 
-      <!-- 3 Key Metric Chips -->
+      <!-- 3 Key Metric Chips (Finnova Translucent Glass Cards) -->
       <div class="grid grid-cols-3 gap-3">
-        <div class="p-3 rounded-xl bg-[#0B0F19] border border-slate-800 text-center">
-          <div class="text-[11px] text-slate-400 font-medium">Truth Score</div>
-          <div class="text-xl font-bold ${truthColor} tabular mt-0.5">${art.truth_score}%</div>
+        <div class="p-3.5 rounded-2xl bg-white/[0.08] border border-white/10 backdrop-blur-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase font-mono text-slate-300 tracking-wider">Integrity</span>
+            <span class="text-xs text-slate-400">↗</span>
+          </div>
+          <div class="text-2xl font-black ${truthColor} tabular mt-1">${art.truth_score}%</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Empirical Grounding</div>
         </div>
-        <div class="p-3 rounded-xl bg-[#0B0F19] border border-slate-800 text-center">
-          <div class="text-[11px] text-slate-400 font-medium">Cascade Risk</div>
-          <div class="text-xl font-bold text-slate-200 tabular mt-0.5">${(art.cib_risk * 100).toFixed(0)}%</div>
+        <div class="p-3.5 rounded-2xl bg-white/[0.08] border border-white/10 backdrop-blur-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase font-mono text-slate-300 tracking-wider">Cascade Risk</span>
+            <span class="text-xs text-slate-400">↗</span>
+          </div>
+          <div class="text-2xl font-black text-white tabular mt-1">${(art.cib_risk * 100).toFixed(0)}%</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Botnet Propagation</div>
         </div>
-        <div class="p-3 rounded-xl bg-[#0B0F19] border border-slate-800 text-center">
-          <div class="text-[11px] text-slate-400 font-medium">Claims Audited</div>
-          <div class="text-xl font-bold text-indigo-300 tabular mt-0.5">${claims.length} Claims</div>
+        <div class="p-3.5 rounded-2xl bg-white/[0.08] border border-white/10 backdrop-blur-sm">
+          <div class="flex items-center justify-between">
+            <span class="text-[10px] uppercase font-mono text-slate-300 tracking-wider">Audited</span>
+            <span class="text-xs text-slate-400">↗</span>
+          </div>
+          <div class="text-2xl font-black text-indigo-200 tabular mt-1">${claims.length}</div>
+          <div class="text-[10px] text-slate-400 mt-0.5">Decomposed Claims</div>
         </div>
       </div>
 
       <!-- Decomposed Claims Breakdown -->
       <div class="space-y-2">
-        <div class="flex items-center justify-between text-xs font-bold text-slate-300">
+        <div class="flex items-center justify-between text-xs font-bold text-slate-200">
           <span>Empirical Claims & Provenance Verification</span>
-          <span class="text-[10px] text-slate-400 font-mono">Temporal Lambda λ=0.1</span>
+          <span class="text-[10px] text-indigo-300 font-mono">Temporal Lambda λ=0.1</span>
         </div>
         <div class="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
           ${claimsHtml}
@@ -394,16 +407,16 @@ document.addEventListener('DOMContentLoaded', () => {
       </div>
 
       <!-- Action Footer Bar -->
-      <div class="pt-4 border-t border-slate-700/60 flex items-center justify-between flex-wrap gap-2">
+      <div class="pt-4 border-t border-white/10 flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center gap-2">
-          <button onclick="inspectFeedArticle('${art.id}', '${encodeURIComponent(art.title)}', '${encodeURIComponent(art.content)}', '${art.domain}')" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-xs rounded-xl shadow-xs transition flex items-center gap-2">
+          <button onclick="inspectFeedArticle('${art.id}', '${encodeURIComponent(art.title)}', '${encodeURIComponent(art.content)}', '${art.domain}')" class="px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs rounded-full shadow-md transition flex items-center gap-2">
             <span>Verify in Deep Tri-Modal →</span>
           </button>
-          <button onclick="switchTab('graph')" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs rounded-xl border border-slate-700 transition">
+          <button onclick="switchTab('graph')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium text-xs rounded-full border border-white/15 transition">
             Knowledge Graph
           </button>
         </div>
-        <button onclick="switchTab('cascades')" class="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium text-xs rounded-xl border border-slate-700 transition">
+        <button onclick="switchTab('cascades')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium text-xs rounded-full border border-white/15 transition">
           Cascades Radar
         </button>
       </div>

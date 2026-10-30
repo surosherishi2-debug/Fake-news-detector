@@ -5,13 +5,18 @@
 
 :root {
   /* Surfaces */
-  --bg-canvas: #f8fafc;
+  --bg-canvas: #edf0f7;
   --surface-card: #ffffff;
   --surface-elevated: #ffffff;
-  --surface-dark: #0b0f19;
-  --surface-dark-card: #131a2b;
-  --surface-dark-active: #1c253d;
-  --surface-dark-inset: #070a12;
+  --surface-dark: #151624;
+  --surface-dark-card: #1c1e32;
+  --surface-dark-hover: #232640;
+  --surface-dark-active: #2e2a5c;
+  --surface-dark-inset: #0e0f1a;
+
+  /* Dossier Gradients (Finnova purple-indigo) */
+  --dossier-from: #373268;
+  --dossier-to: #221e48;
 
   /* Borders */
   --border-subtle: #e2e8f0;
@@ -33,7 +38,7 @@
   --primary-subtle: #eef2ff;
   --primary-border: #c7d2fe;
 
-  /* Semantic Status Tokens (Muted, professional) */
+  /* Semantic Status Tokens */
   --status-verified: #059669;
   --status-verified-bg: #ecfdf5;
   --status-verified-border: #a7f3d0;
