@@ -61,7 +61,7 @@ def test_truthlens_engine_zero_assumption_data_void():
 
 def test_database_persistence_and_seed():
     """Verify database contains persistent multi-domain articles and entity graph."""
-    articles = db.get_articles(limit=10)
+    articles = db.get_articles(limit=50)
     assert len(articles) >= 5
     assert any(a["status"] == "REAL" for a in articles)
     assert any(a["status"] == "FAKE" for a in articles)
@@ -177,3 +177,17 @@ def test_api_endpoints():
     md_dossier = export_guide_dossier_markdown()
     assert "# TruthLens-Omni" in md_dossier
     assert "Temporal Decay" in md_dossier
+
+    # 12. Feed Sync Endpoint
+    from src.api.server import sync_news_feeds
+    sync_res = sync_news_feeds(force_live=False)
+    assert sync_res.success is True
+    assert sync_res.articles_ingested >= 1
+
+    # 13. Multilingual Synthetic Forensics (Indic text)
+    indic_sample = "आयुष मंत्रालय ने स्पष्ट किया कि गिलोय और तुलसी का काढ़ा कोरोना संक्रमण का शत प्रतिशत इलाज नहीं है।"
+    from src.nlp.synthetic_detector import SyntheticDetector
+    synth_det = SyntheticDetector()
+    rep_indic = synth_det.analyze_text(indic_sample)
+    assert rep_indic.lexical_diversity > 0
+    assert rep_indic.classification in ["HUMAN_AUTHORED", "HYBRID_HUMAN_EDITED"]

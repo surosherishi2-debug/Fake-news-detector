@@ -24,3 +24,4 @@ Real-time neuro-symbolic factual verification, contextual nutrition cards, and A
    - **Click Extension Icon**: Audit current active tab or paste custom text.
    - **Highlight Any Text on Any Webpage**: A floating `🔍 Audit with TruthLens` chip will appear instantly. Click it to view the real-time verdict and truth score!
    - **Right-Click Context Menu**: Select any text, right-click, and choose **"Verify Claim with TruthLens-Omni"**.
+

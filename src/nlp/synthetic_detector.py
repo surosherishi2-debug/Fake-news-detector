@@ -80,8 +80,8 @@ class SyntheticDetector:
                 verdict_explanation="Sample too short for robust statistical entropy analysis.",
             )
 
-        words = re.findall(r"\b[A-Za-z0-9'-]+\b", text)
-        sentences = [s.strip() for s in re.split(r"[.!?]+", text) if len(s.strip()) > 5]
+        words = re.findall(r"[\w'-]+", text)
+        sentences = [s.strip() for s in re.split(r"[.!?।]+", text) if len(s.strip()) > 5]
 
         # 1. Burstiness Analysis (Variance in sentence length)
         # Humans write with dynamic variation: short punchy sentences followed by long complex sentences.

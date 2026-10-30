@@ -80,3 +80,4 @@ document.addEventListener("mousedown", (e) => {
     removeFloatingChip();
   }
 });
+
