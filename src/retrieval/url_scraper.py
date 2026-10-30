@@ -102,3 +102,4 @@ class URLScraper:
             logger.warning("Failed to scrape URL %s: %s", url, e)
             metadata["error"] = str(e)
             return None, metadata
+

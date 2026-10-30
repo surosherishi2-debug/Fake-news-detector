@@ -1,0 +1,81 @@
+/* TruthLens-Omni Neo-FinTech Design System Stylesheet */
+:root {
+  --bg-canvas: #f4f5fa;
+  --surface-card: #ffffff;
+  --surface-dark: #0f131d;
+  --surface-dark-elevated: #282161;
+  --surface-dark-active: #3b338a;
+  --primary: #5e4bf5;
+  --primary-hover: #4e3be3;
+  --primary-light: #eef0ff;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-dark-main: #ffffff;
+  --text-dark-muted: #a5b4fc;
+  --status-verified: #10b981;
+  --status-refuted: #ef4444;
+  --status-void: #f59e0b;
+  --status-satire: #8b5cf6;
+  --border-light: rgba(226, 232, 240, 0.8);
+  --border-dark: rgba(255, 255, 255, 0.1);
+  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-family);
+  background-color: var(--bg-canvas);
+  color: var(--text-main);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  min-height: 100vh;
+}
+
+.tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.4);
+  border-radius: 9999px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(100, 116, 139, 0.6);
+}
+
+/* Animations */
+@keyframes pulseSlow {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.85; transform: scale(1.02); }
+}
+
+.pulse-node {
+  animation: pulseSlow 3s infinite ease-in-out;
+}
+
+/* Radial Gauge / Nutrition Card micro-radar */
+.radar-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+}
+
+.radar-item {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-dark);
+  border-radius: 12px;
+  padding: 10px 14px;
+}

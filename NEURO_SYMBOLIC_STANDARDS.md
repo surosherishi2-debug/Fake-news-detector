@@ -60,3 +60,4 @@ Every single verdict returned by the system must include a deterministic **Prove
 3. Publication Timestamps & Computed Temporal Obsolescence $\Delta t$.
 4. Social Propagation Metrics (Verified user percentage, CIB burst anomaly).
 5. Publisher Credibility Rating.
+

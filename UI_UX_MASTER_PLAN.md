@@ -201,3 +201,4 @@ Sprint 3: Global Intel, Auth & Profile
 ├── Connect Page 5 (Trends & Indic RAG)
 └── Wire Authentication, Role Switcher, and Profile Page
 ```
+

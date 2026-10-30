@@ -10,3 +10,4 @@ def test_url_scraper_domain_parsing():
     assert meta["domain"] == "invalid-nonexistent-domain-xyz992.com"
     assert meta["status"] == "failed"
     assert "error" in meta
+

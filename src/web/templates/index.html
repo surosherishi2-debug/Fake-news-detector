@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TruthLens-Omni | Misinformation Intelligence & Consensus Engine</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+          },
+          colors: {
+            brand: {
+              primary: '#5E4BF5',
+              dark: '#0F131D',
+              purple: '#282161',
+              card: '#FFFFFF',
+              canvas: '#F4F5FA',
+            }
+          }
+        }
+      }
+    }
+  </script>
+</head>
+<body class="bg-[#F4F5FA] text-slate-900 font-sans antialiased min-h-screen flex flex-col p-4 md:p-6 lg:p-8">
+
+  <!-- ========================================================================= -->
+  <!-- TOP NAVIGATION PILL BAR (Identical to Reference Layout)                     -->
+  <!-- ========================================================================= -->
+  <header class="w-full max-w-7xl mx-auto flex items-center justify-between pb-6">
+    <!-- Brand Logo -->
+    <div class="flex items-center gap-3">
+      <div class="w-10 h-10 rounded-2xl bg-[#5E4BF5] flex items-center justify-center text-white font-bold text-lg shadow-md shadow-indigo-500/20">
+        TL
+      </div>
+      <div>
+        <h1 class="text-lg font-bold text-slate-900 tracking-tight leading-tight">TruthLens<span class="text-[#5E4BF5]">Omni</span></h1>
+        <p class="text-xs text-slate-500 font-medium">IEEE 2024 Research Lineage</p>
+      </div>
+    </div>
+
+    <!-- Center Navigation Pill Bar -->
+    <nav class="hidden md:flex items-center bg-[#111622] p-1.5 rounded-full shadow-lg border border-slate-800">
+      <button data-tab="verify" class="nav-tab-btn px-4 py-2 rounded-full text-xs font-semibold transition bg-[#5E4BF5] text-white shadow-sm">
+        Deep Verify
+      </button>
+      <button data-tab="cascades" class="nav-tab-btn px-4 py-2 rounded-full text-xs font-semibold transition text-slate-300 hover:text-white">
+        Cascades Radar
+      </button>
+      <button data-tab="consensus" class="nav-tab-btn px-4 py-2 rounded-full text-xs font-semibold transition text-slate-300 hover:text-white">
+        Community Consensus
+      </button>
+      <button data-tab="multimodal" class="nav-tab-btn px-4 py-2 rounded-full text-xs font-semibold transition text-slate-300 hover:text-white">
+        Media Lab
+      </button>
+      <button data-tab="trends" class="nav-tab-btn px-4 py-2 rounded-full text-xs font-semibold transition text-slate-300 hover:text-white">
+        Global Intel
+      </button>
+      <button data-tab="profile" class="nav-tab-btn px-4 py-2 rounded-full text-xs font-semibold transition text-slate-300 hover:text-white">
+        Profile & Keys
+      </button>
+    </nav>
+
+    <!-- Right Controls: Role Badge & Auth -->
+    <div class="flex items-center gap-3">
+      <button onclick="openAuthModal()" class="px-3 py-1.5 bg-white border border-slate-200 rounded-full text-xs font-semibold text-slate-700 hover:bg-slate-50 shadow-sm flex items-center gap-1.5 transition">
+        <span class="w-2 h-2 rounded-full bg-emerald-500"></span>
+        <span id="user-role-badge">JOURNALIST</span>
+      </button>
+      <div onclick="window.location.hash='profile'" class="w-10 h-10 rounded-full bg-slate-200 border border-slate-300 overflow-hidden cursor-pointer hover:ring-2 hover:ring-[#5E4BF5] transition flex items-center justify-center font-bold text-slate-600 text-xs">
+        DR
+      </div>
+    </div>
+  </header>
+
+  <!-- ========================================================================= -->
+  <!-- MAIN APP CONTAINER                                                        -->
+  <!-- ========================================================================= -->
+  <main class="w-full max-w-7xl mx-auto flex-1">
+
+    <!-- ======================================================================= -->
+    <!-- PAGE 1: DEEP VERIFICATION STUDIO (Default View)                        -->
+    <!-- ======================================================================= -->
+    <section id="page-verify" class="page-view space-y-6">
+      
+      <!-- Ingress Bar: Live URL Scraper + Text Box (Feature 10 & 2) -->
+      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+        <div class="flex flex-col md:flex-row items-center justify-between gap-4">
+          <div>
+            <h2 class="text-xl font-bold text-slate-900 tracking-tight">Real-Time Tri-Modal Verification Studio</h2>
+            <p class="text-xs text-slate-500">Fusing content semantics, temporal decay <code class="text-indigo-600 font-mono">w(t) = exp(-λ Δt)</code>, and heterogeneous social cascades.</p>
+          </div>
+          <!-- Sample Loaders for Quick Demo -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="text-xs text-slate-400 font-medium">Quick Samples:</span>
+            <button onclick="loadSample('microchip')" class="px-2.5 py-1 rounded-full bg-rose-50 text-rose-700 hover:bg-rose-100 text-xs font-semibold border border-rose-200 transition">
+              🔴 Vaccine Microchip
+            </button>
+            <button onclick="loadSample('isro')" class="px-2.5 py-1 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 text-xs font-semibold border border-emerald-200 transition">
+              🟢 ISRO Moon Ice
+            </button>
+            <button onclick="loadSample('satire')" class="px-2.5 py-1 rounded-full bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold border border-purple-200 transition">
+              🟣 The Onion Satire
+            </button>
+          </div>
+        </div>
+
+        <!-- Ingress Controls -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-3 pt-2">
+          <div class="md:col-span-2 flex gap-2">
+            <input id="input-url" type="url" placeholder="Paste news link (e.g. https://reuters.com/... or blog URL)" class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5]">
+            <button id="btn-url-scrape" class="px-4 py-2.5 bg-[#111622] hover:bg-slate-800 text-white rounded-xl text-xs font-semibold transition whitespace-nowrap">
+              Extract & Verify
+            </button>
+          </div>
+          <div>
+            <input id="input-publisher" type="text" placeholder="Publisher Domain (e.g. reuters.com)" class="w-full px-4 py-2.5 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5]">
+          </div>
+        </div>
+
+        <form id="verify-form" class="space-y-3">
+          <textarea id="input-text" rows="2" placeholder="Or enter raw news text, headline, or transcribed social media claim..." class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#5E4BF5]"></textarea>
+          <div class="flex justify-end">
+            <button id="btn-execute-verify" type="submit" class="px-6 py-2.5 bg-[#5E4BF5] hover:bg-indigo-600 text-white rounded-xl text-xs font-bold shadow-md shadow-indigo-500/20 transition flex items-center gap-2">
+              Run Tri-Modal Verification
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Top Row: 4 Metric Cards (Identical to Reference Image Top Row) -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Metric 1: Factual Grounding -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider">
+            <span>Factual Grounding</span>
+            <span class="w-6 h-6 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center text-xs">📊</span>
+          </div>
+          <div class="my-3">
+            <span id="metric-grounding" class="text-3xl font-extrabold text-slate-900 tabular">84.2%</span>
+            <span class="text-xs text-emerald-600 font-semibold block mt-1">+3.2% vs pure NLP baseline</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-[#5E4BF5] h-1.5 rounded-full" style="width: 84%"></div>
+          </div>
+        </div>
+
+        <!-- Metric 2: Temporal Freshness -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider">
+            <span>Evidence Freshness</span>
+            <span class="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center text-xs">⏳</span>
+          </div>
+          <div class="my-3">
+            <span id="metric-freshness" class="text-3xl font-extrabold text-slate-900 tabular">w(t) = 0.94</span>
+            <span class="text-xs text-slate-500 font-semibold block mt-1">λ = 0.1 learned decay rate</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-emerald-500 h-1.5 rounded-full" style="width: 94%"></div>
+          </div>
+        </div>
+
+        <!-- Metric 3: Cascade Diffusion Risk -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider">
+            <span>Cascade Risk</span>
+            <span class="w-6 h-6 rounded-full bg-amber-50 text-amber-600 flex items-center justify-center text-xs">🌐</span>
+          </div>
+          <div class="my-3">
+            <span id="metric-risk" class="text-3xl font-extrabold text-slate-900 tabular">18%</span>
+            <span class="text-xs text-slate-500 font-semibold block mt-1">Normal organic propagation</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-amber-500 h-1.5 rounded-full" style="width: 18%"></div>
+          </div>
+        </div>
+
+        <!-- Metric 4: Final Verdict -->
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm flex flex-col justify-between">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold uppercase tracking-wider">
+            <span>Calibrated Verdict</span>
+            <span class="w-6 h-6 rounded-full bg-purple-50 text-purple-600 flex items-center justify-center text-xs">🛡️</span>
+          </div>
+          <div class="my-3">
+            <span id="metric-verdict" class="text-2xl font-extrabold text-slate-900 tabular">VERIFIED</span>
+            <span class="text-xs text-slate-500 font-semibold block mt-1">Zero-assumption grounded</span>
+          </div>
+          <div class="w-full bg-slate-100 rounded-full h-1.5 overflow-hidden">
+            <div class="bg-indigo-600 h-1.5 rounded-full" style="width: 100%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom Container: High-Contrast Dark Split Card (Mirrors Reference Card) -->
+      <div class="bg-[#0F131D] rounded-3xl p-6 border border-slate-800 shadow-xl text-white space-y-4">
+        
+        <!-- Header Pill Filters -->
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="text-sm font-bold text-white tracking-wide">Decomposed Assertions & Evidence Proof</span>
+            <span class="text-xs px-2 py-0.5 rounded-full bg-white/10 text-indigo-300 font-mono">CFS Mode</span>
+          </div>
+          <div class="flex items-center bg-[#181D2A] p-1 rounded-full text-xs">
+            <button class="px-3 py-1 rounded-full bg-[#5E4BF5] text-white font-medium">All Claims</button>
+            <button class="px-3 py-1 rounded-full text-slate-400 hover:text-white">Refuted</button>
+            <button class="px-3 py-1 rounded-full text-slate-400 hover:text-white">Verified</button>
+          </div>
+        </div>
+
+        <!-- Split Grid: Left Claim List, Right Active Detail Card -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+          
+          <!-- Left: Atomic Claims List (5 Cols) -->
+          <div id="claims-list-container" class="lg:col-span-5 space-y-2.5 max-h-[460px] overflow-y-auto pr-1">
+            <!-- Dynamic claims injected via app.js -->
+          </div>
+
+          <!-- Right: Elevated Soft Purple Detail Container (7 Cols - Matches Reference) -->
+          <div id="active-claim-detail" class="lg:col-span-7 bg-[#282161] rounded-2xl p-5 border border-indigo-400/20 shadow-lg space-y-4">
+            <!-- Dynamic claim inspection injected via app.js -->
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- PAGE 2: SOCIAL CASCADES & CIB BOTNET RADAR                             -->
+    <!-- ======================================================================= -->
+    <section id="page-cascades" class="page-view hidden space-y-6">
+      <!-- Top Metrics -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold uppercase">Active Cascades</span>
+          <p class="text-3xl font-extrabold text-slate-900 mt-2 tabular">14,280</p>
+          <span class="text-xs text-emerald-600 block mt-1">+18.4% live stream traffic</span>
+        </div>
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold uppercase">CIB Botnet Alerts</span>
+          <p class="text-3xl font-extrabold text-rose-600 mt-2 tabular">18</p>
+          <span class="text-xs text-rose-500 block mt-1">High-frequency synchronized bursts</span>
+        </div>
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold uppercase">Burst Interval</span>
+          <p class="text-3xl font-extrabold text-slate-900 mt-2 tabular">12 sec</p>
+          <span class="text-xs text-slate-500 block mt-1">Sliding coordination window</span>
+        </div>
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold uppercase">Verified Account Ratio</span>
+          <p class="text-3xl font-extrabold text-indigo-600 mt-2 tabular">64.2%</p>
+          <span class="text-xs text-slate-500 block mt-1">Healthy cross-community diffusion</span>
+        </div>
+      </div>
+
+      <!-- Bottom Dark Container with Interactive Canvas Visualizer -->
+      <div class="bg-[#0F131D] rounded-3xl p-6 border border-slate-800 shadow-xl text-white space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-base font-bold text-white">Heterogeneous Graph Transformer (HGT) Network Canvas</h3>
+            <p class="text-xs text-slate-400">Pulsing red nodes indicate synchronized botnet accounts; green indicates organic verified accounts.</p>
+          </div>
+          <span class="text-xs px-3 py-1 bg-rose-500/20 text-rose-300 rounded-full font-mono">CIB Anomaly: 0.82</span>
+        </div>
+        <div class="w-full h-[440px] bg-black/40 rounded-2xl border border-white/10 overflow-hidden relative">
+          <canvas id="cascade-canvas" class="w-full h-full block"></canvas>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- PAGE 3: COMMUNITY BRIDGING CONSENSUS HUB (X Community Notes Math)      -->
+    <!-- ======================================================================= -->
+    <section id="page-consensus" class="page-view hidden space-y-6">
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold uppercase">Notes in Review</span>
+          <p class="text-3xl font-extrabold text-slate-900 mt-2 tabular">248</p>
+          <span class="text-xs text-indigo-600 block mt-1">Crowdsourced fact checks</span>
+        </div>
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold uppercase">Bridging Rate</span>
+          <p class="text-3xl font-extrabold text-emerald-600 mt-2 tabular">71.4%</p>
+          <span class="text-xs text-slate-500 block mt-1">b_i ≥ 0.35 threshold</span>
+        </div>
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold uppercase">Rater Polarity</span>
+          <p class="text-3xl font-extrabold text-slate-900 mt-2 tabular">± 1.42</p>
+          <span class="text-xs text-slate-500 block mt-1">Latent factor variance</span>
+        </div>
+        <div class="bg-white rounded-3xl p-5 border border-slate-200/80 shadow-sm">
+          <span class="text-xs text-slate-400 font-semibold uppercase">AI Seeded Notes</span>
+          <p class="text-3xl font-extrabold text-purple-600 mt-2 tabular">42</p>
+          <span class="text-xs text-slate-500 block mt-1">Pending crowd ratification</span>
+        </div>
+      </div>
+
+      <div class="bg-[#0F131D] rounded-3xl p-6 border border-slate-800 shadow-xl text-white space-y-4">
+        <div class="flex items-center justify-between pb-3 border-b border-slate-800">
+          <div>
+            <h3 class="text-base font-bold text-white">Bipartisan Matrix Factorization Consensus Sandbox</h3>
+            <p class="text-xs text-slate-400">Models rater latent factors (p_u) and note helpfulness (b_i) to prevent partisan dogpiling.</p>
+          </div>
+          <span id="consensus-status-badge" class="text-xs px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full font-mono">CURRENTLY_RATED_HELPFUL</span>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="bg-[#181D2A] p-5 rounded-2xl border border-white/10 space-y-3">
+            <span class="text-xs uppercase text-indigo-300 font-semibold">Active Community Note #101</span>
+            <p class="text-sm text-slate-200 leading-relaxed font-medium">"Clinical data published in The Lancet confirms that mRNA vaccine lipid nanoparticles degrade within 48 hours and do not contain microchips or tracking transceivers."</p>
+            <div class="pt-3 border-t border-white/10 text-xs text-slate-400 space-y-1">
+              <p>• Grounding: Accredited clinical trial references</p>
+              <p>• Rater Diversity: Rated helpful by both left and right latent factor clusters</p>
+            </div>
+          </div>
+
+          <div class="bg-[#282161] p-5 rounded-2xl border border-indigo-400/20 space-y-4">
+            <span class="text-xs uppercase text-indigo-200 font-semibold">Cast Real-Time Consensus Vote</span>
+            <div class="space-y-2 text-xs">
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer">
+                <input type="radio" name="vote-rating" value="1.0" checked>
+                <span>Helpful (Clear primary evidence from diverse perspectives)</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer">
+                <input type="radio" name="vote-rating" value="0.0">
+                <span>Somewhat Helpful (Requires additional context or citations)</span>
+              </label>
+              <label class="flex items-center gap-2 p-2 bg-black/30 rounded-lg cursor-pointer">
+                <input type="radio" name="vote-rating" value="-1.0">
+                <span>Not Helpful (Partisan, misleading, or abusive)</span>
+              </label>
+            </div>
+            <div class="flex items-center justify-between pt-2">
+              <span id="consensus-helpfulness-score" class="text-xs font-mono text-indigo-300">b_i = 0.428</span>
+              <button id="btn-submit-vote" class="px-4 py-2 bg-[#5E4BF5] hover:bg-indigo-600 text-white rounded-xl text-xs font-bold transition">
+                Submit & Recalculate
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- PAGE 4: MULTIMODAL CHEAPFAKE MEDIA LAB (Google SigLIP)                 -->
+    <!-- ======================================================================= -->
+    <section id="page-multimodal" class="page-view hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+        <h2 class="text-xl font-bold text-slate-900">Multimodal Cheapfake & Media Verification Lab</h2>
+        <p class="text-xs text-slate-500">Detecting cross-modal contradictions using Google SigLIP (ViT-SO400M) vision-language representations.</p>
+
+        <div class="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 hover:bg-slate-100 transition cursor-pointer">
+          <span class="text-3xl block mb-2">🖼️</span>
+          <span class="text-sm font-semibold text-slate-800 block">Drag & Drop Image or Meme (JPG, PNG, WebP)</span>
+          <span class="text-xs text-slate-400 mt-1 block">Inspects image metadata, reverse visual timeline, and caption discrepancy</span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-1">
+            <span class="font-bold text-slate-700 block">Sample 1: Recycled Disaster Photograph</span>
+            <p class="text-slate-600">Archival 2018 photo from Aleppo paired with false 2026 headline.</p>
+            <span class="text-rose-600 font-semibold block pt-1">Cross-Modal Contradiction Score: 92.4%</span>
+          </div>
+          <div class="bg-slate-50 p-4 rounded-xl border border-slate-200 text-xs space-y-1">
+            <span class="font-bold text-slate-700 block">Sample 2: Authentic Press Conference</span>
+            <p class="text-slate-600">Government briefing matching official telemetry broadcast.</p>
+            <span class="text-emerald-600 font-semibold block pt-1">Cross-Modal Alignment Score: 96.1%</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- PAGE 5: GLOBAL TRENDS & INDIC INTELLIGENCE                             -->
+    <!-- ======================================================================= -->
+    <section id="page-trends" class="page-view hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-4">
+        <h2 class="text-xl font-bold text-slate-900">Global Misinformation Trends & Indic Multilingual Intel</h2>
+        <p class="text-xs text-slate-500">Monitoring regional disinformation spikes across English, Hindi (हिंदी), and Hinglish.</p>
+
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2">
+          <div class="p-4 bg-indigo-50/50 rounded-2xl border border-indigo-100">
+            <span class="text-xs font-bold text-indigo-700 block">PuneFakeNews-2024 Benchmark</span>
+            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">95.7% F1</span>
+            <span class="text-xs text-slate-500 mt-1 block">Hindi transfer gap cut from 7.2% to 1.8%</span>
+          </div>
+          <div class="p-4 bg-amber-50/50 rounded-2xl border border-amber-100">
+            <span class="text-xs font-bold text-amber-700 block">Active Data-Voids</span>
+            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">34 Topics</span>
+            <span class="text-xs text-slate-500 mt-1 block">Breaking events awaiting primary evidence</span>
+          </div>
+          <div class="p-4 bg-emerald-50/50 rounded-2xl border border-emerald-100">
+            <span class="text-xs font-bold text-emerald-700 block">Tracked Publisher Domains</span>
+            <span class="text-2xl font-extrabold text-slate-900 mt-1 block">4,890</span>
+            <span class="text-xs text-slate-500 mt-1 block">Calibrated NewsGuard credibility indices</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================================= -->
+    <!-- PROFILE & TRUST CENTER (Page 6 / Settings)                             -->
+    <!-- ======================================================================= -->
+    <section id="page-profile" class="page-view hidden space-y-6">
+      <div class="bg-white rounded-3xl p-6 border border-slate-200/80 shadow-sm space-y-6">
+        <div class="flex items-center gap-4 pb-6 border-b border-slate-100">
+          <div class="w-16 h-16 rounded-2xl bg-[#5E4BF5] text-white text-xl font-bold flex items-center justify-center shadow-lg shadow-indigo-500/20">
+            DR
+          </div>
+          <div>
+            <h2 class="text-xl font-bold text-slate-900">Lead Investigator / Project Researcher</h2>
+            <p class="text-xs text-slate-500">Institution: MIT-WPU & IIT Bombay AI Lab Affiliation</p>
+            <div class="flex items-center gap-2 mt-2">
+              <span class="text-xs px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 font-semibold border border-emerald-200">Level 4 Certified Fact-Checker</span>
+              <span class="text-xs text-slate-400">• Consensus Accuracy: 96.8%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-3">
+            <h3 class="text-sm font-bold text-slate-800">Production REST API Key</h3>
+            <div class="flex gap-2">
+              <input type="text" readonly value="tl_live_99f2b84e7a314810a012cdef" class="flex-1 px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono text-slate-700">
+              <button onclick="alert('API Key copied to clipboard!')" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold">Copy</button>
+            </div>
+            <p class="text-xs text-slate-400">Endpoint: <code class="text-indigo-600 font-mono">POST /api/v1/verify</code> (Limit: 50,000 req/mo)</p>
+          </div>
+
+          <div class="space-y-3">
+            <h3 class="text-sm font-bold text-slate-800">System Localization</h3>
+            <div class="flex gap-2">
+              <button class="px-4 py-2 rounded-xl bg-[#5E4BF5] text-white text-xs font-semibold shadow-sm">English (Global)</button>
+              <button class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200">हिंदी (Hindi)</button>
+              <button class="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 text-xs font-semibold hover:bg-slate-200">Hinglish (Code-Mixed)</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- ========================================================================= -->
+  <!-- AUTH / ROLE SELECTION MODAL                                               -->
+  <!-- ========================================================================= -->
+  <div id="auth-modal" class="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+    <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-100 space-y-4">
+      <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+        <div>
+          <h3 class="text-lg font-bold text-slate-900">Switch Stakeholder Persona</h3>
+          <p class="text-xs text-slate-500">Test TruthLens-Omni from different operational viewpoints.</p>
+        </div>
+        <button onclick="closeAuthModal()" class="w-8 h-8 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center hover:bg-slate-200">✕</button>
+      </div>
+
+      <div class="space-y-2 pt-2">
+        <button onclick="selectRole('citizen')" class="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#5E4BF5] hover:bg-indigo-50/50 text-left transition flex items-center gap-3">
+          <span class="text-2xl">📱</span>
+          <div>
+            <h4 class="text-xs font-bold text-slate-900">Digital Citizen / Reader</h4>
+            <p class="text-[11px] text-slate-500">View contextual nutrition cards and verify viral WhatsApp claims.</p>
+          </div>
+        </button>
+
+        <button onclick="selectRole('journalist')" class="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#5E4BF5] hover:bg-indigo-50/50 text-left transition flex items-center gap-3">
+          <span class="text-2xl">📰</span>
+          <div>
+            <h4 class="text-xs font-bold text-slate-900">Investigative Journalist / Fact-Checker</h4>
+            <p class="text-[11px] text-slate-500">Sentence-level claim decomposition and primary IFCN evidence submission.</p>
+          </div>
+        </button>
+
+        <button onclick="selectRole('officer')" class="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#5E4BF5] hover:bg-indigo-50/50 text-left transition flex items-center gap-3">
+          <span class="text-2xl">🛡️</span>
+          <div>
+            <h4 class="text-xs font-bold text-slate-900">Trust & Safety Platform Officer</h4>
+            <p class="text-[11px] text-slate-500">Monitor CIB botnet clusters and network propagation graphs.</p>
+          </div>
+        </button>
+
+        <button onclick="selectRole('guide')" class="w-full p-3 rounded-2xl border border-slate-200 hover:border-[#5E4BF5] hover:bg-indigo-50/50 text-left transition flex items-center gap-3">
+          <span class="text-2xl">🎓</span>
+          <div>
+            <h4 class="text-xs font-bold text-slate-900">Academic Guide / Evaluator</h4>
+            <p class="text-[11px] text-slate-500">Audit mathematical formulations, temporal decay, and matrix factorization.</p>
+          </div>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Scripts -->
+  <script src="/static/js/graph.js"></script>
+  <script src="/static/js/app.js"></script>
+</body>
+</html>

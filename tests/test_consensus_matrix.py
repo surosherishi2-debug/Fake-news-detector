@@ -44,3 +44,4 @@ def test_consensus_matrix_insufficient_ratings():
     ]
     results = engine.fit_and_score(ratings)
     assert results["note_fresh"].status == NoteStatus.NEEDS_MORE_RATINGS
+

@@ -2,7 +2,17 @@
 
 from src.core.types import VerificationRequest, VerificationVerdict, HighlightStatus
 from src.fusion.truthlens_engine import TruthLensEngine
-from src.api.server import health_check, get_domain_trust, verify_article
+from src.api.server import (
+    health_check,
+    get_domain_trust,
+    verify_article,
+    scrape_article_url,
+    score_community_notes,
+    get_sample_cascade,
+    ScrapeRequest,
+    ConsensusRequest,
+)
+from src.graph.consensus_matrix import NoteRating
 
 def test_truthlens_engine_fake_claim_with_nutrition_card():
     engine = TruthLensEngine()
@@ -61,3 +71,25 @@ def test_api_endpoints():
     assert res_verify.confidence_score > 0
     assert len(res_verify.provenance_chain) >= 1
     assert res_verify.nutrition_card is not None
+
+    # 4. Sample cascade endpoint
+    cascade = get_sample_cascade()
+    assert cascade.article_id is not None
+    assert len(cascade.nodes) >= 5
+    assert len(cascade.edges) >= 4
+
+    # 5. Consensus score endpoint
+    consensus_res = score_community_notes(
+        ConsensusRequest(
+            ratings=[
+                NoteRating(rater_id="u1", note_id="n1", rating=1.0),
+                NoteRating(rater_id="u2", note_id="n1", rating=1.0),
+                NoteRating(rater_id="u3", note_id="n1", rating=1.0),
+            ]
+        )
+    )
+    assert "n1" in consensus_res
+
+    # 6. Scrape endpoint
+    scrape_res = scrape_article_url(ScrapeRequest(url="http://invalid-nonexistent-domain-test.com"))
+    assert scrape_res.status == "failed"
