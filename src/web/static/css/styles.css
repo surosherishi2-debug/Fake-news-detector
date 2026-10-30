@@ -1,24 +1,61 @@
-/* TruthLens-Omni Neo-FinTech Design System Stylesheet */
+/* ========================================================================= */
+/* TruthLens-Omni Professional Enterprise Design System                       */
+/* Clean, high-contrast, modern FinTech & Linear aesthetic                   */
+/* ========================================================================= */
+
 :root {
-  --bg-canvas: #f4f5fa;
+  /* Surfaces */
+  --bg-canvas: #f8fafc;
   --surface-card: #ffffff;
-  --surface-dark: #0f131d;
-  --surface-dark-elevated: #282161;
-  --surface-dark-active: #3b338a;
-  --primary: #5e4bf5;
-  --primary-hover: #4e3be3;
-  --primary-light: #eef0ff;
-  --text-main: #0f172a;
+  --surface-elevated: #ffffff;
+  --surface-dark: #0b0f19;
+  --surface-dark-card: #131a2b;
+  --surface-dark-active: #1c253d;
+  --surface-dark-inset: #070a12;
+
+  /* Borders */
+  --border-subtle: #e2e8f0;
+  --border-medium: #cbd5e1;
+  --border-dark: rgba(255, 255, 255, 0.08);
+  --border-dark-hover: rgba(255, 255, 255, 0.16);
+
+  /* Typography */
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
   --text-muted: #64748b;
-  --text-dark-main: #ffffff;
-  --text-dark-muted: #a5b4fc;
-  --status-verified: #10b981;
-  --status-refuted: #ef4444;
-  --status-void: #f59e0b;
-  --status-satire: #8b5cf6;
-  --border-light: rgba(226, 232, 240, 0.8);
-  --border-dark: rgba(255, 255, 255, 0.1);
-  --font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --text-dark-primary: #f8fafc;
+  --text-dark-secondary: #cbd5e1;
+  --text-dark-muted: #94a3b8;
+
+  /* Brand Accents */
+  --primary: #4f46e5;
+  --primary-hover: #4338ca;
+  --primary-subtle: #eef2ff;
+  --primary-border: #c7d2fe;
+
+  /* Semantic Status Tokens (Muted, professional) */
+  --status-verified: #059669;
+  --status-verified-bg: #ecfdf5;
+  --status-verified-border: #a7f3d0;
+
+  --status-debunked: #dc2626;
+  --status-debunked-bg: #fef2f2;
+  --status-debunked-border: #fecaca;
+
+  --status-warning: #d97706;
+  --status-warning-bg: #fffbeb;
+  --status-warning-border: #fde68a;
+
+  --status-info: #2563eb;
+  --status-info-bg: #eff6ff;
+  --status-info-border: #bfdbfe;
+
+  --status-synthetic: #0284c7;
+  --status-synthetic-bg: #f0f9ff;
+  --status-synthetic-border: #bae6fd;
+
+  --font-sans: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
 }
 
 * {
@@ -28,9 +65,9 @@
 }
 
 body {
-  font-family: var(--font-family);
+  font-family: var(--font-sans);
   background-color: var(--bg-canvas);
-  color: var(--text-main);
+  color: var(--text-primary);
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
@@ -40,43 +77,52 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* Custom Scrollbar */
+/* Professional Custom Scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 ::-webkit-scrollbar-track {
   background: transparent;
 }
 ::-webkit-scrollbar-thumb {
-  background: rgba(148, 163, 184, 0.4);
+  background: #cbd5e1;
   border-radius: 9999px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(100, 116, 139, 0.6);
+  background: #94a3b8;
 }
 
-/* Animations */
-@keyframes pulseSlow {
-  0%, 100% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.85; transform: scale(1.02); }
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(148, 163, 184, 0.25);
+  border-radius: 9999px;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(148, 163, 184, 0.45);
 }
 
-.pulse-node {
-  animation: pulseSlow 3s infinite ease-in-out;
+/* Subtle micro-animations */
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(3px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* Radial Gauge / Nutrition Card micro-radar */
-.radar-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 12px;
+.fade-in {
+  animation: fadeIn 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
-.radar-item {
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid var(--border-dark);
-  border-radius: 12px;
-  padding: 10px 14px;
+/* Button & Card Focus Rings */
+button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--primary);
+}
+
+/* Subtle card shadow */
+.card-shadow {
+  box-shadow: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.02);
+}
+
+.card-shadow-hover:hover {
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
 }
 
