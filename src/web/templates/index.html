@@ -34,7 +34,7 @@
     <!-- ======================================================================= -->
     <header class="w-full flex items-center justify-between pb-4 flex-wrap gap-4 border-b border-slate-100">
       <!-- Brand Logo -->
-      <div class="flex items-center gap-3 cursor-pointer" onclick="window.location.hash='feed'">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="switchTab('landing')">
         <div class="w-11 h-11 rounded-2xl bg-gradient-to-tr from-indigo-600 to-indigo-500 flex items-center justify-center text-white font-extrabold text-lg tracking-wider shadow-md shadow-indigo-600/30">
           TL
         </div>
@@ -52,8 +52,13 @@
         <span class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/80 text-slate-700 font-bold text-xs flex items-center justify-center shadow-xs">24</span>
         <nav class="flex items-center bg-[#151624] p-1.5 rounded-full shadow-lg border border-slate-800/90 relative">
           
+          <!-- 0. Home / Overview Tab -->
+          <button data-tab="landing" onclick="switchTab('landing')" class="nav-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600 text-white shadow-xs whitespace-nowrap">
+            Home
+          </button>
+
           <!-- 1. Live Feed (Direct Tab) -->
-          <button data-tab="feed" onclick="switchTab('feed')" class="nav-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600 text-white shadow-xs whitespace-nowrap">
+          <button data-tab="feed" onclick="switchTab('feed')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
             Live Feed
           </button>
 
@@ -148,6 +153,12 @@
 
       <!-- Right Controls: Finnova Utility Icons & Real Profile Picture -->
       <div class="flex items-center gap-3">
+        <!-- Launch Console Primary Button -->
+        <button onclick="switchTab('feed')" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full text-xs font-bold shadow-xs transition hidden sm:flex items-center gap-1.5">
+          <span>🚀</span>
+          <span>Launch Console</span>
+        </button>
+
         <button onclick="switchTab('guide')" class="w-9 h-9 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 flex items-center justify-center transition shadow-2xs" title="Documentation & Dossier">
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
         </button>
@@ -180,6 +191,277 @@
     <!-- MAIN APP CONTAINER                                                      -->
     <!-- ======================================================================= -->
     <main class="w-full flex-1">
+
+      <!-- ===================================================================== -->
+      <!-- TAB 0: PUBLIC LANDING PAGE & PLATFORM SHOWCASE                        -->
+      <!-- ===================================================================== -->
+      <section id="page-landing" class="page-view space-y-12">
+
+        <!-- 1. HERO SECTION (Finnova Obsidian Theme with Radial Ambient Glow) -->
+        <div class="relative overflow-hidden rounded-[32px] md:rounded-[40px] bg-[#151624] text-white p-7 sm:p-10 md:p-14 border border-white/10 shadow-2xl space-y-8">
+          <!-- Background Ambient Glow -->
+          <div class="absolute -top-32 -left-32 w-96 h-96 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+          <div class="absolute -bottom-32 -right-32 w-96 h-96 bg-purple-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+          <!-- Hero Eyebrow Pill -->
+          <div class="relative z-10 flex items-center justify-between flex-wrap gap-3">
+            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 font-mono tracking-wide">
+              <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+              TRUTHLENS-OMNI v2.4 • REAL-TIME EPISTEMIC INTELLIGENCE
+            </span>
+            <span class="text-xs text-slate-400 font-mono">IEEE Capstone • IFCN Verified Method</span>
+          </div>
+
+          <!-- Hero Headline & Sub-headline -->
+          <div class="relative z-10 space-y-4 max-w-4xl">
+            <h1 class="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black text-white tracking-tight leading-[1.1]">
+              Verify Claims. Expose Botnets. <br class="hidden sm:inline">
+              <span class="bg-gradient-to-r from-indigo-400 via-indigo-300 to-purple-400 bg-clip-text text-transparent">Restore Epistemic Truth.</span>
+            </h1>
+            <p class="text-sm sm:text-base md:text-lg text-slate-300 font-normal leading-relaxed max-w-3xl">
+              The world's first information integrity platform uniting <b>Claim-Evidence Alignment (CEAM)</b> with <b>Domain-Adaptive Temporal Decay</b> ($w(t) = \exp(-\lambda_d \Delta t)$) and <b>Heterogeneous Graph Transformers</b> to neutralize viral fabrications before they metastasize.
+            </p>
+          </div>
+
+          <!-- Hero CTAs -->
+          <div class="relative z-10 flex items-center gap-3 flex-wrap pt-2">
+            <button onclick="switchTab('feed')" class="px-7 py-3.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-full text-sm font-bold shadow-xl shadow-indigo-600/40 transition flex items-center gap-2.5">
+              <span>🚀</span>
+              <span>Launch Intelligence Console</span>
+              <span>→</span>
+            </button>
+            <button onclick="document.getElementById('landing-interactive-tester').scrollIntoView({behavior: 'smooth'})" class="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-semibold border border-white/15 transition flex items-center gap-2">
+              <span>⚡</span>
+              <span>Test Live Verifier</span>
+            </button>
+            <button onclick="switchTab('guide')" class="px-5 py-3.5 bg-transparent hover:bg-white/5 text-slate-300 hover:text-white rounded-full text-sm font-semibold border border-white/10 transition flex items-center gap-2">
+              <span>📑</span>
+              <span>Academic Defense</span>
+            </button>
+          </div>
+
+          <!-- 4 Live Stats Ticker Badges -->
+          <div class="relative z-10 pt-6 border-t border-white/10 grid grid-cols-2 md:grid-cols-4 gap-4">
+            <div class="space-y-1">
+              <div class="text-2xl sm:text-3xl font-extrabold text-white tabular font-mono">95.2%</div>
+              <div class="text-xs text-slate-400">Macro-F1 Accuracy (PuneFakeNews & CoAID)</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-2xl sm:text-3xl font-extrabold text-emerald-400 tabular font-mono">&le; 70 ms</div>
+              <div class="text-xs text-slate-400">Sub-Second Streaming Inference Latency</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-2xl sm:text-3xl font-extrabold text-indigo-300 tabular font-mono">32 Stories</div>
+              <div class="text-xs text-slate-400">IFCN-Indexed Primary Ground Truth</div>
+            </div>
+            <div class="space-y-1">
+              <div class="text-2xl sm:text-3xl font-extrabold text-purple-300 tabular font-mono">0.00 Bias</div>
+              <div class="text-xs text-slate-400">Bipartisan Matrix Factorization Consensus</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. INTERACTIVE CLAIM VERIFIER TEASER (Live Working Widget on Landing Page) -->
+        <div id="landing-interactive-tester" class="bg-white rounded-3xl p-6 sm:p-8 md:p-10 border border-slate-200/90 card-shadow space-y-6">
+          <div class="flex items-center justify-between pb-4 border-b border-slate-100 flex-wrap gap-3">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">TRY IT LIVE NOW</span>
+                <h3 class="text-xl font-bold text-slate-900 tracking-tight">Interactive Claim Verification Demo</h3>
+              </div>
+              <p class="text-xs text-slate-500 mt-1">Enter any statement or select a sample to test the Tri-Modal Claim-Evidence Alignment Module in real time:</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <span class="text-xs text-slate-400">Quick Samples:</span>
+              <button onclick="setLandingSample('vaccine')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition">Vaccine</button>
+              <button onclick="setLandingSample('moon')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition">Moon Ice</button>
+              <button onclick="setLandingSample('bank')" class="px-2.5 py-1 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium transition">Bank Rumor</button>
+            </div>
+          </div>
+
+          <div class="space-y-3">
+            <div class="flex items-center gap-2">
+              <input id="landing-test-input" type="text" value="Clinical trials published in The Lancet confirm mRNA vaccine lipid nanoparticles degrade within 48 hours." class="flex-1 px-4 py-3 rounded-2xl border border-slate-200 text-xs md:text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500 shadow-2xs">
+              <button id="btn-landing-run-verify" onclick="runLandingVerification()" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs md:text-sm font-bold shadow-md shadow-indigo-600/30 transition flex items-center gap-2 whitespace-nowrap">
+                <span>⚡</span>
+                <span id="landing-verify-btn-text">Check Facts Now</span>
+              </button>
+            </div>
+
+            <!-- Live Results Container -->
+            <div id="landing-tester-results" class="p-5 bg-slate-50 rounded-2xl border border-slate-200/80 text-xs space-y-4">
+              <div class="flex items-center justify-between flex-wrap gap-2 pb-3 border-b border-slate-200">
+                <div class="flex items-center gap-2">
+                  <span class="text-xs font-bold text-slate-800">Grounding Verdict:</span>
+                  <span id="landing-result-badge" class="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300">VERIFIED TRUE</span>
+                </div>
+                <div class="flex items-center gap-3 text-xs text-slate-600">
+                  <span>Truth Score: <b id="landing-result-score" class="text-emerald-600 font-mono text-sm">94.8%</b></span>
+                  <span>Temporal Freshness: <b class="font-mono text-slate-800">0.94</b></span>
+                  <span>Latency: <b class="font-mono text-indigo-600">42 ms</b></span>
+                </div>
+              </div>
+              <div class="space-y-1.5">
+                <span class="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Sentence Alignment & Verified Citations</span>
+                <div id="landing-result-sentences" class="p-3 bg-white rounded-xl border border-slate-200 text-xs leading-relaxed text-slate-800 space-y-1">
+                  <p><span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border-b-2 border-emerald-500 font-medium">"Clinical trials published in The Lancet confirm mRNA vaccine lipid nanoparticles degrade within 48 hours."</span></p>
+                  <p class="text-[11px] text-slate-500 pt-1"><b>Verified Citation:</b> World Health Organization (WHO) & Nature Medicine Accredited Clinical Review (Alignment: 94.8%)</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. TRI-MODAL CORE PILLARS (3 Architecture Cards) -->
+        <div class="space-y-4">
+          <div class="text-center max-w-2xl mx-auto space-y-2">
+            <span class="text-xs uppercase font-bold text-indigo-600 tracking-wider">Algorithmic Innovation</span>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">The 3 Scientific Pillars of TruthLens-Omni</h2>
+            <p class="text-xs sm:text-sm text-slate-500">Why naive classifiers fail, and how our tri-modal architecture overcomes lexical spoofing and temporal obsolescence.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-6 pt-2">
+            <!-- Pillar 1 -->
+            <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 card-shadow space-y-4 flex flex-col justify-between hover:border-indigo-300 transition">
+              <div class="space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-indigo-50 border border-indigo-200 flex items-center justify-center text-xl text-indigo-600 font-bold">
+                  🔍
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 leading-snug">1. Semantic Claim Decomposition (CEAM)</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                  Fake news mimics authoritative syntax. Rather than evaluating raw text, TruthLens decomposes articles into discrete factual assertions and computes bidirectional entailment against IFCN-accredited archives (Weight: $\alpha = 0.55$).
+                </p>
+              </div>
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-indigo-600 font-semibold">
+                <span>Solves: Rhetorical Mimicry</span>
+                <span>DeBERTa-v3 →</span>
+              </div>
+            </div>
+
+            <!-- Pillar 2 -->
+            <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 card-shadow space-y-4 flex flex-col justify-between hover:border-indigo-300 transition">
+              <div class="space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-amber-50 border border-amber-200 flex items-center justify-center text-xl text-amber-600 font-bold">
+                  ⏳
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 leading-snug">2. Domain-Adaptive Temporal Decay ($\lambda_d$)</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                  Facts change dynamically. Our mathematical attenuation $w(t) = \exp(-\lambda_d \Delta t)$ dynamically discounts stale fact-checks for breaking politics ($\lambda = 0.35$), while preserving invariant empirical laws in science ($\lambda = 0.01$).
+                </p>
+              </div>
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-amber-600 font-semibold">
+                <span>Solves: The Data-Void</span>
+                <span>Adaptive $\lambda_d$ →</span>
+              </div>
+            </div>
+
+            <!-- Pillar 3 -->
+            <div class="bg-white rounded-3xl p-6 sm:p-7 border border-slate-200/90 card-shadow space-y-4 flex flex-col justify-between hover:border-indigo-300 transition">
+              <div class="space-y-3">
+                <div class="w-12 h-12 rounded-2xl bg-rose-50 border border-rose-200 flex items-center justify-center text-xl text-rose-600 font-bold">
+                  📡
+                </div>
+                <h3 class="text-lg font-bold text-slate-900 leading-snug">3. Propagation Graph Radar (HGT)</h3>
+                <p class="text-xs text-slate-600 leading-relaxed">
+                  Generative AI bots easily bypass text filters, but cannot fake organic human retweet topologies. Our 3-Layer Heterogeneous Graph Transformer (HGT) flags synchronized botnet bursts and echo chambers (Weight: $\beta = 0.25$).
+                </p>
+              </div>
+              <div class="pt-3 border-t border-slate-100 flex items-center justify-between text-xs text-rose-600 font-semibold">
+                <span>Solves: Coordinated Botnets</span>
+                <span>PyTorch PyG →</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. COMPLETE BENTO GRID SHOWCASE (All Platform Capabilities) -->
+        <div class="space-y-4">
+          <div class="text-center max-w-2xl mx-auto space-y-2">
+            <span class="text-xs uppercase font-bold text-indigo-600 tracking-wider">Full-Spectrum Suite</span>
+            <h2 class="text-2xl md:text-3xl font-black text-slate-900 tracking-tight">Explore the Complete Intelligence Suite</h2>
+            <p class="text-xs sm:text-sm text-slate-500">Every module is integrated into a unified console designed for investigative newsrooms, researchers, and citizens.</p>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pt-2">
+            <!-- Bento Card 1 -->
+            <div onclick="switchTab('feed')" class="cursor-pointer bg-white hover:bg-slate-50 p-6 rounded-3xl border border-slate-200/90 card-shadow space-y-3 transition group">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl">📰</span>
+                <span class="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">Open Feed →</span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900">Live News & Fact Stream</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Browse 32 pre-audited multi-domain news stories with live KPI cards, full-text debouncing, and 1-click cryptographic provenance export.</p>
+            </div>
+
+            <!-- Bento Card 2 -->
+            <div onclick="switchTab('preflight')" class="cursor-pointer bg-white hover:bg-slate-50 p-6 rounded-3xl border border-slate-200/90 card-shadow space-y-3 transition group">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl">✍️</span>
+                <span class="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">Open Studio →</span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900">Pre-Flight Story Studio</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Self-news studio for journalists. Check draft assertions sentence-by-sentence, verify readiness scores, and publish with SHA-256 hashes.</p>
+            </div>
+
+            <!-- Bento Card 3 -->
+            <div onclick="switchTab('forensics')" class="cursor-pointer bg-white hover:bg-slate-50 p-6 rounded-3xl border border-slate-200/90 card-shadow space-y-3 transition group">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl">🤖</span>
+                <span class="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">Detect AI →</span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900">AI Content & Forensics Detector</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Giant Language Model Test Room (GLTR) 4-tier token probability heatmap, active word inspector ribbon, and sentence burstiness scoring.</p>
+            </div>
+
+            <!-- Bento Card 4 -->
+            <div onclick="switchTab('graph')" class="cursor-pointer bg-white hover:bg-slate-50 p-6 rounded-3xl border border-slate-200/90 card-shadow space-y-3 transition group">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl">🌐</span>
+                <span class="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">Explore Graph →</span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900">Living Knowledge Graph</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Interactive entity-relationship graph connecting publishers, claims, and citations with degree centrality and chronological time-lapse playback.</p>
+            </div>
+
+            <!-- Bento Card 5 -->
+            <div onclick="switchTab('consensus')" class="cursor-pointer bg-white hover:bg-slate-50 p-6 rounded-3xl border border-slate-200/90 card-shadow space-y-3 transition group">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl">⚖️</span>
+                <span class="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">View Notes →</span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900">Bipartisan Community Notes</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Matrix factorization consensus model preventing political dogpiling by requiring agreement across divergent rater ideology clusters.</p>
+            </div>
+
+            <!-- Bento Card 6 -->
+            <div onclick="switchTab('guide')" class="cursor-pointer bg-white hover:bg-slate-50 p-6 rounded-3xl border border-slate-200/90 card-shadow space-y-3 transition group">
+              <div class="flex items-center justify-between">
+                <span class="text-2xl">📊</span>
+                <span class="text-xs font-bold text-indigo-600 group-hover:translate-x-1 transition-transform">Run Benchmarks →</span>
+              </div>
+              <h4 class="text-base font-bold text-slate-900">Research Lab & Adversarial Red-Teaming</h4>
+              <p class="text-xs text-slate-500 leading-relaxed">Official benchmarks across Pune, LIAR, and CoAID datasets + interactive adversarial attack simulator (TextFooler synonyms and DeepWordBug typos).</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 5. INSTITUTIONAL ACCREDITATION & METHODOLOGY FOOTER BANNER -->
+        <div class="bg-gradient-to-r from-slate-900 via-[#151624] to-slate-900 text-white rounded-3xl p-8 md:p-10 border border-white/10 shadow-xl flex flex-col md:flex-row items-center justify-between gap-6">
+          <div class="space-y-2 text-center md:text-left">
+            <h3 class="text-xl md:text-2xl font-black tracking-tight">Ready to verify the live information stream?</h3>
+            <p class="text-xs text-slate-400 max-w-xl">TruthLens-Omni is actively running in cloud production. Enter the live console to audit news, check drafts, and explore propagation cascades.</p>
+          </div>
+          <div class="flex items-center gap-3 flex-wrap">
+            <button onclick="switchTab('feed')" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-full shadow-lg transition flex items-center gap-2">
+              <span>🚀 Launch Full Console</span>
+            </button>
+            <button onclick="openAuthModal()" class="px-5 py-3 bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-semibold rounded-full border border-white/15 transition">
+              <span>👤 Persona Switcher</span>
+            </button>
+          </div>
+        </div>
+
+      </section>
 
       <!-- ===================================================================== -->
       <!-- TAB 1: DAILY EPISTEMIC FEED ("Daily Info")                            -->

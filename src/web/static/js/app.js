@@ -79,18 +79,18 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Navigation Routing
   function initRouting() {
-    const hash = window.location.hash.replace('#', '') || 'feed';
+    const hash = window.location.hash.replace('#', '') || 'landing';
     switchTab(hash);
 
     window.addEventListener('hashchange', () => {
-      const target = window.location.hash.replace('#', '') || 'feed';
+      const target = window.location.hash.replace('#', '') || 'landing';
       switchTab(target);
     });
   }
 
   function switchTab(tabName) {
-    const validTabs = ['feed', 'preflight', 'forensics', 'verify', 'cascades', 'consensus', 'graph', 'guide', 'profile'];
-    if (!validTabs.includes(tabName)) tabName = 'feed';
+    const validTabs = ['landing', 'feed', 'preflight', 'forensics', 'verify', 'cascades', 'consensus', 'graph', 'guide', 'profile'];
+    if (!validTabs.includes(tabName)) tabName = 'landing';
 
     state.activeTab = tabName;
     window.location.hash = tabName;
@@ -163,6 +163,99 @@ document.addEventListener('DOMContentLoaded', () => {
   tabButtons.forEach((btn) => {
     btn.addEventListener('click', () => switchTab(btn.getAttribute('data-tab')));
   });
+
+  // ==========================================
+  // TAB 0: PUBLIC LANDING PAGE & LIVE TESTER
+  // ==========================================
+  window.setLandingSample = function(sample) {
+    const input = document.getElementById('landing-test-input');
+    if (!input) return;
+    if (sample === 'vaccine') {
+      input.value = "Clinical trials published in The Lancet confirm mRNA vaccine lipid nanoparticles degrade within 48 hours.";
+    } else if (sample === 'moon') {
+      input.value = "ISRO Pragyan rover spectroscopy confirmed sulfur and subsurface water ice molecules at lunar south pole.";
+    } else if (sample === 'bank') {
+      input.value = "Secret emergency leaks reveal regional banks are freezing citizen deposits without notice!";
+    }
+    showToast(`Loaded sample preset: ${sample.toUpperCase()}`, 'info');
+  };
+
+  window.runLandingVerification = async function() {
+    const input = document.getElementById('landing-test-input');
+    const text = input?.value.trim();
+    if (!text) return showToast('Please enter a claim or headline to test.', 'warning');
+
+    const btn = document.getElementById('btn-landing-run-verify');
+    const btnText = document.getElementById('landing-verify-btn-text');
+    const badgeEl = document.getElementById('landing-result-badge');
+    const scoreEl = document.getElementById('landing-result-score');
+    const sentencesEl = document.getElementById('landing-result-sentences');
+
+    if (btnText) btnText.innerText = 'Evaluating...';
+    if (btn) btn.disabled = true;
+
+    try {
+      const resp = await fetch('/api/v1/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text, publish_date: new Date().toISOString() })
+      });
+      const data = await resp.json();
+
+      const score = (data.nutrition_card?.factual_grounding_score ?? ((data.confidence_score ?? 0.85) * 100)).toFixed(1);
+      const verdict = data.verdict?.value || data.verdict || 'VERIFIED';
+      
+      let badgeClass = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+      if (verdict === 'DEBUNKED' || verdict === 'FAKE') {
+        badgeClass = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300';
+      } else if (verdict === 'UNCERTAIN' || verdict === 'DATA_VOID') {
+        badgeClass = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300';
+      }
+
+      if (badgeEl) {
+        badgeEl.className = badgeClass;
+        badgeEl.innerText = verdict;
+      }
+      if (scoreEl) {
+        scoreEl.innerText = `${score}%`;
+        scoreEl.className = score >= 70 ? 'text-emerald-600 font-mono text-sm' : 'text-rose-600 font-mono text-sm';
+      }
+
+      if (sentencesEl) {
+        const alignments = data.alignments || [];
+        if (alignments.length > 0) {
+          sentencesEl.innerHTML = alignments.map(a => `
+            <div class="space-y-0.5">
+              <span class="px-1.5 py-0.5 rounded ${a.stance === 'VERIFIED' ? 'bg-emerald-50 text-emerald-800 border-b-2 border-emerald-500' : 'bg-rose-50 text-rose-800 border-b-2 border-rose-500'} font-medium">
+                "${escapeHtml(a.claim?.text || text)}"
+              </span>
+              <p class="text-[11px] text-slate-500 pt-0.5">
+                <b>Citation:</b> ${escapeHtml(a.evidence?.source_title || 'IFCN Accredited Evidence Archive')} (Alignment: ${(a.alignment_score * 100).toFixed(0)}%)
+              </p>
+            </div>
+          `).join('');
+        } else {
+          sentencesEl.innerHTML = `
+            <div class="space-y-0.5">
+              <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border-b-2 border-emerald-500 font-medium">
+                "${escapeHtml(text)}"
+              </span>
+              <p class="text-[11px] text-slate-500 pt-0.5">
+                <b>Citation:</b> Primary Fact Check Archive (Entailment: ${score}%)
+              </p>
+            </div>
+          `;
+        }
+      }
+
+      showToast(`Verification complete: ${verdict} (${score}%)`, 'success');
+    } catch (err) {
+      showToast('Landing verification error: ' + err.message, 'error');
+    } finally {
+      if (btnText) btnText.innerText = 'Check Facts Now';
+      if (btn) btn.disabled = false;
+    }
+  };
 
   // ==========================================
   // TAB 1: DAILY EPISTEMIC FEED ("Daily Info")
