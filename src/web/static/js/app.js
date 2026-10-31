@@ -79,8 +79,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Navigation Routing
   function initRouting() {
-    const hash = window.location.hash.replace('#', '') || 'landing';
-    switchTab(hash);
+    const path = window.location.pathname;
+    const hash = window.location.hash.replace('#', '');
+    if (path.includes('/login') || path.includes('/register') || path.includes('/auth') || hash === 'auth') {
+      switchTab('auth');
+      if (path.includes('/register')) {
+        setTimeout(() => switchAuthSubTab('register'), 50);
+      }
+    } else {
+      const initialTab = hash || 'landing';
+      switchTab(initialTab);
+    }
 
     window.addEventListener('hashchange', () => {
       const target = window.location.hash.replace('#', '') || 'landing';
@@ -89,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   function switchTab(tabName) {
-    const validTabs = ['landing', 'feed', 'preflight', 'forensics', 'verify', 'cascades', 'consensus', 'graph', 'guide', 'profile'];
+    const validTabs = ['landing', 'auth', 'feed', 'preflight', 'forensics', 'verify', 'cascades', 'consensus', 'graph', 'guide', 'profile'];
     if (!validTabs.includes(tabName)) tabName = 'landing';
 
     state.activeTab = tabName;
@@ -140,6 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     // Page-specific trigger actions
+    if (tabName === 'auth') loadAuthTelemetry();
     if (tabName === 'feed') loadDailyFeed();
     if (tabName === 'graph') loadLivingKnowledgeGraph();
     if (tabName === 'guide') loadBenchmarks();
@@ -1853,8 +1863,333 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Restore saved role on load
-  const savedRole = localStorage.getItem('truthlens_role') || 'journalist';
+  // ==========================================
+  // ENTERPRISE IDENTITY & ACCESS MANAGEMENT (IAM)
+  // ==========================================
+  state.authMode = 'signin'; // 'signin' | 'register' | 'sandbox'
+  state.authToken = localStorage.getItem('truthlens_auth_token') || null;
+
+  window.switchAuthSubTab = function(subTab) {
+    state.authMode = subTab;
+    const btnSignin = document.getElementById('tab-btn-signin');
+    const btnRegister = document.getElementById('tab-btn-register');
+    const btnSandbox = document.getElementById('tab-btn-sandbox');
+    const fieldName = document.getElementById('field-register-name');
+    const fieldExtras = document.getElementById('field-register-extras');
+    const ssoContainer = document.getElementById('auth-sso-container');
+    const form = document.getElementById('auth-credential-form');
+    const sandboxCards = document.getElementById('auth-sandbox-cards');
+    const btnLabel = document.getElementById('btn-auth-label');
+    const alertBox = document.getElementById('auth-alert-box');
+
+    if (alertBox) alertBox.classList.add('hidden');
+
+    [btnSignin, btnRegister, btnSandbox].forEach(btn => {
+      if (btn) {
+        btn.className = 'flex-1 py-2 rounded-xl text-xs font-semibold transition text-slate-500 hover:text-slate-900';
+      }
+    });
+
+    if (subTab === 'signin') {
+      if (btnSignin) btnSignin.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs';
+      if (fieldName) fieldName.classList.add('hidden');
+      if (fieldExtras) fieldExtras.classList.add('hidden');
+      if (ssoContainer) ssoContainer.classList.remove('hidden');
+      if (form) form.classList.remove('hidden');
+      if (sandboxCards) sandboxCards.classList.remove('hidden');
+      if (btnLabel) btnLabel.innerText = 'Authenticate Epistemic Identity';
+    } else if (subTab === 'register') {
+      if (btnRegister) btnRegister.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs';
+      if (fieldName) fieldName.classList.remove('hidden');
+      if (fieldExtras) fieldExtras.classList.remove('hidden');
+      if (ssoContainer) ssoContainer.classList.add('hidden');
+      if (form) form.classList.remove('hidden');
+      if (sandboxCards) sandboxCards.classList.add('hidden');
+      if (btnLabel) btnLabel.innerText = 'Register & Establish Identity';
+    } else if (subTab === 'sandbox') {
+      if (btnSandbox) btnSandbox.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs';
+      if (fieldName) fieldName.classList.add('hidden');
+      if (fieldExtras) fieldExtras.classList.add('hidden');
+      if (ssoContainer) ssoContainer.classList.add('hidden');
+      if (form) form.classList.add('hidden');
+      if (sandboxCards) sandboxCards.classList.remove('hidden');
+    }
+  };
+
+  window.evaluatePasswordEntropy = function(pwd) {
+    const bitsEl = document.getElementById('entropy-bits');
+    const labelEl = document.getElementById('entropy-label');
+    const barEl = document.getElementById('entropy-bar');
+    if (!bitsEl || !labelEl || !barEl) return;
+
+    if (!pwd || pwd.length === 0) {
+      bitsEl.innerText = '0 bits';
+      labelEl.innerText = 'Input Password';
+      labelEl.className = 'font-bold text-slate-400 uppercase';
+      barEl.style.width = '0%';
+      barEl.className = 'h-full bg-slate-300 transition-all duration-300';
+      return;
+    }
+
+    let pool = 0;
+    if (/[a-z]/.test(pwd)) pool += 26;
+    if (/[A-Z]/.test(pwd)) pool += 26;
+    if (/[0-9]/.test(pwd)) pool += 10;
+    if (/[^a-zA-Z0-9]/.test(pwd)) pool += 32;
+
+    const bits = pool > 0 ? Math.round(pwd.length * (Math.log2(pool))) : 0;
+    bitsEl.innerText = `${bits} bits`;
+
+    const pct = Math.min(100, Math.round((bits / 70) * 100));
+    barEl.style.width = `${pct}%`;
+
+    if (bits < 35) {
+      labelEl.innerText = 'Weak / Vulnerable';
+      labelEl.className = 'font-bold text-rose-500 uppercase';
+      barEl.className = 'h-full bg-rose-500 transition-all duration-300';
+    } else if (bits < 55) {
+      labelEl.innerText = 'Standard / Good';
+      labelEl.className = 'font-bold text-amber-500 uppercase';
+      barEl.className = 'h-full bg-amber-500 transition-all duration-300';
+    } else {
+      labelEl.innerText = 'Military-Grade (Level 5)';
+      labelEl.className = 'font-bold text-emerald-500 uppercase';
+      barEl.className = 'h-full bg-emerald-500 transition-all duration-300';
+    }
+  };
+
+  window.togglePasswordVisibility = function() {
+    const input = document.getElementById('input-auth-password');
+    if (!input) return;
+    input.type = input.type === 'password' ? 'text' : 'password';
+  };
+
+  function updateHeaderIdentity(user) {
+    if (!user) return;
+    state.currentUser = user;
+    state.currentRole = user.role.toLowerCase();
+    localStorage.setItem('truthlens_role', state.currentRole);
+
+    const navAvatar = document.getElementById('nav-user-avatar');
+    const navName = document.getElementById('nav-user-name');
+    const badge = document.getElementById('user-role-badge');
+    const statusChip = document.getElementById('auth-status-chip');
+
+    if (navAvatar && user.avatar_url) navAvatar.src = user.avatar_url;
+    if (navName && user.full_name) navName.innerText = user.full_name;
+    if (badge) badge.innerText = `${user.role} (L${user.clearance_level || 1})`;
+    if (statusChip) statusChip.innerText = `${user.role} AUTHENTICATED`;
+  }
+
+  window.handleSSOLogin = async function(provider) {
+    const alertBox = document.getElementById('auth-alert-box');
+    if (alertBox) {
+      alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200';
+      alertBox.innerHTML = `<span>⏳</span><span>Establishing cryptographic ${provider.toUpperCase()} SSO handshake...</span>`;
+      alertBox.classList.remove('hidden');
+    }
+
+    try {
+      const resp = await fetch(`/api/v1/auth/sso/${provider}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ provider })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'SSO handshake failed');
+
+      localStorage.setItem('truthlens_auth_token', data.token);
+      state.authToken = data.token;
+      updateHeaderIdentity(data.user);
+
+      if (alertBox) {
+        alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200';
+        alertBox.innerHTML = `<span>✓</span><span>Authenticated via ${provider.toUpperCase()} SSO! Welcome ${data.user.full_name}.</span>`;
+      }
+      showToast(`Welcome, ${data.user.full_name} (${data.user.role} - Clearance L${data.user.clearance_level})`, 'success');
+      setTimeout(() => switchTab('feed'), 700);
+    } catch (err) {
+      if (alertBox) {
+        alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200';
+        alertBox.innerHTML = `<span>⚠️</span><span>${err.message}</span>`;
+      }
+      showToast(err.message, 'error');
+    }
+  };
+
+  window.handleAuthSubmit = async function(e) {
+    e.preventDefault();
+    const alertBox = document.getElementById('auth-alert-box');
+    const submitBtn = document.getElementById('btn-auth-submit');
+    const email = document.getElementById('input-auth-email')?.value.trim();
+    const password = document.getElementById('input-auth-password')?.value;
+
+    if (!email || !password) {
+      showToast('Please provide both email and password', 'error');
+      return;
+    }
+
+    if (submitBtn) {
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<span>Verifying cryptographic signature...</span>';
+    }
+
+    try {
+      if (state.authMode === 'register') {
+        const fullName = document.getElementById('input-auth-name')?.value.trim() || 'Field Officer';
+        const role = document.getElementById('input-auth-role')?.value || 'CITIZEN';
+        const org = document.getElementById('input-auth-org')?.value.trim() || 'Independent Organization';
+
+        const resp = await fetch('/api/v1/auth/register', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            email,
+            password,
+            full_name: fullName,
+            role,
+            organization: org,
+            clearance_level: role === 'OFFICER' || role === 'ACADEMIC' ? 5 : (role === 'JOURNALIST' || role === 'RESEARCHER' ? 4 : 1)
+          })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Registration failed');
+
+        localStorage.setItem('truthlens_auth_token', data.token);
+        state.authToken = data.token;
+        updateHeaderIdentity(data.user);
+
+        if (alertBox) {
+          alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200';
+          alertBox.innerHTML = `<span>✓</span><span>Identity registered in TruthLens IAM ledger. Redirecting...</span>`;
+          alertBox.classList.remove('hidden');
+        }
+        showToast(`Identity created for ${data.user.full_name} (${data.user.role})`, 'success');
+        setTimeout(() => switchTab('feed'), 700);
+
+      } else {
+        // Sign In
+        const resp = await fetch('/api/v1/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email, password })
+        });
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.detail || 'Authentication failed');
+
+        localStorage.setItem('truthlens_auth_token', data.token);
+        state.authToken = data.token;
+        updateHeaderIdentity(data.user);
+
+        if (alertBox) {
+          alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200';
+          alertBox.innerHTML = `<span>✓</span><span>Authenticated! Welcome back, ${data.user.full_name}.</span>`;
+          alertBox.classList.remove('hidden');
+        }
+        showToast(`Authenticated as ${data.user.full_name} (${data.user.role})`, 'success');
+        setTimeout(() => switchTab('feed'), 700);
+      }
+    } catch (err) {
+      if (alertBox) {
+        alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200';
+        alertBox.innerHTML = `<span>⚠️</span><span>${err.message}</span>`;
+        alertBox.classList.remove('hidden');
+      }
+      showToast(err.message, 'error');
+    } finally {
+      if (submitBtn) {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = `<span id="btn-auth-label">${state.authMode === 'register' ? 'Register & Establish Identity' : 'Authenticate Epistemic Identity'}</span> <span>→</span>`;
+      }
+    }
+  };
+
+  window.quickAuthPersona = async function(email, password) {
+    const alertBox = document.getElementById('auth-alert-box');
+    if (alertBox) {
+      alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200';
+      alertBox.innerHTML = `<span>⚡</span><span>Elevating clearance for persona <b>${email}</b>...</span>`;
+      alertBox.classList.remove('hidden');
+    }
+
+    try {
+      const resp = await fetch('/api/v1/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password })
+      });
+      const data = await resp.json();
+      if (!resp.ok) throw new Error(data.detail || 'Persona switch failed');
+
+      localStorage.setItem('truthlens_auth_token', data.token);
+      state.authToken = data.token;
+      updateHeaderIdentity(data.user);
+
+      showToast(`Clearance Elevated: ${data.user.full_name} (${data.user.role} - L${data.user.clearance_level})`, 'success');
+      setTimeout(() => switchTab('feed'), 600);
+    } catch (err) {
+      showToast(err.message, 'error');
+    }
+  };
+
+  window.handleAuthLogout = function() {
+    localStorage.removeItem('truthlens_auth_token');
+    state.authToken = null;
+    state.currentUser = null;
+    state.currentRole = 'guest';
+
+    const navName = document.getElementById('nav-user-name');
+    const badge = document.getElementById('user-role-badge');
+    const statusChip = document.getElementById('auth-status-chip');
+    if (navName) navName.innerText = 'Guest Evaluator';
+    if (badge) badge.innerText = 'GUEST (L0)';
+    if (statusChip) statusChip.innerText = 'GUEST UNVERIFIED';
+
+    showToast('Session terminated. Identity signed out.', 'info');
+    switchTab('auth');
+  };
+
+  window.loadAuthTelemetry = async function() {
+    try {
+      const resp = await fetch('/api/v1/auth/telemetry');
+      if (!resp.ok) return;
+      const data = await resp.json();
+
+      const cipherEl = document.getElementById('telemetry-cipher');
+      const kdfEl = document.getElementById('telemetry-kdf');
+      const tokenEl = document.getElementById('telemetry-token');
+      const idEl = document.getElementById('telemetry-identities');
+
+      if (cipherEl) cipherEl.innerText = data.cipher_suite || 'TLS_AES_256_GCM';
+      if (kdfEl) kdfEl.innerText = data.kdf_algorithm || 'PBKDF2 (100k)';
+      if (tokenEl) tokenEl.innerText = data.token_specification || 'RFC 7519 HS256';
+      if (idEl) idEl.innerText = `${data.total_registered_identities || 5} Registered`;
+    } catch (err) {
+      console.warn('Telemetry load error:', err);
+    }
+  };
+
+  async function verifySessionOnBoot() {
+    const token = localStorage.getItem('truthlens_auth_token');
+    if (!token) return;
+    try {
+      const resp = await fetch('/api/v1/auth/me', {
+        headers: { 'Authorization': `Bearer ${token}` }
+      });
+      if (resp.ok) {
+        const data = await resp.json();
+        updateHeaderIdentity(data.user);
+      } else {
+        localStorage.removeItem('truthlens_auth_token');
+      }
+    } catch (err) {
+      console.warn('Session verification error:', err);
+    }
+  }
+
+  // Restore saved role on load & verify session
+  verifySessionOnBoot();
+  const savedRole = localStorage.getItem('truthlens_role') || 'officer';
   if (roleBadge) roleBadge.innerText = savedRole.toUpperCase();
 
   // Kickstart router

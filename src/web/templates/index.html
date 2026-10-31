@@ -57,6 +57,12 @@
             Home
           </button>
 
+          <!-- 0.5 Enterprise Auth & IAM Tab -->
+          <button data-tab="auth" onclick="switchTab('auth')" class="nav-tab-btn px-3 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1">
+            <span>🔐</span>
+            <span>Auth & IAM</span>
+          </button>
+
           <!-- 1. Live Feed (Direct Tab) -->
           <button data-tab="feed" onclick="switchTab('feed')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
             Live Feed
@@ -170,16 +176,16 @@
           <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
         </button>
 
-        <!-- Real Profile Picture + User Card -->
-        <div onclick="openAuthModal()" class="pl-1.5 pr-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-full cursor-pointer shadow-xs flex items-center gap-2.5 transition">
+        <!-- Real Profile Picture + User Card (Routes to Zero-Trust IAM Portal) -->
+        <div onclick="switchTab('auth')" class="pl-1.5 pr-3.5 py-1.5 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-full cursor-pointer shadow-xs flex items-center gap-2.5 transition" title="Open Enterprise Identity & Clearance Portal">
           <div class="relative w-8 h-8 rounded-full overflow-hidden ring-2 ring-indigo-600/20">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Dr. Rhea Sen" class="w-full h-full object-cover">
-            <span class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white"></span>
+            <img id="nav-user-avatar" src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Dr. Rhea Sen" class="w-full h-full object-cover">
+            <span id="nav-user-status-dot" class="absolute bottom-0 right-0 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white"></span>
           </div>
           <div class="text-left hidden sm:block">
-            <div class="text-xs font-bold text-slate-900 leading-tight">Dr. Rhea Sen</div>
+            <div id="nav-user-name" class="text-xs font-bold text-slate-900 leading-tight">Dr. Rhea Sen</div>
             <div class="text-[10px] text-slate-500 font-medium flex items-center gap-1">
-              <span id="user-role-badge">JOURNALIST</span>
+              <span id="user-role-badge">OFFICER (L5)</span>
               <span>▾</span>
             </div>
           </div>
@@ -230,7 +236,11 @@
               <span>Launch Intelligence Console</span>
               <span>→</span>
             </button>
-            <button onclick="document.getElementById('landing-interactive-tester').scrollIntoView({behavior: 'smooth'})" class="px-6 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-semibold border border-white/15 transition flex items-center gap-2">
+            <button onclick="switchTab('auth')" class="px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-semibold border border-white/15 transition flex items-center gap-2">
+              <span>🔐</span>
+              <span>Enterprise IAM & Clearance</span>
+            </button>
+            <button onclick="document.getElementById('landing-interactive-tester').scrollIntoView({behavior: 'smooth'})" class="px-5 py-3.5 bg-white/10 hover:bg-white/20 text-white rounded-full text-sm font-semibold border border-white/15 transition flex items-center gap-2">
               <span>⚡</span>
               <span>Test Live Verifier</span>
             </button>
@@ -455,9 +465,353 @@
             <button onclick="switchTab('feed')" class="px-6 py-3 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold rounded-full shadow-lg transition flex items-center gap-2">
               <span>🚀 Launch Full Console</span>
             </button>
-            <button onclick="openAuthModal()" class="px-5 py-3 bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-semibold rounded-full border border-white/15 transition">
-              <span>👤 Persona Switcher</span>
+            <button onclick="switchTab('auth')" class="px-5 py-3 bg-white/10 hover:bg-white/20 text-slate-200 text-xs font-semibold rounded-full border border-white/15 transition flex items-center gap-1.5">
+              <span>🔐</span>
+              <span>Enterprise IAM & Clearance Hub</span>
             </button>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB AUTH: ZERO-TRUST IAM PORTAL & ENTERPRISE SSO BROKER               -->
+      <!-- ===================================================================== -->
+      <section id="page-auth" class="page-view hidden space-y-8">
+
+        <!-- Top Breadcrumb & Status Row -->
+        <div class="flex items-center justify-between flex-wrap gap-4 pt-1">
+          <div class="flex items-center gap-3">
+            <button onclick="switchTab('landing')" class="w-9 h-9 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center justify-center text-sm font-bold transition shadow-xs" title="Return to Home">
+              ←
+            </button>
+            <div>
+              <div class="flex items-center gap-2">
+                <h2 class="text-xl font-extrabold text-slate-900 tracking-tight">Enterprise Identity & Clearance Portal</h2>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-indigo-50 text-indigo-700 border border-indigo-200/80">RBAC TIER 5</span>
+              </div>
+              <p class="text-xs text-slate-500 font-medium">Multi-tenant role-based access control with cryptographic JWT authorization & enterprise SSO.</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-mono font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+              <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+              SESSION: <span id="auth-status-chip">AUTHENTICATED</span>
+            </span>
+            <button onclick="handleAuthLogout()" class="px-3.5 py-1.5 rounded-full text-xs font-bold text-slate-600 hover:text-rose-600 bg-slate-100 hover:bg-rose-50 border border-slate-200/80 transition flex items-center gap-1">
+              <span>Sign Out</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Master Split-Screen Layout (Left: Zero-Trust Telemetry, Right: IAM Portal) -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+
+          <!-- ================================================================= -->
+          <!-- LEFT COLUMN (5 COLS): SECURITY TELEMETRY & ZERO-TRUST CONSOLE     -->
+          <!-- ================================================================= -->
+          <div class="lg:col-span-5 bg-[#151624] text-white rounded-[32px] p-6 sm:p-8 border border-white/10 shadow-2xl space-y-6 relative overflow-hidden">
+            <!-- Background Ambient Glow -->
+            <div class="absolute -top-24 -left-24 w-72 h-72 bg-indigo-600/20 rounded-full blur-3xl pointer-events-none"></div>
+            <div class="absolute -bottom-24 -right-24 w-72 h-72 bg-emerald-600/15 rounded-full blur-3xl pointer-events-none"></div>
+
+            <!-- Header Badge & Status -->
+            <div class="relative z-10 flex items-center justify-between border-b border-white/10 pb-4">
+              <div>
+                <span class="text-[10px] font-mono font-bold tracking-widest text-indigo-400 uppercase">SECURITY OPERATIONS (SEC-OPS)</span>
+                <h3 class="text-lg font-extrabold text-white tracking-tight mt-0.5">Zero-Trust Identity Mesh</h3>
+              </div>
+              <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/15 border border-emerald-500/30 text-[10px] font-mono text-emerald-300 font-bold">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+                ACTIVE
+              </div>
+            </div>
+
+            <!-- Cryptographic Parameter Cards -->
+            <div class="relative z-10 space-y-3">
+              <div class="text-xs font-mono text-slate-400 uppercase tracking-wider font-semibold">Cryptographic Standards</div>
+              
+              <div class="grid grid-cols-2 gap-2.5 text-xs font-mono">
+                <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                  <div class="text-[10px] text-slate-400">CIPHER SUITE</div>
+                  <div id="telemetry-cipher" class="font-bold text-indigo-300 text-[11px] truncate">TLS_AES_256_GCM</div>
+                </div>
+                <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                  <div class="text-[10px] text-slate-400">KEY DERIVATION</div>
+                  <div id="telemetry-kdf" class="font-bold text-purple-300 text-[11px] truncate">PBKDF2 (100k)</div>
+                </div>
+                <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                  <div class="text-[10px] text-slate-400">TOKEN SPEC</div>
+                  <div id="telemetry-token" class="font-bold text-emerald-300 text-[11px] truncate">RFC 7519 HS256</div>
+                </div>
+                <div class="p-3 rounded-2xl bg-white/5 border border-white/10 space-y-1">
+                  <div class="text-[10px] text-slate-400">IDENTITIES IN DB</div>
+                  <div id="telemetry-identities" class="font-bold text-amber-300 text-[11px]">5 Registered</div>
+                </div>
+              </div>
+            </div>
+
+            <!-- RBAC Clearance Matrix Hierarchy -->
+            <div class="relative z-10 space-y-3">
+              <div class="text-xs font-mono text-slate-400 uppercase tracking-wider font-semibold">Role-Based Access Hierarchy (RBAC)</div>
+              
+              <div class="space-y-2 text-xs">
+                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-rose-500/20 text-rose-300 flex items-center justify-center font-bold text-[10px]">L5</span>
+                    <div>
+                      <div class="font-bold text-white text-xs">Intelligence Officer</div>
+                      <div class="text-[10px] text-slate-400">Forensic overrides, botnet clustering, triage</div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-mono text-rose-300 font-bold">FULL CLEARANCE</span>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-indigo-500/20 text-indigo-300 flex items-center justify-center font-bold text-[10px]">L4</span>
+                    <div>
+                      <div class="font-bold text-white text-xs">Investigative Journalist</div>
+                      <div class="text-[10px] text-slate-400">Pre-flight studio, source provenance, publishing</div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-mono text-indigo-300 font-bold">PUBLISHER</span>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-purple-500/20 text-purple-300 flex items-center justify-center font-bold text-[10px]">L4</span>
+                    <div>
+                      <div class="font-bold text-white text-xs">NLP Research Scientist</div>
+                      <div class="text-[10px] text-slate-400">Adversarial attack lab, benchmark matrix</div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-mono text-purple-300 font-bold">RESEARCH</span>
+                </div>
+
+                <div class="p-2.5 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between">
+                  <div class="flex items-center gap-2">
+                    <span class="w-6 h-6 rounded-lg bg-amber-500/20 text-amber-300 flex items-center justify-center font-bold text-[10px]">L5</span>
+                    <div>
+                      <div class="font-bold text-white text-xs">ACM/IEEE Academic Reviewer</div>
+                      <div class="text-[10px] text-slate-400">Dossier inspection, formula verification</div>
+                    </div>
+                  </div>
+                  <span class="text-[10px] font-mono text-amber-300 font-bold">EVALUATOR</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Compliance Proof Badges -->
+            <div class="relative z-10 pt-2 border-t border-white/10 flex items-center justify-between flex-wrap gap-2 text-[10px] text-slate-400 font-mono">
+              <span class="flex items-center gap-1">🛡️ IFCN Sec. 2 (Transparency)</span>
+              <span class="flex items-center gap-1">🔒 GDPR Art. 22 Audited</span>
+              <span class="flex items-center gap-1">⚖️ NIST SP 800-63B</span>
+            </div>
+
+          </div>
+
+          <!-- ================================================================= -->
+          <!-- RIGHT COLUMN (7 COLS): UNIFIED IDENTITY HUB & SSO BROKER          -->
+          <!-- ================================================================= -->
+          <div class="lg:col-span-7 bg-white rounded-[32px] p-6 sm:p-8 md:p-10 border border-slate-200/90 shadow-xl space-y-6">
+            
+            <!-- Auth Tab Switcher (Sign In vs Register vs 1-Click Sandbox) -->
+            <div class="flex items-center p-1.5 bg-slate-100 rounded-2xl gap-1">
+              <button id="tab-btn-signin" onclick="switchAuthSubTab('signin')" class="flex-1 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs">
+                Sign In
+              </button>
+              <button id="tab-btn-register" onclick="switchAuthSubTab('register')" class="flex-1 py-2 rounded-xl text-xs font-semibold transition text-slate-500 hover:text-slate-900">
+                Create Account
+              </button>
+              <button id="tab-btn-sandbox" onclick="switchAuthSubTab('sandbox')" class="flex-1 py-2 rounded-xl text-xs font-semibold transition text-slate-500 hover:text-slate-900 flex items-center justify-center gap-1">
+                <span>⚡</span>
+                <span>1-Click Personas</span>
+              </button>
+            </div>
+
+            <!-- Enterprise Single Sign-On (SSO Broker) -->
+            <div id="auth-sso-container" class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 tracking-tight">Institutional Single Sign-On (SSO)</span>
+                <span class="text-[10px] font-mono text-indigo-600 bg-indigo-50 px-2 py-0.5 rounded border border-indigo-100 font-semibold">OIDC / SAML 2.0</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                <!-- Google SSO -->
+                <button onclick="handleSSOLogin('google')" class="p-3 rounded-2xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs transition flex items-center justify-center gap-2 shadow-2xs">
+                  <svg class="w-4 h-4" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+                  </svg>
+                  <span>Google Workspace</span>
+                </button>
+
+                <!-- GitHub SSO -->
+                <button onclick="handleSSOLogin('github')" class="p-3 rounded-2xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs transition flex items-center justify-center gap-2 shadow-2xs">
+                  <svg class="w-4 h-4 fill-slate-900" viewBox="0 0 24 24">
+                    <path fill-rule="evenodd" clip-rule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/>
+                  </svg>
+                  <span>GitHub Dev</span>
+                </button>
+
+                <!-- EduID SAML -->
+                <button onclick="handleSSOLogin('eduid')" class="p-3 rounded-2xl border border-slate-200 hover:border-slate-300 hover:bg-slate-50 text-slate-800 font-semibold text-xs transition flex items-center justify-center gap-2 shadow-2xs">
+                  <span class="text-sm">🎓</span>
+                  <span>EduID / SAML 2.0</span>
+                </button>
+              </div>
+
+              <!-- Divider -->
+              <div class="relative py-2 flex items-center justify-center">
+                <div class="border-t border-slate-200 w-full"></div>
+                <span class="bg-white px-3 text-[11px] text-slate-400 font-mono uppercase tracking-wider relative z-10">or cryptographic credentials</span>
+              </div>
+            </div>
+
+            <!-- Interactive Auth Alert Box -->
+            <div id="auth-alert-box" class="hidden p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2"></div>
+
+            <!-- Credentials Form (Sign In / Register) -->
+            <form id="auth-credential-form" onsubmit="handleAuthSubmit(event)" class="space-y-4">
+
+              <!-- Registration Only: Full Name -->
+              <div id="field-register-name" class="hidden space-y-1.5">
+                <label class="text-xs font-bold text-slate-700">Full Name</label>
+                <input id="input-auth-name" type="text" placeholder="e.g., Dr. Alan Turing" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+              </div>
+
+              <!-- Email Field -->
+              <div class="space-y-1.5">
+                <label class="text-xs font-bold text-slate-700">Institutional Email / Identity</label>
+                <div class="relative">
+                  <input id="input-auth-email" type="email" required placeholder="officer@truthlens.ai" class="w-full pl-10 pr-4 py-3 rounded-2xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                  <span class="absolute left-3.5 top-3.5 text-slate-400 text-xs">✉️</span>
+                </div>
+              </div>
+
+              <!-- Password Field + Entropy Meter -->
+              <div class="space-y-1.5">
+                <div class="flex items-center justify-between">
+                  <label class="text-xs font-bold text-slate-700">Password</label>
+                  <button type="button" onclick="togglePasswordVisibility()" class="text-[11px] text-indigo-600 hover:underline font-medium">Show / Hide</button>
+                </div>
+                <div class="relative">
+                  <input id="input-auth-password" type="password" required oninput="evaluatePasswordEntropy(this.value)" placeholder="••••••••••••" class="w-full pl-10 pr-10 py-3 rounded-2xl border border-slate-200 text-xs font-mono focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                  <span class="absolute left-3.5 top-3.5 text-slate-400 text-xs">🔑</span>
+                </div>
+
+                <!-- Live Shannon Entropy Meter -->
+                <div id="password-entropy-container" class="space-y-1 pt-1">
+                  <div class="flex items-center justify-between text-[10px] font-mono">
+                    <span class="text-slate-500">Cryptographic Entropy: <span id="entropy-bits" class="font-bold text-slate-700">0 bits</span></span>
+                    <span id="entropy-label" class="font-bold text-slate-400 uppercase">Input Password</span>
+                  </div>
+                  <div class="w-full h-1.5 bg-slate-100 rounded-full overflow-hidden flex">
+                    <div id="entropy-bar" class="h-full bg-slate-300 transition-all duration-300 w-0"></div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Registration Only: Role Selection & Organization -->
+              <div id="field-register-extras" class="hidden space-y-4 pt-1">
+                <div class="space-y-1.5">
+                  <label class="text-xs font-bold text-slate-700">Operational Role (RBAC Target)</label>
+                  <select id="input-auth-role" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none transition bg-white">
+                    <option value="OFFICER">Intelligence Officer (Clearance Level 5)</option>
+                    <option value="JOURNALIST">Investigative Journalist (Clearance Level 4)</option>
+                    <option value="RESEARCHER">NLP Research Scientist (Clearance Level 4)</option>
+                    <option value="ACADEMIC">ACM/IEEE Academic Reviewer (Clearance Level 5)</option>
+                    <option value="CITIZEN" selected>Digital Citizen / Reader (Clearance Level 1)</option>
+                  </select>
+                </div>
+
+                <div class="space-y-1.5">
+                  <label class="text-xs font-bold text-slate-700">Organization / Newsroom / Defense Agency</label>
+                  <input id="input-auth-org" type="text" placeholder="e.g., Reuters, Defense Intelligence, IISc" class="w-full px-4 py-3 rounded-2xl border border-slate-200 text-xs focus:ring-2 focus:ring-indigo-500 focus:outline-none transition">
+                </div>
+              </div>
+
+              <!-- Options Checkboxes -->
+              <div class="flex items-center justify-between pt-1">
+                <label class="flex items-center gap-2 cursor-pointer">
+                  <input id="check-remember-me" type="checkbox" checked class="w-4 h-4 rounded text-indigo-600 focus:ring-indigo-500 border-slate-300">
+                  <span class="text-xs text-slate-600 font-medium">Remember workstation (30-day token)</span>
+                </label>
+                <span class="text-[11px] text-slate-400 font-mono">FIDO2 Ready</span>
+              </div>
+
+              <!-- Submit Button -->
+              <button id="btn-auth-submit" type="submit" class="w-full py-3.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl text-xs font-bold shadow-lg shadow-indigo-600/30 transition flex items-center justify-center gap-2">
+                <span id="btn-auth-label">Authenticate Epistemic Identity</span>
+                <span>→</span>
+              </button>
+            </form>
+
+            <!-- 1-Click Persona Sandbox Sub-Section -->
+            <div id="auth-sandbox-cards" class="space-y-3 pt-4 border-t border-slate-100">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="text-xs font-extrabold text-slate-900">Academic & Evaluator Fast-Track Sandbox</div>
+                  <div class="text-[11px] text-slate-500">Instant 1-click clearance elevation for thesis defense demonstration.</div>
+                </div>
+                <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold bg-amber-50 text-amber-700 border border-amber-200">NO TYPING REQUIRED</span>
+              </div>
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <!-- Persona 1: Dr. Rhea Sen -->
+                <div onclick="quickAuthPersona('officer@truthlens.ai', 'TruthLens@2026!')" class="p-3.5 rounded-2xl border border-slate-200/90 hover:border-indigo-500 hover:bg-indigo-50/40 cursor-pointer transition flex items-center gap-3 group shadow-2xs">
+                  <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Dr. Rhea Sen" class="w-10 h-10 rounded-xl object-cover ring-2 ring-rose-500/30">
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <div class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition truncate">Dr. Rhea Sen</div>
+                      <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 bg-rose-100 text-rose-700 rounded">L5</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 truncate">Defense Intelligence Officer</div>
+                  </div>
+                </div>
+
+                <!-- Persona 2: Marcus Vance -->
+                <div onclick="quickAuthPersona('journalist@reuters.org', 'PressPass@2026!')" class="p-3.5 rounded-2xl border border-slate-200/90 hover:border-indigo-500 hover:bg-indigo-50/40 cursor-pointer transition flex items-center gap-3 group shadow-2xs">
+                  <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&h=120&q=80" alt="Marcus Vance" class="w-10 h-10 rounded-xl object-cover ring-2 ring-indigo-500/30">
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <div class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition truncate">Marcus Vance</div>
+                      <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 bg-indigo-100 text-indigo-700 rounded">L4</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 truncate">Reuters Fact-Check Editor</div>
+                  </div>
+                </div>
+
+                <!-- Persona 3: Maya Patel -->
+                <div onclick="quickAuthPersona('researcher@iisc.ac.in', 'Research@2026!')" class="p-3.5 rounded-2xl border border-slate-200/90 hover:border-indigo-500 hover:bg-indigo-50/40 cursor-pointer transition flex items-center gap-3 group shadow-2xs">
+                  <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=120&h=120&q=80" alt="Maya Patel" class="w-10 h-10 rounded-xl object-cover ring-2 ring-purple-500/30">
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <div class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition truncate">Maya Patel</div>
+                      <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 bg-purple-100 text-purple-700 rounded">L4</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 truncate">IISc Computational NLP</div>
+                  </div>
+                </div>
+
+                <!-- Persona 4: Prof. Kulkarni -->
+                <div onclick="quickAuthPersona('evaluator@acm.org', 'Academic@2026!')" class="p-3.5 rounded-2xl border border-slate-200/90 hover:border-indigo-500 hover:bg-indigo-50/40 cursor-pointer transition flex items-center gap-3 group shadow-2xs">
+                  <img src="https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&h=120&q=80" alt="Prof. Kulkarni" class="w-10 h-10 rounded-xl object-cover ring-2 ring-amber-500/30">
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-center justify-between">
+                      <div class="text-xs font-bold text-slate-900 group-hover:text-indigo-600 transition truncate">Prof. Kulkarni</div>
+                      <span class="text-[9px] font-mono font-bold px-1.5 py-0.2 bg-amber-100 text-amber-700 rounded">L5</span>
+                    </div>
+                    <div class="text-[10px] text-slate-500 truncate">ACM Senior Peer Reviewer</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
           </div>
         </div>
 

@@ -3,13 +3,18 @@
 import os
 from datetime import datetime, timezone
 from typing import List, Optional, Dict, Any
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import HTMLResponse, PlainTextResponse
 from pydantic import BaseModel, Field
 
 from src.core.config import settings
+from src.core.auth import (
+    auth_db,
+    create_access_token,
+    verify_access_token,
+)
 from src.core.types import (
     VerificationRequest,
     VerificationResult,
@@ -99,7 +104,26 @@ class PublishDraftRequest(BaseModel):
     truth_score: Optional[float] = 85.0
     assertions: List[Dict[str, Any]] = Field(default_factory=list)
 
+class LoginRequest(BaseModel):
+    email: str
+    password: str
+
+class RegisterRequest(BaseModel):
+    email: str
+    password: str
+    full_name: str
+    role: Optional[str] = "CITIZEN"
+    organization: Optional[str] = "Independent Organization"
+    clearance_level: Optional[int] = 1
+
+class SSORequest(BaseModel):
+    provider: str
+    token: Optional[str] = None
+
 @app.get("/", response_class=HTMLResponse)
+@app.get("/login", response_class=HTMLResponse)
+@app.get("/register", response_class=HTMLResponse)
+@app.get("/auth", response_class=HTMLResponse)
 def index_page():
     """Serve the primary TruthLens-Omni SPA dashboard."""
     index_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "web", "templates", "index.html")
@@ -107,6 +131,103 @@ def index_page():
         with open(index_path, "r", encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse("<h1>TruthLens-Omni Platform Running.</h1>")
+
+@app.post("/api/v1/auth/login")
+def auth_login(req: LoginRequest):
+    """Authenticate via email/password and issue HS256 JWT session token."""
+    user = auth_db.authenticate_credentials(req.email, req.password)
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid epistemic identity credentials.")
+    
+    token = create_access_token({
+        "sub": user["id"],
+        "email": user["email"],
+        "role": user["role"],
+        "clearance_level": user["clearance_level"],
+        "full_name": user["full_name"],
+        "organization": user["organization"]
+    })
+    
+    safe_user = dict(user)
+    safe_user.pop("password_hash", None)
+    safe_user.pop("salt", None)
+    return {"token": token, "user": safe_user, "status": "authenticated"}
+
+@app.post("/api/v1/auth/register")
+def auth_register(req: RegisterRequest):
+    """Register a new epistemic identity and return signed session token."""
+    try:
+        user = auth_db.create_user(
+            email=req.email,
+            password=req.password,
+            full_name=req.full_name,
+            role=req.role or "CITIZEN",
+            organization=req.organization or "Independent Organization",
+            clearance_level=req.clearance_level or 1
+        )
+        token = create_access_token({
+            "sub": user["id"],
+            "email": user["email"],
+            "role": user["role"],
+            "clearance_level": user["clearance_level"],
+            "full_name": user["full_name"],
+            "organization": user["organization"]
+        })
+        safe_user = dict(user)
+        safe_user.pop("password_hash", None)
+        safe_user.pop("salt", None)
+        return {"token": token, "user": safe_user, "status": "registered"}
+    except ValueError as ve:
+        raise HTTPException(status_code=400, detail=str(ve))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Registration failed: {str(e)}")
+
+@app.post("/api/v1/auth/sso/{provider}")
+def auth_sso(provider: str, req: Optional[SSORequest] = None):
+    """Simulate enterprise SSO / SAML 2.0 / OIDC handshake."""
+    try:
+        user = auth_db.authenticate_sso(provider)
+        token = create_access_token({
+            "sub": user["id"],
+            "email": user["email"],
+            "role": user["role"],
+            "clearance_level": user["clearance_level"],
+            "full_name": user["full_name"],
+            "organization": user["organization"]
+        })
+        safe_user = dict(user)
+        safe_user.pop("password_hash", None)
+        safe_user.pop("salt", None)
+        return {"token": token, "user": safe_user, "provider": provider, "status": "sso_authenticated"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"SSO handshake failed: {str(e)}")
+
+@app.get("/api/v1/auth/me")
+def auth_me(authorization: Optional[str] = Header(None)):
+    """Retrieve verified identity and clearance level from Bearer token."""
+    if not authorization:
+        raise HTTPException(status_code=401, detail="Missing Authorization Bearer header.")
+    token = authorization.replace("Bearer ", "").strip()
+    payload = verify_access_token(token)
+    if not payload:
+        raise HTTPException(status_code=401, detail="Expired or cryptographic signature invalid.")
+    user = auth_db.get_user_by_id(payload.get("sub", ""))
+    if not user:
+        raise HTTPException(status_code=404, detail="Identity record no longer found.")
+    safe_user = dict(user)
+    safe_user.pop("password_hash", None)
+    safe_user.pop("salt", None)
+    return {"user": safe_user, "claims": payload}
+
+@app.post("/api/v1/auth/logout")
+def auth_logout():
+    """Revoke session client-side."""
+    return {"status": "logged_out", "message": "Session closed."}
+
+@app.get("/api/v1/auth/telemetry")
+def auth_telemetry():
+    """Return live IAM cryptographic telemetry and Zero-Trust metrics."""
+    return auth_db.get_security_telemetry()
 
 @app.get("/api/v1/health")
 def health_check():
