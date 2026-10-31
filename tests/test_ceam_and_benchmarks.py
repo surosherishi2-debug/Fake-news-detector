@@ -62,6 +62,20 @@ def test_adversarial_synonym_perturbation():
         assert sub["original"].lower() in adv.synonym_map
         assert sub["replacement"] in adv.synonym_map[sub["original"].lower()]
 
+def test_adversarial_deepwordbug_perturbation():
+    """Verify DeepWordBug character-level noise injection (swap, drop, substitute)."""
+    adv = AdversarialAttackSimulator()
+    original = "Scientists discovered unprecedented volcanic activity on Jupiter moon Io."
+    perturbed, subs, mod_rate = adv.perturb_text(original, perturbation_budget=0.30, attack_type="deepwordbug")
+
+    assert len(subs) > 0
+    assert mod_rate > 0.0
+    assert original != perturbed
+    for sub in subs:
+        assert "original" in sub
+        assert "replacement" in sub
+        assert len(sub["replacement"]) > 0
+
 def test_model_evaluator_suite():
     evaluator = ModelEvaluator()
     report = evaluator.run_benchmark_suite("pune_fakenews_2024")

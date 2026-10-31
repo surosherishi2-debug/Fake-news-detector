@@ -87,6 +87,7 @@ class ForensicsRequest(BaseModel):
 class AdversarialRequest(BaseModel):
     text: str
     budget: float = 0.25
+    attack_type: str = "textfooler"
 
 class PublishDraftRequest(BaseModel):
     title: str
@@ -195,10 +196,14 @@ def publish_story_draft(request: PublishDraftRequest):
             {"name": request.publisher, "type": "AUTHOR_AGENCY", "trust_score": 0.90}
         ]
         new_id = db.publish_article(art_data, claims_data, entities_data)
+        import hashlib
+        provenance_str = f"{request.title}:{request.content}:{request.publisher}:{datetime.now(timezone.utc).isoformat()}"
+        provenance_hash = hashlib.sha256(provenance_str.encode("utf-8")).hexdigest()
         return {
             "success": True,
             "article_id": new_id,
-            "message": f"Story '{request.title}' successfully published and indexed in Daily Info Feed!"
+            "provenance_hash": provenance_hash,
+            "message": f"Story '{request.title}' successfully published with SHA-256 Provenance {provenance_hash[:12]}...!"
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Failed to publish draft: {str(e)}")
@@ -295,8 +300,9 @@ def run_adversarial_perturbation(request: AdversarialRequest):
     standard prediction vs. TruthLens multimodal resilience.
     """
     try:
+        attack = getattr(request, "attack_type", "textfooler")
         perturbed_text, subs, mod_rate = adv_simulator.perturb_text(
-            request.text, perturbation_budget=request.budget
+            request.text, perturbation_budget=request.budget, attack_type=attack
         )
         
         # Verify clean vs perturbed

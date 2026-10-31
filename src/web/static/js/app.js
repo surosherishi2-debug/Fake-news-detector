@@ -744,12 +744,31 @@ document.addEventListener('DOMContentLoaded', () => {
       gltrBox.innerText = `${rep.gltr_distribution.top10}%`;
     }
 
-    // Render GLTR Heatmap Token Pills
+    // Update GLTR Multi-Segment Distribution Bar
+    const dist = rep.gltr_distribution || { top10: 25, top100: 25, top1000: 25, rare: 25 };
+    const bTop10 = document.getElementById('gltr-bar-top10');
+    const bTop100 = document.getElementById('gltr-bar-top100');
+    const bTop1000 = document.getElementById('gltr-bar-top1000');
+    const bRare = document.getElementById('gltr-bar-rare');
+    const distSummary = document.getElementById('gltr-dist-summary');
+
+    if (bTop10) bTop10.style.width = `${dist.top10}%`;
+    if (bTop100) bTop100.style.width = `${dist.top100}%`;
+    if (bTop1000) bTop1000.style.width = `${dist.top1000}%`;
+    if (bRare) bRare.style.width = `${dist.rare}%`;
+    if (distSummary) distSummary.innerText = `Top-10: ${dist.top10}% | Top-100: ${dist.top100}% | Rare: ${dist.rare}%`;
+
+    // Render GLTR Heatmap Token Pills with interactive inspection
     const heatmapBox = document.getElementById('gltr-heatmap-container');
     if (heatmapBox && rep.token_forensics && rep.token_forensics.length > 0) {
       heatmapBox.innerHTML = rep.token_forensics.map(t => `
-        <span style="background-color: ${t.color_code}20; color: ${t.color_code}; border-color: ${t.color_code}40;" class="px-1.5 py-0.5 rounded text-xs font-mono font-medium border inline-block">
-          ${t.word}
+        <span 
+          style="background-color: ${t.color_code}20; color: ${t.color_code}; border-color: ${t.color_code}40;" 
+          class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium border inline-block cursor-pointer hover:scale-105 hover:shadow transition-all"
+          onmouseenter="inspectGltrToken('${escapeHtml(t.word)}', '${t.rank_category}', '${t.color_code}')"
+          onclick="inspectGltrToken('${escapeHtml(t.word)}', '${t.rank_category}', '${t.color_code}')"
+        >
+          ${escapeHtml(t.word)}
         </span>
       `).join(' ');
     }
@@ -764,9 +783,37 @@ document.addEventListener('DOMContentLoaded', () => {
     }
   }
 
+  window.inspectGltrToken = function(word, rankCat, colorCode) {
+    const wordEl = document.getElementById('gltr-inspected-word');
+    const rankEl = document.getElementById('gltr-inspected-rank');
+    const verdictEl = document.getElementById('gltr-inspected-verdict');
+
+    if (wordEl) wordEl.innerText = `"${word}"`;
+    if (rankEl) {
+      const label = rankCat === 'top10' ? 'Top-10 Next Token (High Machine Predictability)' : (
+        rankCat === 'top100' ? 'Top-100 Common Vocabulary' : (
+          rankCat === 'top1000' ? 'Top-1000 Low-Frequency Word' : 'Creative / Rare Human Outlier'
+        )
+      );
+      rankEl.innerText = label;
+      rankEl.style.backgroundColor = `${colorCode}25`;
+      rankEl.style.color = colorCode;
+    }
+    if (verdictEl) {
+      verdictEl.innerText = rankCat === 'top10' 
+        ? 'Favors greedy/beam-search LLM generation' 
+        : (rankCat === 'rare' ? 'Favors authentic human vocabulary variance' : 'Neutral syntactic transition');
+    }
+  };
+
   // ==========================================
   // TAB 4: LIVING KNOWLEDGE GRAPH ("The Graph")
   // ==========================================
+  state.kgFullData = null;
+  state.kgTimeSliderValue = 100;
+  state.kgIsPlaying = false;
+  state.kgPlayInterval = null;
+
   async function loadLivingKnowledgeGraph() {
     const canvas = document.getElementById('kg-canvas');
     if (!canvas) return;
@@ -778,6 +825,7 @@ document.addEventListener('DOMContentLoaded', () => {
     try {
       const resp = await fetch('/api/v1/knowledge-graph');
       const data = await resp.json();
+      state.kgFullData = data;
       renderLivingGraphCanvas(ctx, canvas.width, canvas.height, data);
     } catch (err) {
       console.warn('Failed to load living graph:', err);
@@ -789,16 +837,32 @@ document.addEventListener('DOMContentLoaded', () => {
     const cx = w / 2;
     const cy = h / 2;
 
-    const nodePositions = {};
-    const nodes = data.nodes || [];
-    const edges = data.edges || [];
+    const allNodes = data.nodes || [];
+    const allEdges = data.edges || [];
 
+    // Filter chronologically based on time slider fraction
+    const frac = (state.kgTimeSliderValue || 100) / 100.0;
+    const visibleCount = Math.max(3, Math.round(allNodes.length * frac));
+    const nodes = allNodes.slice(0, visibleCount);
+    const visibleIds = new Set(nodes.map(n => n.id));
+    const edges = allEdges.filter(e => visibleIds.has(e.source) && visibleIds.has(e.target));
+
+    // Calculate degree centrality per visible node
+    const degreeMap = {};
+    edges.forEach(e => {
+      degreeMap[e.source] = (degreeMap[e.source] || 0) + 1;
+      degreeMap[e.target] = (degreeMap[e.target] || 0) + 1;
+    });
+
+    const nodePositions = {};
     nodes.forEach((n, idx) => {
       const angle = (idx / nodes.length) * Math.PI * 2;
       const radiusDist = idx === 0 ? 0 : 130 + (idx % 2 === 0 ? 30 : -20);
       const x = cx + Math.cos(angle) * radiusDist;
       const y = cy + Math.sin(angle) * radiusDist;
-      nodePositions[n.id] = { ...n, x, y };
+      const deg = degreeMap[n.id] || 1;
+      const radius = Math.min(24, Math.max(12, 10 + deg * 2.5));
+      nodePositions[n.id] = { ...n, x, y, radius, degree: deg };
     });
 
     // Draw Edges
@@ -819,10 +883,10 @@ document.addEventListener('DOMContentLoaded', () => {
       }
     });
 
-    // Draw Nodes
+    // Draw Nodes with Degree Centrality Scaling
     Object.values(nodePositions).forEach(n => {
       ctx.beginPath();
-      ctx.arc(n.x, n.y, 14, 0, Math.PI * 2);
+      ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
       ctx.fillStyle = n.trust_score >= 0.8 ? '#10B981' : (n.trust_score <= 0.3 ? '#EF4444' : '#5E4BF5');
       ctx.fill();
       ctx.strokeStyle = '#ffffff';
@@ -830,34 +894,77 @@ document.addEventListener('DOMContentLoaded', () => {
       ctx.stroke();
 
       ctx.font = '11px sans-serif';
-      ctx.fillStyle = '#1E293B';
-      ctx.fillText(n.name, n.x, n.y + 24);
+      ctx.fillStyle = '#CBD5E1';
+      ctx.fillText(n.name, n.x, n.y + n.radius + 14);
     });
 
     state.kgNodePositions = nodePositions;
 
     // Attach click inspection to kg-canvas if not already attached
-    if (!canvas.dataset.hasClickListener) {
-      canvas.dataset.hasClickListener = 'true';
-      canvas.addEventListener('click', (e) => {
-        const rect = canvas.getBoundingClientRect();
+    if (!ctx.canvas.dataset.hasClickListener) {
+      ctx.canvas.dataset.hasClickListener = 'true';
+      ctx.canvas.addEventListener('click', (e) => {
+        const rect = ctx.canvas.getBoundingClientRect();
         const mx = e.clientX - rect.left;
         const my = e.clientY - rect.top;
 
         for (const n of Object.values(state.kgNodePositions)) {
           const dist = Math.hypot(n.x - mx, n.y - my);
-          if (dist < 20) {
+          if (dist < (n.radius || 16) + 4) {
             state.selectedKgEntity = n.name;
-            document.getElementById('kg-inspector-name').innerText = n.name;
-            document.getElementById('kg-inspector-trust').innerText = `Trust: ${(n.trust_score * 100).toFixed(0)}%`;
-            document.getElementById('kg-inspector-type').innerText = n.entity_type;
-            document.getElementById('kg-inspector-degree').innerText = n.degree || 1;
+            const nameEl = document.getElementById('kg-inspector-name');
+            const trustEl = document.getElementById('kg-inspector-trust');
+            const typeEl = document.getElementById('kg-inspector-type');
+            const degEl = document.getElementById('kg-inspector-degree');
+            if (nameEl) nameEl.innerText = n.name;
+            if (trustEl) trustEl.innerText = `Trust: ${(n.trust_score * 100).toFixed(0)}%`;
+            if (typeEl) typeEl.innerText = n.entity_type;
+            if (degEl) degEl.innerText = `${n.degree || 1} connections`;
             break;
           }
         }
       });
     }
   }
+
+  window.onKgTimeSlider = function(val) {
+    state.kgTimeSliderValue = parseInt(val, 10);
+    const label = document.getElementById('kg-time-label');
+    if (label) {
+      label.innerText = val >= 98 ? 'T-Now (Full Epistemic Graph: 100% active)' : `T-${100 - val}d (Historical Horizon: ${val}% active)`;
+    }
+    if (state.kgFullData) {
+      const canvas = document.getElementById('kg-canvas');
+      if (canvas) {
+        const ctx = canvas.getContext('2d');
+        renderLivingGraphCanvas(ctx, canvas.width, canvas.height, state.kgFullData);
+      }
+    }
+  };
+
+  window.toggleKgTimePlayback = function() {
+    state.kgIsPlaying = !state.kgIsPlaying;
+    const icon = document.getElementById('kg-play-icon');
+    if (icon) icon.innerText = state.kgIsPlaying ? '⏸' : '▶';
+
+    if (state.kgIsPlaying) {
+      let cur = state.kgTimeSliderValue >= 100 ? 15 : state.kgTimeSliderValue;
+      state.kgPlayInterval = setInterval(() => {
+        cur += 5;
+        if (cur > 100) {
+          cur = 100;
+          clearInterval(state.kgPlayInterval);
+          state.kgIsPlaying = false;
+          if (icon) icon.innerText = '▶';
+        }
+        const slider = document.getElementById('kg-time-slider');
+        if (slider) slider.value = cur;
+        window.onKgTimeSlider(cur);
+      }, 150);
+    } else {
+      clearInterval(state.kgPlayInterval);
+    }
+  };
 
   const kgFilterFeedBtn = document.getElementById('btn-kg-filter-feed');
   if (kgFilterFeedBtn) {

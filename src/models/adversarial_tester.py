@@ -35,20 +35,25 @@ class AdversarialAttackSimulator:
     def perturb_text(
         self,
         text: str,
-        perturbation_budget: float = 0.20
+        perturbation_budget: float = 0.20,
+        attack_type: str = "textfooler",
     ) -> Tuple[str, List[Dict[str, str]], float]:
         """
-        Perturbs text by substituting target keywords with context-preserving synonyms.
+        Perturbs text by substituting target keywords with synonyms or character typos.
 
         Args:
             text: Original claim or headline.
             perturbation_budget: Max fraction of words allowed to be modified (default 20%).
+            attack_type: 'textfooler' (word synonyms) or 'deepwordbug' (character typos/swaps).
 
         Returns:
             perturbed_text: The transformed sentence.
             substitutions: List of dicts recording {original, replacement, index}.
             modification_rate: Actual percentage of modified words.
         """
+        if attack_type == "deepwordbug":
+            return self.perturb_deepwordbug(text, perturbation_budget)
+
         words = re.findall(r"\b\w+\b|[^\w\s]", text)
         eligible_indices = [
             i for i, w in enumerate(words)
@@ -56,8 +61,8 @@ class AdversarialAttackSimulator:
         ]
 
         if not eligible_indices:
-            # Fallback: minor paraphrasing prefix if no keyword matches
-            return text, [], 0.0
+            # Fallback to typo perturbation if no keywords match synonym dictionary
+            return self.perturb_deepwordbug(text, perturbation_budget)
 
         max_swaps = max(1, int(len(words) * perturbation_budget))
         swap_indices = random.sample(eligible_indices, min(max_swaps, len(eligible_indices)))
@@ -95,5 +100,66 @@ class AdversarialAttackSimulator:
         perturbed_final = result_text.strip()
         actual_mod_rate = len(substitutions) / max(1, len(words))
 
+        return perturbed_final, substitutions, round(actual_mod_rate, 4)
+
+    def perturb_deepwordbug(
+        self,
+        text: str,
+        perturbation_budget: float = 0.20
+    ) -> Tuple[str, List[Dict[str, str]], float]:
+        """
+        DeepWordBug Heuristic: Generates character-level adversarial noise (Swap, Drop, Substitute).
+        Exposes extreme fragility of naive NLP transformers vs multimodal cascade grounding.
+        """
+        words = re.findall(r"\b\w+\b|[^\w\s]", text)
+        eligible_indices = [
+            i for i, w in enumerate(words)
+            if len(w) > 4 and w.isalpha()
+        ]
+
+        if not eligible_indices:
+            return text, [], 0.0
+
+        max_swaps = max(1, int(len(words) * perturbation_budget))
+        swap_indices = random.sample(eligible_indices, min(max_swaps, len(eligible_indices)))
+        substitutions = []
+        perturbed_words = list(words)
+
+        for idx in swap_indices:
+            orig = words[idx]
+            op = random.choice(["swap", "drop", "sub"])
+            
+            if op == "swap" and len(orig) > 3:
+                pos = random.randint(1, len(orig) - 2)
+                chars = list(orig)
+                chars[pos], chars[pos + 1] = chars[pos + 1], chars[pos]
+                replacement = "".join(chars)
+            elif op == "drop" and len(orig) > 4:
+                pos = random.randint(1, len(orig) - 2)
+                replacement = orig[:pos] + orig[pos + 1:]
+            else:
+                keyboard_typos = {"a": "s", "e": "r", "i": "o", "o": "p", "u": "y", "s": "d", "n": "m", "t": "y", "c": "v"}
+                chars = list(orig)
+                pos = random.randint(0, len(chars) - 1)
+                chars[pos] = keyboard_typos.get(chars[pos].lower(), "x")
+                replacement = "".join(chars)
+
+            perturbed_words[idx] = replacement
+            substitutions.append({
+                "original": orig,
+                "replacement": replacement,
+                "position": idx,
+                "technique": op
+            })
+
+        result_text = ""
+        for i, token in enumerate(perturbed_words):
+            if re.match(r"[^\w\s]", token):
+                result_text = result_text.rstrip() + token + " "
+            else:
+                result_text += token + " "
+
+        perturbed_final = result_text.strip()
+        actual_mod_rate = len(substitutions) / max(1, len(words))
         return perturbed_final, substitutions, round(actual_mod_rate, 4)
 

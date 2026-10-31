@@ -536,15 +536,41 @@
             <p class="text-xs text-slate-500">AI bots mostly use expected top-10 words (Green). Human writers use richer, more varied words (Yellow, Red, Purple).</p>
           </div>
           <!-- Legend -->
-          <div class="flex items-center gap-3 text-[11px] font-semibold">
-            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-emerald-500"></span> Common (AI)</span>
-            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-amber-500"></span> Moderate</span>
-            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-rose-500"></span> Rare</span>
-            <span class="flex items-center gap-1"><span class="w-2.5 h-2.5 rounded bg-purple-500"></span> Creative (Human)</span>
+          <div class="flex items-center gap-3 text-[11px] font-semibold flex-wrap">
+            <span class="flex items-center gap-1 text-slate-700"><span class="w-2.5 h-2.5 rounded bg-emerald-500"></span> Top 10 (AI Default)</span>
+            <span class="flex items-center gap-1 text-slate-700"><span class="w-2.5 h-2.5 rounded bg-amber-500"></span> Top 100</span>
+            <span class="flex items-center gap-1 text-slate-700"><span class="w-2.5 h-2.5 rounded bg-rose-500"></span> Top 1000</span>
+            <span class="flex items-center gap-1 text-slate-700"><span class="w-2.5 h-2.5 rounded bg-purple-500"></span> Creative (Human)</span>
           </div>
         </div>
 
-        <div id="gltr-heatmap-container" class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm leading-relaxed flex flex-wrap gap-1 min-h-[100px] items-center">
+        <!-- Multi-Segment Distribution Bar -->
+        <div class="space-y-1.5">
+          <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+            <span>Empirical Token Bin Breakdown</span>
+            <span id="gltr-dist-summary" class="font-mono text-[11px]">Awaiting analysis</span>
+          </div>
+          <div class="w-full h-3 bg-slate-100 rounded-full overflow-hidden flex" id="gltr-distribution-bar">
+            <div id="gltr-bar-top10" class="bg-emerald-500 h-full transition-all" style="width: 25%"></div>
+            <div id="gltr-bar-top100" class="bg-amber-500 h-full transition-all" style="width: 25%"></div>
+            <div id="gltr-bar-top1000" class="bg-rose-500 h-full transition-all" style="width: 25%"></div>
+            <div id="gltr-bar-rare" class="bg-purple-500 h-full transition-all" style="width: 25%"></div>
+          </div>
+        </div>
+
+        <!-- Active Token Inspector Ribbon -->
+        <div id="gltr-token-inspector-ribbon" class="p-3 rounded-xl bg-slate-900 text-white flex items-center justify-between text-xs border border-slate-800">
+          <div class="flex items-center gap-2">
+            <span class="text-slate-400">Inspected Word:</span>
+            <span id="gltr-inspected-word" class="font-mono font-bold text-white bg-white/10 px-2 py-0.5 rounded text-xs">(Hover word below)</span>
+            <span id="gltr-inspected-rank" class="px-2 py-0.5 rounded text-[10px] font-semibold bg-emerald-500/20 text-emerald-300">Top-10</span>
+          </div>
+          <div class="text-[11px] text-slate-300">
+            <span id="gltr-inspected-verdict">Hover token to inspect conditional entropy</span>
+          </div>
+        </div>
+
+        <div id="gltr-heatmap-container" class="p-4 bg-slate-50 rounded-xl border border-slate-200 text-sm leading-relaxed flex flex-wrap gap-1.5 min-h-[100px] items-center">
           <span class="text-xs text-slate-400">Run forensics to generate token-by-token entropy heatmap.</span>
         </div>
       </div>
@@ -576,6 +602,19 @@
 
         <div class="w-full h-[460px] bg-slate-900 rounded-2xl border border-slate-800 overflow-hidden relative shadow-inner">
           <canvas id="kg-canvas" class="w-full h-full block"></canvas>
+        </div>
+
+        <!-- Chronological Time-Lapse Playback Scrubber -->
+        <div class="p-3 bg-slate-900 rounded-xl text-white text-xs border border-slate-800 flex items-center justify-between flex-wrap gap-3">
+          <div class="flex items-center gap-3 flex-1 min-w-[280px]">
+            <button id="btn-kg-play-toggle" onclick="toggleKgTimePlayback()" class="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition">
+              <span id="kg-play-icon">▶</span> Time-Lapse Play
+            </button>
+            <input id="kg-time-slider" type="range" min="15" max="100" value="100" class="flex-1 accent-indigo-500 cursor-pointer" oninput="onKgTimeSlider(this.value)">
+          </div>
+          <div class="text-[11px] font-mono text-slate-300">
+            <span id="kg-time-label">T-Now (Full Epistemic Graph: 100% active)</span>
+          </div>
         </div>
 
         <!-- Entity Node Inspector -->

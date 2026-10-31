@@ -2,7 +2,7 @@
   "project": "FakeX / TruthLens-Omni",
   "version": "1.4.0",
   "description": "Full-Spectrum Epistemic Intelligence & Publishing Integrity Platform",
-  "current_maturity_percentage": 90,
+  "current_maturity_percentage": 100,
   "active_phase": 6,
   "phases": [
     {
@@ -67,14 +67,14 @@
     {
       "id": 6,
       "name": "Phase 6: Flagship Capstone Enhancements & Production Hardening",
-      "status": "in_progress",
+      "status": "completed",
       "tasks": [
         { "id": "T6.1", "title": "Visual Sentence-Level Truth Highlighting & Tooltip Proof Citations", "status": "completed" },
         { "id": "T6.2", "title": "Domain-Adaptive Temporal Attenuation Lambda w(t, domain)", "status": "completed" },
-        { "id": "T6.3", "title": "Interactive GLTR Token Probability Rank Heatmap & Entropy Inspector", "status": "planned" },
-        { "id": "T6.4", "title": "Knowledge Graph Chronological Playback Time-Slider & Centrality Scaling", "status": "planned" },
-        { "id": "T6.5", "title": "Pre-Flight AI Citation & Neutrality Suggester with SHA-256 Provenance", "status": "planned" },
-        { "id": "T6.6", "title": "Dual-Attack Adversarial Sandbox (TextFooler + DeepWordBug Character Perturbations)", "status": "planned" }
+        { "id": "T6.3", "title": "Interactive GLTR Token Probability Rank Heatmap & Entropy Inspector", "status": "completed" },
+        { "id": "T6.4", "title": "Knowledge Graph Chronological Playback Time-Slider & Centrality Scaling", "status": "completed" },
+        { "id": "T6.5", "title": "Pre-Flight AI Citation & Neutrality Suggester with SHA-256 Provenance", "status": "completed" },
+        { "id": "T6.6", "title": "Dual-Attack Adversarial Sandbox (TextFooler + DeepWordBug Character Perturbations)", "status": "completed" }
       ]
     }
   ]
