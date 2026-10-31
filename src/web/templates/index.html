@@ -755,19 +755,47 @@
     <!-- TAB 7: COMMUNITY NOTES                                                  -->
     <!-- ======================================================================= -->
     <section id="page-consensus" class="page-view hidden space-y-6">
-      <div class="bg-[#151624] rounded-3xl p-6 md:p-7 border border-white/5 shadow-2xl text-white space-y-4">
+      <div class="bg-[#151624] rounded-3xl p-6 md:p-7 border border-white/5 shadow-2xl text-white space-y-5">
         <div class="flex items-center justify-between pb-3 border-b border-white/10 flex-wrap gap-2">
           <div>
-            <h3 class="text-base font-bold text-white">Community Notes Sandbox (Fair Crowd Ratings)</h3>
-            <p class="text-xs text-slate-300">Bipartisan rating model that highlights helpful fact notes without allowing political dogpiling.</p>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>⚖️</span> Community Notes Sandbox (Bipartisan Consensus Engine)
+            </h3>
+            <p class="text-xs text-slate-300">Matrix factorization model prevents ideological dogpiling by requiring agreement across divergent rater clusters.</p>
           </div>
-          <span id="consensus-status-badge" class="text-xs px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full font-mono border border-emerald-500/30">CURRENTLY_RATED_HELPFUL</span>
+          <div class="flex items-center gap-2">
+            <span id="consensus-status-badge" class="text-xs px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full font-mono border border-emerald-500/30">CURRENTLY_RATED_HELPFUL</span>
+          </div>
         </div>
 
+        <!-- Note Selector Tabs (Multi-Note System) -->
+        <div class="flex items-center gap-2 border-b border-white/10 pb-3 flex-wrap">
+          <button id="btn-cn-tab-101" onclick="switchCommunityNote('note-101')" class="cn-note-tab px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-600 text-white shadow-xs transition">
+            Note #101: mRNA Vaccines
+          </button>
+          <button id="btn-cn-tab-102" onclick="switchCommunityNote('note-102')" class="cn-note-tab px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition">
+            Note #102: Lunar Water Ice
+          </button>
+          <button id="btn-cn-tab-103" onclick="switchCommunityNote('note-103')" class="cn-note-tab px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition">
+            Note #103: Election Ballots
+          </button>
+          <button onclick="toggleProposeNoteDrawer()" class="ml-auto px-3.5 py-1.5 bg-white/10 hover:bg-white/20 text-indigo-200 rounded-full text-xs font-semibold border border-white/15 transition flex items-center gap-1.5">
+            <span>✍️</span> Propose New Note
+          </button>
+        </div>
+
+        <!-- Active Note Details & Voting Matrix -->
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="bg-[#1C1E32] p-5 rounded-2xl border border-white/10 space-y-3">
-            <span class="text-xs uppercase text-indigo-300 font-semibold tracking-wider">Active Community Note #101</span>
-            <p class="text-sm text-slate-200 leading-relaxed font-medium">"Clinical data published in The Lancet confirms that mRNA vaccine lipid nanoparticles degrade within 48 hours and do not contain microchips or tracking transceivers."</p>
+            <div class="flex items-center justify-between text-xs">
+              <span id="cn-note-badge" class="uppercase text-indigo-300 font-semibold tracking-wider font-mono">Active Note #101</span>
+              <span id="cn-note-category" class="px-2 py-0.5 rounded bg-white/5 text-slate-300 text-[10px]">Health & Medicine</span>
+            </div>
+            <p id="cn-note-text" class="text-sm text-slate-200 leading-relaxed font-medium">"Clinical data published in The Lancet confirms that mRNA vaccine lipid nanoparticles degrade within 48 hours and do not contain microchips or tracking transceivers."</p>
+            <div class="pt-2 border-t border-white/10 flex items-center justify-between text-xs text-slate-400">
+              <span id="cn-note-author">Author: Dr. Rhea Sen (@truthlens_sci)</span>
+              <span id="cn-note-raters">42 Bipartisan Raters</span>
+            </div>
           </div>
 
           <div class="bg-[#1C1E32] p-5 rounded-2xl border border-white/10 space-y-4">
@@ -790,6 +818,23 @@
               <span id="consensus-helpfulness-score" class="text-xs font-mono text-indigo-300">b_i = 0.428</span>
               <button id="btn-submit-vote" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition">
                 Submit Vote
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Propose Note Form Drawer (Collapsible) -->
+        <div id="cn-propose-drawer" class="hidden p-5 bg-[#1C1E32] rounded-2xl border border-indigo-500/30 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-white uppercase tracking-wider">Propose a New Context Note</span>
+            <button onclick="toggleProposeNoteDrawer()" class="text-slate-400 hover:text-white text-xs">✕ Close</button>
+          </div>
+          <div class="space-y-2">
+            <textarea id="cn-propose-text" rows="2" placeholder="Write neutral, objective context with primary sources..." class="w-full px-4 py-2.5 bg-[#151624] border border-white/10 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+              <input id="cn-propose-citation" type="text" placeholder="Citation URL (e.g. nature.com/articles/...)" class="px-3.5 py-2 bg-[#151624] border border-white/10 rounded-xl text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+              <button onclick="submitProposedNote()" class="px-4 py-2 bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-semibold rounded-xl transition">
+                Submit Note to Review Pool
               </button>
             </div>
           </div>
@@ -893,16 +938,50 @@
       <div class="bg-[#151624] rounded-3xl p-6 md:p-7 border border-white/10 shadow-2xl text-white space-y-4">
         <div class="flex items-center justify-between pb-3 border-b border-white/10 flex-wrap gap-2">
           <div>
-            <h3 class="text-base font-bold text-white">Interactive Adversarial Attack Sandbox (TextFooler Heuristic)</h3>
-            <p class="text-xs text-slate-300">Demonstrates how Text-Only models collapse when synonyms are substituted, while TruthLens remains grounded.</p>
+            <h3 class="text-base font-bold text-white flex items-center gap-2">
+              <span>⚡</span> Interactive Adversarial Attack Laboratory
+            </h3>
+            <p class="text-xs text-slate-300">Empirically evaluate semantic & character-level adversarial robustness against Text-Only baselines.</p>
           </div>
-          <span class="text-xs px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full font-mono border border-indigo-500/30">Perturbation Budget: 25%</span>
+          <div class="flex items-center gap-2">
+            <span class="text-xs px-3 py-1 bg-indigo-500/20 text-indigo-300 rounded-full font-mono border border-indigo-500/30">
+              Budget: <b id="adv-budget-label">25%</b>
+            </span>
+          </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-          <input id="adv-input-text" type="text" value="The FDA confirmed the approved vaccine is safe and proven effective in clinical trials." class="md:col-span-2 px-4 py-2.5 rounded-xl bg-[#1C1E32] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
-          <button id="btn-run-adv-test" class="px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center justify-center gap-2">
-            ⚡ Inject Synonym Attack
+        <!-- Controls: Attack Type Pills & Budget Range Slider -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+          <!-- Attack Type Pills (5 cols) -->
+          <div class="md:col-span-5 flex items-center gap-2 p-1 bg-[#1C1E32] rounded-xl border border-white/10">
+            <button id="btn-attack-textfooler" type="button" onclick="selectAttackType('textfooler')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-xs transition">
+              TextFooler (Synonyms)
+            </button>
+            <button id="btn-attack-deepwordbug" type="button" onclick="selectAttackType('deepwordbug')" class="flex-1 py-1.5 px-3 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition">
+              DeepWordBug (Typos)
+            </button>
+          </div>
+
+          <!-- Perturbation Budget Slider (4 cols) -->
+          <div class="md:col-span-4 flex items-center gap-2 px-3 py-1.5 bg-[#1C1E32] rounded-xl border border-white/10">
+            <span class="text-[11px] text-slate-400 font-medium whitespace-nowrap">Budget:</span>
+            <input id="adv-budget-slider" type="range" min="10" max="40" step="5" value="25" class="w-full accent-indigo-500 cursor-pointer">
+            <span id="adv-budget-slider-val" class="font-mono text-xs text-indigo-300 w-8 text-right">25%</span>
+          </div>
+
+          <!-- Quick Sample Presets (3 cols) -->
+          <div class="md:col-span-3 flex items-center gap-1.5 justify-end">
+            <button onclick="setAdvSample('vaccine')" class="px-2 py-1 bg-white/5 hover:bg-white/10 text-[10px] text-slate-300 rounded border border-white/10 transition">Vaccine</button>
+            <button onclick="setAdvSample('ballots')" class="px-2 py-1 bg-white/5 hover:bg-white/10 text-[10px] text-slate-300 rounded border border-white/10 transition">Ballots</button>
+            <button onclick="setAdvSample('moon')" class="px-2 py-1 bg-white/5 hover:bg-white/10 text-[10px] text-slate-300 rounded border border-white/10 transition">Moon</button>
+          </div>
+        </div>
+
+        <!-- Input Claim & Attack Action -->
+        <div class="grid grid-cols-1 md:grid-cols-12 gap-3">
+          <input id="adv-input-text" type="text" value="The FDA confirmed the approved vaccine is safe and proven effective in clinical trials." class="md:col-span-9 px-4 py-2.5 rounded-xl bg-[#1C1E32] border border-white/10 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500">
+          <button id="btn-run-adv-test" class="md:col-span-3 px-4 py-2.5 bg-rose-600 hover:bg-rose-500 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center justify-center gap-2">
+            <span>⚡</span> <span id="adv-run-btn-text">Inject TextFooler Attack</span>
           </button>
         </div>
 
@@ -1009,6 +1088,9 @@
       <span class="text-indigo-400 font-mono">Click to inspect &rarr;</span>
     </div>
   </div>
+
+  <!-- Toast Notification Container -->
+  <div id="toast-container"></div>
 
   <script src="/static/js/graph.js"></script>
   <script src="/static/js/app.js"></script>
