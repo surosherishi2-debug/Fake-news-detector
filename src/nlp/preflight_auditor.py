@@ -9,7 +9,6 @@ from typing import List, Dict, Any, Optional
 import re
 from pydantic import BaseModel, Field
 from src.nlp.claim_decomposer import ClaimDecomposer
-from src.retrieval.fact_check_client import FactCheckClient
 
 class PreflightAssertionAudit(BaseModel):
     sentence_index: int
@@ -31,9 +30,13 @@ class PreflightAuditReport(BaseModel):
 class PreflightAuditor:
     """Audits draft articles for factual integrity prior to publication."""
 
-    def __init__(self, decomposer: Optional[ClaimDecomposer] = None, fact_client: Optional[FactCheckClient] = None):
+    def __init__(self, decomposer: Optional[ClaimDecomposer] = None, fact_client: Optional[Any] = None):
         self.decomposer = decomposer or ClaimDecomposer()
-        self.fact_client = fact_client or FactCheckClient()
+        if fact_client is None:
+            from src.retrieval.fact_check_client import FactCheckClient
+            self.fact_client = FactCheckClient()
+        else:
+            self.fact_client = fact_client
 
     def audit_draft(self, draft_text: str) -> PreflightAuditReport:
         """

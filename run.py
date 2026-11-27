@@ -37,25 +37,40 @@ def run_demo():
 
     samples = [
         {
-            "title": "Sample 1: Viral Microchip Conspiracy (Ground-Truth Refutation)",
+            "category_label": "1. Fake / Disinformation (Biomedical Conspiracy)",
             "text": "Viral social media posts claim COVID-19 vaccines contain secret microchips designed for human tracking.",
             "publisher": "dailyconspiracy.net",
         },
         {
-            "title": "Sample 2: Satirical News Parody (The Onion Disentanglement)",
-            "text": "NASA Announces Plans To Colonize Sun At Night To Avoid Burning Up.",
+            "category_label": "2. True / Verified Claim (Public Health Consensus)",
+            "text": "The FDA officially approved the updated vaccine booster formulation confirming clinical safety and efficacy.",
+            "publisher": "fda.gov",
+        },
+        {
+            "category_label": "3. Satirical News Parody (The Onion Disentanglement)",
+            "text": "NASA Launches Giant Mirror Into Orbit So Earth Can Check Its Hair.",
             "publisher": "theonion.com",
         },
         {
-            "title": "Sample 3: Zero-Assumption Data-Void (Strict Non-Guessing)",
-            "text": "Unverified rumor claims local municipal office closed early on Tuesday.",
+            "category_label": "4. Zero-Assumption Data-Void (Strict Non-Guessing Abstention)",
+            "text": "Anonymous unverified rumor claims city municipal commissioner secretly purchased three purple bicycles on Tuesday.",
             "publisher": "unregistered-unknown-source.xyz",
+        },
+        {
+            "category_label": "5. Paraphrased Adversarial Claim (TextFooler Synonym Attack)",
+            "text": "Food and Drug Administration endorsed the certified immunization formulation confirming it is unhazardous and potent.",
+            "publisher": "medical-bulletin.org",
+        },
+        {
+            "category_label": "6. Indic Regional Debunk (Marathi/Hindi IFCN Verification)",
+            "text": "पुण्यात लष्कर तैनात करून संपूर्ण संचारबंदी लागू केल्याचा दावा सोशल मीडियावर व्हायरल होत आहे.",
+            "publisher": "whatsapp-forward-archive.org",
         },
     ]
 
     for item in samples:
         print(f"===========================================================")
-        print(f"  {item['title']}")
+        print(f"  {item['category_label']}")
         print(f"===========================================================")
         req = VerificationRequest(text=item["text"], publisher=item["publisher"])
         res = engine.verify(req)

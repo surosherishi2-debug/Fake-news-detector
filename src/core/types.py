@@ -43,6 +43,7 @@ class Evidence(BaseModel):
     semantic_similarity: float = Field(default=0.8, ge=0.0, le=1.0)
     temporal_weight: float = Field(default=1.0, ge=0.0, le=1.0, description="Decay weight w(t) based on age")
     final_score: float = Field(default=0.8, ge=0.0, le=1.0)
+    grounded_verdict: Optional[str] = Field(default=None, description="Accredited ClaimReview verdict (REFUTED, VERIFIED, SATIRICAL)")
 
 class ClaimEvidenceAlignment(BaseModel):
     """CEAM alignment score and NLI stance for a single claim-evidence pair."""

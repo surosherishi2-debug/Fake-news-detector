@@ -167,7 +167,45 @@
 - **Decisions made:** `D09` (Multi-Tier Model Ladder & Weight Checkpoints), `D10` (Tripartite Taxonomy & Temporal Ablation).
 - **Open questions raised:** None (`Q04` resolved).
 - **Status:** DONE.
-- **Next task:** Phase 3 Gate Review & User Approval to proceed to Phase 4 (Retrieval, Explainability, Abstention).
+- **Next task:** Phase 4.Task 4.1–4.3 — Evidence Retrieval, Transparent Explainability, and Calibrated Abstention.
+
+---
+
+## [2026-11-27 19:10] Phase 4.Task 4.1–4.3 - Grounded Two-Stage Dense Retrieval, Transparent Explainability, and Calibrated Abstention
+- **Goal:** Implement offline dense semantic evidence retrieval with multi-factor temporal re-ranking; provide token-level saliency attribution, citation provenance audit trails, and multi-dimensional FDA-style epistemic nutrition cards; enforce calibrated non-guessing abstention (`DATA_VOID`) under epistemic uncertainty; and demonstrate real-time end-to-end verification across 6 curated benchmark claim types (biomedical conspiracy, public health consensus, satirical news, unconfirmed data void, TextFooler adversarial paraphrase, and Indic Marathi regional debunk).
+- **What I did (files created/changed):**
+  - Created `phase-4-retrieval-explainability-abstention` branch.
+  - Created `data/knowledge_base/evidence_corpus.jsonl` with 10 verified fact-checking records spanning WHO, CDC, FDA, ECI, BoomLive, PIB Fact Check (Hindi/Marathi), The Onion, and Babylon Bee.
+  - Created `src/retrieval/knowledge_store.py`: generated and persisted dense normalized 384-dimensional embeddings in `data/knowledge_base/evidence_embeddings.npy` using `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`.
+  - Created `src/retrieval/evidence_retriever.py`: built two-stage retrieval pipeline:
+    - Stage 1: Dense vector cosine similarity search ($S_{max}$).
+    - Stage 2: Multi-factor re-ranking: $\text{Score} = (0.70 S_{dense} + 0.30 S_{lex}) \cdot (0.80 + 0.20 W_{auth}) \cdot w(t, d)$ with low-relevance threshold filtering ($S_{dense} \ge 0.20$).
+    - Abstention Boundary: Calibrated threshold $S_{max} < 0.40 \implies \text{DATA\_VOID}$ (unconfirmed / zero-assumption non-guessing).
+  - Integrated retriever into `src/retrieval/fact_check_client.py` as primary offline semantic store.
+  - Created `src/nlp/explainer.py`: implemented token-level saliency attribution, citation provenance audit trails, plain-language justification generator, and FDA-style 5-dimensional `NutritionCard`.
+  - Upgraded `src/fusion/truthlens_engine.py`:
+    - Multilingual and ClaimReview stance inference with Indic refutation keywords (`["खोटा", "असत्य", "अफवा", "दिशाभूल", "निराधार"]`).
+    - Alignment-guided best refutation citation selection.
+    - Updated `run.py --demo` to showcase all 6 canonical claim categories with terminal formatting.
+  - Created `tests/test_retrieval_and_explainability.py` with 7 comprehensive unit and integration tests.
+  - Logged architectural decisions `D11` and `D12` in `docs/DECISIONS.md`.
+  - Updated `docs/paper/03_method.md` with mathematical equations for dense retrieval, re-ranking, and abstention boundaries.
+- **Commands run + result:**
+  - `python -c "from src.retrieval.knowledge_store import KnowledgeStore; KnowledgeStore(force_recompute=True)"` -> Generated 10 embeddings shape (10, 384) in `data/knowledge_base/evidence_embeddings.npy`.
+  - `python run.py --demo` -> Successfully verified all 6 claims:
+    1. Biomedical Conspiracy -> FAKE (Refuted by WHO/Reuters Fact Check, 4.6s init latency, 33ms execution).
+    2. Public Health Consensus -> REAL (Verified by U.S. FDA, 32.6ms).
+    3. The Onion Satire -> UNCERTAIN (Satirical Parody Identified, 33.5ms).
+    4. Zero-Assumption Data-Void -> UNCERTAIN (DATA_VOID, 0 evidence records, 27.5ms).
+    5. Paraphrased Adversarial Claim -> REAL (Verified, semantic preservation under synonym substitution, 33.3ms).
+    6. Indic Marathi Debunk -> FAKE (Refuted by Pune Police Cyber Cell / BoomLive Marathi, 28.4ms).
+  - `python -m pytest tests -v` -> **69/69 tests passed in 95.85s** (100% clean test suite).
+- **Evidence it works:** All 69 automated tests passed cleanly; `python run.py --demo` verified in terminal logs; `data/knowledge_base/evidence_embeddings.npy` present on disk.
+- **Sources used:** `S12` (MuRIL/Indic), `S13` (Sentence-Transformers), `S14` (Scikit-Learn) in `docs/SOURCES.md`.
+- **Decisions made:** `D11` (Two-Stage Dense Semantic Retrieval with Multilingual Paraphrase-MiniLM), `D12` (Calibrated Epistemic Abstention $\tau = 0.40$).
+- **Open questions raised:** None.
+- **Status:** DONE.
+- **Next task:** Phase 4 Gate Review & Approval to proceed to Phase 5 (Graph / Cascade Module).
 
 
 

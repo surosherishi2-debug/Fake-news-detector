@@ -102,5 +102,26 @@
 - **Choice:** Option 2.
 - **Rationale:** Reflects scientific truth discovery where unsubstantiated claims are treated as `DATA_VOID` rather than assumed false. Ablation proved that temporal decay induces conservative calibration on static claims, preserving precision.
 
+---
+
+### [D11] Two-Stage Dense Semantic Retrieval with Unified Multilingual Space
+- **Context:** Base repo relied on keyword lookups in a mock dictionary. Offline claim verification requires high-precision semantic evidence retrieval across multiple languages (English, Hindi, Marathi) without external API dependencies.
+- **Options Considered:**
+  1. BM25 / ElasticSearch keyword search.
+  2. Dense vector embeddings using separate monolingual models (MiniLM for English, MuRIL for Indic).
+  3. Two-stage pipeline: Stage 1 unified dense cosine similarity search via `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2` (384 dims); Stage 2 multi-factor re-ranking: $\text{Score} = (0.70 S_{dense} + 0.30 S_{lex}) \cdot (0.80 + 0.20 W_{auth}) \cdot w(t, d)$ with low-relevance threshold filtering ($S_{dense} \ge 0.20$).
+- **Choice:** Option 3.
+- **Rationale:** Shared multilingual embedding space aligns cross-lingual queries (e.g. Marathi WhatsApp forward matching Devanagari fact-check records) with zero translation latency. Authority and temporal decay modulate verified semantic relevance without falsely promoting irrelevant high-authority records.
+
+---
+
+### [D12] Calibrated Epistemic Abstention ($\tau = 0.40$)
+- **Context:** AI hallucination and over-confident guessing on ungrounded claims is the #1 industry failure mode in automated fact-checking. When evidence is absent, the system must abstain.
+- **Options Considered:**
+  1. Force the model to output a binary `REAL` / `FAKE` verdict on every input regardless of evidence presence.
+  2. Enforce an empirical threshold on maximum evidence similarity $S_{max} < \tau = 0.40 \implies \text{DATA\_VOID}$ (confidence 0.0, zero guessing), routing ungrounded claims to provisional human consensus.
+- **Choice:** Option 2.
+- **Rationale:** Zero-assumption doctrine (R1). An expert evaluation panel will reject any system that invents verdicts on unverified claims. The calibrated boundary transparently distinguishes known verified/refuted facts from unconfirmed rumors.
+
 
 

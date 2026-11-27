@@ -54,6 +54,14 @@ class FactCheckClient:
     def __init__(self, api_key: Optional[str] = None):
         self.api_key = api_key or settings.GOOGLE_FACT_CHECK_API_KEY
         self.endpoint = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
+        self._retriever = None
+
+    @property
+    def retriever(self):
+        if self._retriever is None:
+            from src.retrieval.evidence_retriever import TwoStageEvidenceRetriever
+            self._retriever = TwoStageEvidenceRetriever()
+        return self._retriever
 
     def search_evidence(
         self,
@@ -83,7 +91,17 @@ class FactCheckClient:
                 logger.warning("Online Google Fact Check lookup failed (%s). Falling back to local store.", e)
                 evidence_list = []
 
-        # If online returned empty or no key provided, query local curated registry
+        # If online returned empty or no key provided, query two-stage dense retriever
+        if not evidence_list:
+            try:
+                evs, meta = self.retriever.retrieve_and_rerank(query, claim_time=claim_time, domain=domain)
+                if not meta.get("is_evidence_void", False) and evs:
+                    evidence_list = evs[:max_results]
+            except Exception as e:
+                logger.warning("Dense retrieval lookup failed (%s). Falling back to local store.", e)
+                evidence_list = []
+
+        # Fallback to local keyword registry
         if not evidence_list:
             evidence_list = self._search_local_registry(query, claim_time, max_results, domain=domain)
 

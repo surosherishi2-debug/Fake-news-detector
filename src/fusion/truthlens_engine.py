@@ -87,10 +87,12 @@ class TruthLensEngine:
             evidences = self.fact_checker.search_evidence(claim.text, claim_time=now, max_results=3, domain=domain_context)
             best_stance = ClaimStance.NEUTRAL
             best_citation = None
+            best_refute_score = -1.0
+            best_support_score = -1.0
 
             for ev in evidences:
                 stance = self._infer_stance(claim.text, ev)
-                alignment_score = ev.final_score
+                alignment_score = max(ev.semantic_similarity, ev.final_score)
                 temporal_weights.append(ev.temporal_weight)
 
                 alignments.append(
@@ -105,11 +107,13 @@ class TruthLensEngine:
                 if stance == ClaimStance.REFUTES:
                     refute_scores.append(alignment_score)
                     best_stance = ClaimStance.REFUTES
-                    best_citation = f"{ev.publisher} ({ev.source_title})"
+                    if alignment_score > best_refute_score:
+                        best_refute_score = alignment_score
+                        best_citation = f"{ev.publisher} ({ev.source_title})"
                 elif stance == ClaimStance.SUPPORTS:
                     support_scores.append(alignment_score)
-                    if best_stance != ClaimStance.REFUTES:
-                        best_stance = ClaimStance.SUPPORTS
+                    if best_stance != ClaimStance.REFUTES and alignment_score > best_support_score:
+                        best_support_score = alignment_score
                         best_citation = f"{ev.publisher} ({ev.source_title})"
 
             # Assign sentence-level highlight status (Feature 2)
@@ -153,9 +157,9 @@ class TruthLensEngine:
 
         # 6. Apply Zero-Assumption Hard Grounding Constraints
         # Rule 1: Accredited IFCN Fact-Checker Veto
-        if semantic_refute >= 0.50:
+        if semantic_refute >= 0.40:
             verdict = VerificationVerdict.FAKE
-            confidence = min(0.99, max(fake_probability, semantic_refute))
+            confidence = min(0.99, max(fake_probability, semantic_refute, 0.85))
             explanation = (
                 f"Ground-Truth Fact-Check: Claim explicitly refuted by accredited verification registries. "
                 f"Evidence refutation score: {semantic_refute:.2f}, Temporal freshness: {max(temporal_weights or [1.0]):.2f}."
@@ -233,11 +237,27 @@ class TruthLensEngine:
         )
 
     def _infer_stance(self, claim_text: str, evidence: Evidence) -> ClaimStance:
-        """Infer whether evidence supports or refutes the claim based on ClaimReview cues."""
-        snippet_lower = evidence.snippet.lower()
-        if any(term in snippet_lower for term in ["false", "debunk", "misleading", "fabricated", "untrue", "pants on fire"]):
+        """Infer whether evidence supports or refutes the claim based on ClaimReview cues (English & Indic)."""
+        if getattr(evidence, "grounded_verdict", None):
+            gv = str(evidence.grounded_verdict).upper()
+            if gv in ("REFUTED", "FALSE"):
+                return ClaimStance.REFUTES
+            elif gv in ("VERIFIED", "TRUE"):
+                return ClaimStance.SUPPORTS
+
+        combined = f"{evidence.source_title} {evidence.snippet}".lower()
+        refute_cues = [
+            "false", "debunk", "misleading", "fabricated", "untrue", "pants on fire",
+            "do not cause", "do not contain", "no evidence", "myth", "fake",
+            "खोटा", "असत्य", "अफवा", "दिशाभूल", "निराधार", "दावा खोटा"
+        ]
+        support_cues = [
+            "true", "confirmed", "verified", "correct", "safe and proven", "approves", "approved",
+            "खरे", "सत्य", "सत्यापित", "प्रमाणित"
+        ]
+        if any(term in combined for term in refute_cues):
             return ClaimStance.REFUTES
-        if any(term in snippet_lower for term in ["true", "confirmed", "verified", "correct"]):
+        if any(term in combined for term in support_cues):
             return ClaimStance.SUPPORTS
         return ClaimStance.NEUTRAL
 
