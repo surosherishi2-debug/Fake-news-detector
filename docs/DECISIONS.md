@@ -51,3 +51,24 @@
   2. Formally label heuristic adversarial perturbation, synthetic dataset mocks, and social cascade heuristics as "SIMULATED / HEURISTIC" across documentation, UI, and code.
 - **Choice:** Option 2.
 - **Rationale:** Complete transparency for industry panel evaluation.
+
+---
+
+### [D06] Selection of the 5 Core Adopted Ideas for the ~50% Milestone
+- **Context:** Phase 1 requires identifying 3–5 specific state-of-the-art ideas with justifications and citations to bridge from the base prototype to a credible system.
+- **Options Considered:**
+  1. Rely exclusively on text-only fine-tuning (e.g. RoBERTa text classifier).
+  2. Adopt the 5-pillar architecture: (1) Evidence-Conditioned Veracity Modeling with Calibrated Abstention (FEVER/LIAR-Plus); (2) Domain-Adaptive Temporal Decay $w(t)$ (TSVer/Quantemp); (3) Two-Stage Dense Semantic Retrieval (Sentence-BERT + Re-ranking); (4) Adversarial Stress-Testing (TextAttack/TextFooler); and (5) Multilingual Indic Transfer (MuRIL/XLM-R).
+- **Choice:** Option 2.
+- **Rationale:** Directly addresses the 4 critical failure modes identified in literature (adversarial collapse, temporal obsolescence, closed-world hallucination, and lack of Indic coverage) while preserving the core strengths of the base system.
+
+---
+
+### [D07] Selection of the 4 Benchmark Datasets for Phase 2 Data Foundation
+- **Context:** The base repo used 8 synthetic mock dictionaries for `PuneFakeNews-2024`. Real datasets with verified access and open licenses are required.
+- **Options Considered:**
+  1. Keep synthetic mock data.
+  2. Select 4 verified, downloadable open datasets: LIAR-Plus (Political), CoAID (Biomedical/Health), FEVER subset (Grounded entailment & abstention), and Indic Multilingual Benchmark (Hindi/Marathi IFCN debunks).
+- **Choice:** Option 2.
+- **Rationale:** All 4 datasets were verified this session via direct HTTP fetches, possess open licenses, and cover multiple distinct domains and languages.
+

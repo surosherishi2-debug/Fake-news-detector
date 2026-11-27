@@ -72,3 +72,29 @@
 - **Open questions raised:** None.
 - **Status:** DONE.
 - **Next task:** Phase 0 Gate Review & User Approval.
+
+---
+
+## [2026-11-27 17:51] Phase 1.Task 1.1–1.3 - Literature & Repository Research and Synthesis
+- **Goal:** Investigate state-of-the-art literature in misinformation detection, claim verification, and fact-checking (including recent 2024–2026 works); verify repository activities, licenses, and data access methods; author `docs/paper/02_related_work.md` and `docs/RESEARCH_SYNTHESIS.md`; and define the adopted-ideas and dataset lists for user gate approval.
+- **What I did (files created/changed):**
+  - Created `phase-1-research` branch.
+  - Performed systematic web searches on seed topics (LIAR-Plus, CoAID, FEVER, FakeNewsNet, ISOT, Community Notes, ClaimBuster, CheckThat! Lab, TextAttack, MuRIL, XLM-R).
+  - Verified live data accessibility via Python HTTP tests:
+    - LIAR-PLUS raw TSV fetch (`train2.tsv` from `Tariq60/LIAR-PLUS`).
+    - CoAID raw CSV fetch (`ClaimFakeCOVID-19.csv` from `cuilimeng/CoAID`).
+    - FEVER raw JSONL fetch (`train.jsonl` from `fever.ai`).
+  - Cataloged 14 active sources and verified citations in `docs/SOURCES.md`.
+  - Authored comprehensive `docs/RESEARCH_SYNTHESIS.md` articulating the 4 critical industry failure modes and proposing 5 core adopted ideas and 4 candidate datasets.
+  - Authored `docs/paper/02_related_work.md` covering 6 subdisciplines with BibTeX entries in `docs/paper/references.bib`.
+  - Logged architectural decisions `D06` and `D07` in `docs/DECISIONS.md`.
+- **Commands run + result:**
+  - Python tests fetching raw sample lines from GitHub `Tariq60/LIAR-PLUS`, `cuilimeng/CoAID`, and `fever.ai` -> All succeeded with valid line parses.
+  - Verified package availability (`sentence-transformers 6.2.0`, `scikit-learn 1.9.0`, `torch 2.13.0`, `transformers 5.20.2`).
+- **Evidence it works:** Verified file presence on disk: `docs/RESEARCH_SYNTHESIS.md`, `docs/paper/02_related_work.md`, `docs/paper/references.bib`, `docs/SOURCES.md`, `docs/DECISIONS.md`.
+- **Sources used:** `S06` (LIAR-PLUS), `S07` (CoAID), `S08` (FEVER), `S09` (FakeNewsNet), `S10` (Community Notes), `S11` (TextAttack), `S12` (MuRIL), `S13` (Sentence-Transformers), `S14` (Scikit-Learn).
+- **Decisions made:** `D06` (5 Core Adopted Ideas), `D07` (4 Candidate Benchmark Datasets).
+- **Open questions raised:** None (Q01 addressed: synthetic `PuneFakeNews-2024` replaced with genuine Indic and open benchmarks).
+- **Status:** DONE.
+- **Next task:** Phase 1 Gate Review: User approval of the Adopted Ideas List and Dataset List.
+
