@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Pre-trained Transformer Models: English (all-MiniLM-L6-v2) & Multilingual (paraphrase-multilingual-MiniLM-L12-v2).
 
 Provides:

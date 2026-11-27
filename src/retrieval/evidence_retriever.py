@@ -13,7 +13,10 @@ from datetime import UTC, datetime
 from typing import Any, Dict, List, Tuple
 
 import numpy as np
-from sentence_transformers import SentenceTransformer
+try:
+    from sentence_transformers import SentenceTransformer
+except ImportError:
+    SentenceTransformer = None
 
 from src.core.types import Evidence
 from src.nlp.temporal_decay import calculate_temporal_decay
@@ -50,8 +53,15 @@ class TwoStageEvidenceRetriever:
         self.abstention_threshold = abstention_threshold
 
         # Initialize uniform multilingual encoder
-        logger.info(f"Initializing SentenceTransformer encoder: {model_name}...")
-        self.encoder = SentenceTransformer(model_name)
+        if SentenceTransformer is not None:
+            try:
+                logger.info(f"Initializing SentenceTransformer encoder: {model_name}...")
+                self.encoder = SentenceTransformer(model_name)
+            except Exception as e:
+                logger.warning(f"Could not load SentenceTransformer: {e}")
+                self.encoder = None
+        else:
+            self.encoder = None
 
     def _is_devanagari(self, text: str) -> bool:
         """Detect if text contains Devanagari script (Hindi/Marathi)."""
@@ -72,19 +82,23 @@ class TwoStageEvidenceRetriever:
         corpus = self.store.get_corpus()
         doc_embeddings = self.store.get_embeddings()
 
-        if len(corpus) == 0 or doc_embeddings is None:
+        if len(corpus) == 0:
             logger.warning("Empty knowledge corpus.")
             return [], {"max_similarity": 0.0, "is_evidence_void": True}
 
         is_indic = self._is_devanagari(claim_text)
 
-        # Encode query using the unified multilingual encoder
-        query_emb = self.encoder.encode([claim_text], normalize_embeddings=True)
-        query_vec = np.asarray(query_emb[0], dtype=np.float32)
+        # Encode query using the unified multilingual encoder if available, else lexical fallback
+        if self.encoder is not None and doc_embeddings is not None:
+            query_emb = self.encoder.encode([claim_text], normalize_embeddings=True)
+            query_vec = np.asarray(query_emb[0], dtype=np.float32)
+            similarities = np.dot(doc_embeddings, query_vec)
+        else:
+            similarities = np.array([
+                compute_token_overlap(claim_text, f"{doc.get('title', '')} {doc.get('snippet', '')}")
+                for doc in corpus
+            ], dtype=np.float32)
 
-        # 2. Stage 1: Dense Cosine Similarity Search
-        # All embeddings are normalized, so cosine similarity is dot product
-        similarities = np.dot(doc_embeddings, query_vec)
         s_max = float(np.max(similarities)) if len(similarities) > 0 else 0.0
 
         # Check abstention condition: If highest similarity is below threshold, signal DATA_VOID

@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Deep Learning Baseline Architecture: Bidirectional LSTM (BiLSTM).
 
 Provides:

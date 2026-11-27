@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """[SIMULATED DEMO / HEURISTIC] Propagation Graph Encoder (PGE) & Cascade Topology Analyzer.
 
 Phase 5 Honest Scope Protocol (Adherence to Operating Rules R2 & R3 and Decision D13):
@@ -40,7 +42,7 @@ class HeteroGraphEncoder(ModuleBase):
         )
         self.anomaly_head = nn.Linear(out_dim, 1)
 
-    def forward(self, node_features: torch.Tensor, node_type: NodeType) -> torch.Tensor:
+    def forward(self, node_features: Any, node_type: NodeType) -> Any:
         """Project node features into shared latent space based on heterogeneous type."""
         if node_type == NodeType.ARTICLE:
             return self.article_proj(node_features)

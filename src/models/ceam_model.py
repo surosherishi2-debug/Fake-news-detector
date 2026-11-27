@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 """Context-Enhanced Attention Mechanism (CEAM) & Multimodal TruthLens Neural Architecture.
 
 Derived from TruthLens (IEEE TNN 2024 / EDI.researchpaper.pdf):
