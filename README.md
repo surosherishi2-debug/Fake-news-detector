@@ -5,7 +5,7 @@
 [![Deep Learning](https://img.shields.io/badge/ML%2FAI-PyTorch%20%7C%20HuggingFace-EE4C2C?logo=pytorch&logoColor=white)](https://pytorch.org)
 [![UI Architecture](https://img.shields.io/badge/UI-Light%20Graphite%20%7C%20Archival%20Cobalt-1D4ED8)](src/web/static/css/styles.css)
 [![Tests Status](https://img.shields.io/badge/Tests-Passing%20(26%2F26%20Automated)-10B981)](tests/)
-[![Live Deployment](https://img.shields.io/badge/Live%20Demo-Render%20Cloud-46E3B7?logo=render&logoColor=white)](https://truthlens-omni.onrender.com)
+[![Live Deployment](https://img.shields.io/badge/Live%20Demo-Render%20Cloud-46E3B7?logo=render&logoColor=white)](https://truthlens-omni-fn1s.onrender.com)
 [![License](https://img.shields.io/badge/License-MIT-6B7280.svg)](LICENSE)
 
 > **TruthLens-Omni** is an institutional-grade epistemic verification and publishing integrity platform. Moving beyond naive text classifiers that fail under real-world domain shifts and synonym substitutions, TruthLens-Omni synthesizes **sentence-level claim decomposition**, **domain-adaptive temporal evidence decay**, **dense bi-encoder stance alignment**, **social cascade diffusion topology**, and **decentralized bridging consensus** into a unified, calibrated decision engine.
