@@ -6,7 +6,7 @@ from typing import Any, Dict, List
 
 from fastapi import FastAPI, Header, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, PlainTextResponse
+from fastapi.responses import FileResponse, HTMLResponse, PlainTextResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, Field
 
@@ -133,6 +133,7 @@ class SSORequest(BaseModel):
 
 
 @app.get("/", response_class=HTMLResponse)
+@app.get("/dashboard", response_class=HTMLResponse)
 @app.get("/login", response_class=HTMLResponse)
 @app.get("/register", response_class=HTMLResponse)
 @app.get("/auth", response_class=HTMLResponse)
@@ -143,6 +144,19 @@ def index_page():
         with open(index_path, encoding="utf-8") as f:
             return HTMLResponse(content=f.read())
     return HTMLResponse("<h1>TruthLens-Omni Platform Running.</h1>")
+
+
+@app.get("/api/v1/report/pdf")
+def download_executive_pdf():
+    """Download the official TruthLens-Omni Executive Audit & Milestone Report PDF."""
+    pdf_path = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "docs", "TRUTHLENS_OMNI_EXECUTIVE_REPORT.pdf")
+    if os.path.exists(pdf_path):
+        return FileResponse(
+            pdf_path,
+            media_type="application/pdf",
+            filename="TruthLens_Omni_Executive_Report.pdf",
+        )
+    raise HTTPException(status_code=404, detail="Executive report PDF not found on disk.")
 
 
 @app.post("/api/v1/auth/login")

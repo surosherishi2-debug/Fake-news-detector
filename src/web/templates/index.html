@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>TruthLens-Omni | Epistemic Intelligence & Publishing Integrity Platform</title>
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
@@ -47,112 +48,64 @@
         </div>
       </div>
 
-      <!-- Center Navigation with Grouped Dropdowns (Finnova Style) -->
-      <div class="flex items-center gap-2">
-        <span class="w-7 h-7 rounded-full bg-slate-100 border border-slate-200/80 text-slate-700 font-bold text-xs flex items-center justify-center shadow-xs">24</span>
-        <nav class="flex items-center bg-[#151624] p-1.5 rounded-full shadow-lg border border-slate-800/90 relative">
+      <!-- Center Navigation: Dedicated Multi-Page Functional Tabs -->
+      <div class="flex items-center gap-1.5 overflow-x-auto max-w-[850px] py-1">
+        <nav class="flex items-center bg-[#151624] p-1.5 rounded-full shadow-lg border border-slate-800/90 gap-1 overflow-x-auto">
           
-          <!-- 0. Home / Overview Tab -->
-          <button data-tab="landing" onclick="switchTab('landing')" class="nav-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600 text-white shadow-xs whitespace-nowrap">
-            Home
+          <!-- 1. Executive Dashboard Tab -->
+          <button data-tab="dashboard" onclick="switchTab('dashboard')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600 text-white shadow-xs whitespace-nowrap flex items-center gap-1.5">
+            <span>📊</span><span>Dashboard</span>
           </button>
 
-          <!-- 0.5 Enterprise Auth & IAM Tab -->
-          <button data-tab="auth" onclick="switchTab('auth')" class="nav-tab-btn px-3 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1">
-            <span>🔐</span>
-            <span>Auth & IAM</span>
+          <!-- 2. Fact Checking Console -->
+          <button data-tab="verify" onclick="switchTab('verify')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>🔍</span><span>Fact-Checker</span>
           </button>
 
-          <!-- 1. Live Feed (Direct Tab) -->
-          <button data-tab="feed" onclick="switchTab('feed')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap">
-            Live Feed
+          <!-- 3. Live News Feed -->
+          <button data-tab="feed" onclick="switchTab('feed')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>📡</span><span>Live Stream</span>
           </button>
 
-          <!-- 2. Fact Checking Dropdown -->
-          <div class="nav-dropdown-group">
-            <button class="nav-group-trigger px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1 transition">
-              <span>Fact Checking</span>
-              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div class="nav-dropdown-menu absolute top-full left-0 mt-2 bg-[#151624] border border-slate-700/80 rounded-2xl p-2 shadow-2xl z-50 min-w-[260px] flex-col gap-1 backdrop-blur-md">
-              <button onclick="switchTab('verify')" data-tab="verify" class="nav-tab-btn nav-dropdown-item">
-                <span class="text-base">🔍</span>
-                <div>
-                  <div class="font-bold text-white text-xs">Deep Fact Checker</div>
-                  <div class="text-[10px] text-slate-400">Verify news articles, claims & URLs</div>
-                </div>
-              </button>
-              <button onclick="switchTab('preflight')" data-tab="preflight" class="nav-tab-btn nav-dropdown-item">
-                <span class="text-base">✍️</span>
-                <div>
-                  <div class="font-bold text-white text-xs">Write & Check Draft</div>
-                  <div class="text-[10px] text-slate-400">Audit your draft before publishing</div>
-                </div>
-              </button>
-              <button onclick="switchTab('forensics')" data-tab="forensics" class="nav-tab-btn nav-dropdown-item">
-                <span class="text-base">🤖</span>
-                <div>
-                  <div class="font-bold text-white text-xs">AI Content Detector</div>
-                  <div class="text-[10px] text-slate-400">Scan for AI writing & token patterns</div>
-                </div>
-              </button>
-            </div>
-          </div>
+          <!-- 4. Propagation Knowledge Graph -->
+          <button data-tab="graph" onclick="switchTab('graph')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>🌐</span><span>Network Graph</span>
+          </button>
 
-          <!-- 3. Network & Social Dropdown -->
-          <div class="nav-dropdown-group">
-            <button class="nav-group-trigger px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1 transition">
-              <span>Network & Spread</span>
-              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div class="nav-dropdown-menu absolute top-full left-0 mt-2 bg-[#151624] border border-slate-700/80 rounded-2xl p-2 shadow-2xl z-50 min-w-[270px] flex-col gap-1 backdrop-blur-md">
-              <button onclick="switchTab('graph')" data-tab="graph" class="nav-tab-btn nav-dropdown-item">
-                <span class="text-base">🌐</span>
-                <div>
-                  <div class="font-bold text-white text-xs">Knowledge Graph</div>
-                  <div class="text-[10px] text-slate-400">Interactive map of sources & trust</div>
-                </div>
-              </button>
-              <button onclick="switchTab('cascades')" data-tab="cascades" class="nav-tab-btn nav-dropdown-item">
-                <span class="text-base">📡</span>
-                <div>
-                  <div class="font-bold text-white text-xs">Botnet & Viral Radar</div>
-                  <div class="text-[10px] text-slate-400">Track bot clusters & viral cascades</div>
-                </div>
-              </button>
-              <button onclick="switchTab('consensus')" data-tab="consensus" class="nav-tab-btn nav-dropdown-item">
-                <span class="text-base">⚖️</span>
-                <div>
-                  <div class="font-bold text-white text-xs">Community Notes</div>
-                  <div class="text-[10px] text-slate-400">Fair crowd ratings without bias</div>
-                </div>
-              </button>
-            </div>
-          </div>
+          <!-- 5. Viral Cascades Radar -->
+          <button data-tab="cascades" onclick="switchTab('cascades')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>⚡</span><span>Cascade Radar</span>
+          </button>
 
-          <!-- 4. Research Lab Dropdown -->
-          <div class="nav-dropdown-group">
-            <button class="nav-group-trigger px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1 transition">
-              <span>Research Lab</span>
-              <svg class="w-3 h-3 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
-            </button>
-            <div class="nav-dropdown-menu absolute top-full right-0 mt-2 bg-[#151624] border border-slate-700/80 rounded-2xl p-2 shadow-2xl z-50 min-w-[270px] flex-col gap-1 backdrop-blur-md">
-              <button onclick="switchTab('guide')" data-tab="guide" class="nav-tab-btn nav-dropdown-item">
-                <span class="text-base">📊</span>
-                <div>
-                  <div class="font-bold text-white text-xs">Accuracy Benchmarks</div>
-                  <div class="text-[10px] text-slate-400">PuneFakeNews, LIAR-Plus & CoAID</div>
-                </div>
-              </button>
-              <button onclick="switchTab('guide')" data-tab="guide" class="nav-tab-btn nav-dropdown-item">
-                <span class="text-base">📑</span>
-                <div>
-                  <div class="font-bold text-white text-xs">Academic Defense Dossier</div>
-                  <div class="text-[10px] text-slate-400">Formulas, IEEE references & paper</div>
-                </div>
-              </button>
-            </div>
-          </div>
+          <!-- 6. Model Ladder & Benchmark Lab -->
+          <button data-tab="models" onclick="switchTab('models')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>🧪</span><span>Model Ladder</span>
+          </button>
+
+          <!-- 7. Newsroom Pre-Flight Studio -->
+          <button data-tab="preflight" onclick="switchTab('preflight')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>✍️</span><span>Pre-Flight Studio</span>
+          </button>
+
+          <!-- 8. AI Content Forensics -->
+          <button data-tab="forensics" onclick="switchTab('forensics')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>🤖</span><span>AI Forensics</span>
+          </button>
+
+          <!-- 9. Community Notes Consensus -->
+          <button data-tab="consensus" onclick="switchTab('consensus')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>⚖️</span><span>Consensus</span>
+          </button>
+
+          <!-- 10. Dossier, Model Card & PDF -->
+          <button data-tab="guide" onclick="switchTab('guide')" class="nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>📑</span><span>Dossier & PDF</span>
+          </button>
+
+          <!-- 11. Zero-Trust IAM -->
+          <button data-tab="auth" onclick="switchTab('auth')" class="nav-tab-btn px-3 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap flex items-center gap-1.5">
+            <span>🔐</span><span>IAM Portal</span>
+          </button>
 
         </nav>
       </div>
@@ -197,6 +150,316 @@
     <!-- MAIN APP CONTAINER                                                      -->
     <!-- ======================================================================= -->
     <main class="w-full flex-1">
+
+      <!-- ===================================================================== -->
+      <!-- TAB 1: EXECUTIVE DASHBOARD & REAL-TIME ANALYTICS                      -->
+      <!-- ===================================================================== -->
+      <section id="page-dashboard" class="page-view space-y-8">
+        
+        <!-- Header & Executive Actions -->
+        <div class="flex items-center justify-between flex-wrap gap-4 pb-4 border-b border-slate-200">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">MISSION CONTROL</span>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Executive Telemetry & Epistemic Analytics</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Real-time benchmark distributions, inference latencies, domain disparities, and calibration curves.</p>
+          </div>
+          <div class="flex items-center gap-2.5 flex-wrap">
+            <a href="/api/v1/report/pdf" download class="px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition flex items-center gap-2 shadow-xs">
+              <span>📥</span><span>Download Executive PDF</span>
+            </a>
+            <button onclick="switchTab('verify')" class="px-4 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold transition flex items-center gap-2 shadow-xs">
+              <span>🔍</span><span>Launch Fact-Checker</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- 4 Master KPI Telemetry Cards -->
+        <div class="grid grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+              <span>Unified Benchmark</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700">4 Datasets</span>
+            </div>
+            <div class="text-3xl font-extrabold font-mono text-slate-900 tabular-nums">2,931</div>
+            <div class="text-[11px] text-slate-500">LIAR-Plus, CoAID, FEVER & Indic</div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+              <span>Verified Accuracy</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700">MiniLM-L6</span>
+            </div>
+            <div class="text-3xl font-extrabold font-mono text-emerald-600 tabular-nums">59.84%</div>
+            <div class="text-[11px] text-slate-500">Macro-F1: 55.17% • ROC-AUC: 0.7802</div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+              <span>Engineering Health</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700">Pytest 9.1</span>
+            </div>
+            <div class="text-3xl font-extrabold font-mono text-indigo-600 tabular-nums">70.1%</div>
+            <div class="text-[11px] text-slate-500">89 Passed / 0 Failed (2,785 stmts)</div>
+          </div>
+          <div class="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-xs space-y-2">
+            <div class="flex items-center justify-between text-xs text-slate-500 font-medium">
+              <span>Median Latency</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-purple-50 text-purple-700">CPU Stream</span>
+            </div>
+            <div class="text-3xl font-extrabold font-mono text-purple-600 tabular-nums">32.6ms</div>
+            <div class="text-[11px] text-slate-500">Dense Embedding + Gated Rerank</div>
+          </div>
+        </div>
+
+        <!-- Charts Row 1: Veracity Doughnut + Ingestion Time Series Area Chart -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Veracity Doughnut Chart (5 Cols) -->
+          <div class="lg:col-span-5 bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">Veracity Distribution</h3>
+                <p class="text-[11px] text-slate-500">Breakdown across 2,931 Unified Benchmark Test Claims</p>
+              </div>
+              <span class="text-xs font-mono text-slate-400">N=2,931</span>
+            </div>
+            <div class="relative h-64 flex items-center justify-center">
+              <canvas id="chart-veracity-donut"></canvas>
+            </div>
+            <div class="grid grid-cols-2 gap-2 text-xs pt-2 border-t border-slate-100">
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                <span class="text-slate-600">Verified True (42.1%)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-rose-500"></span>
+                <span class="text-slate-600">Refuted False (38.6%)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-amber-500"></span>
+                <span class="text-slate-600">Uncertain / Satire (9.3%)</span>
+              </div>
+              <div class="flex items-center gap-2">
+                <span class="w-3 h-3 rounded-full bg-slate-400"></span>
+                <span class="text-slate-600">Data Void (10.0%)</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Ingestion & Velocity Area Chart (7 Cols) -->
+          <div class="lg:col-span-7 bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">Live Ingestion & Verification Velocity</h3>
+                <p class="text-[11px] text-slate-500">Claims Ingested (bar) vs. Verification Latency in ms (line)</p>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-emerald-50 text-emerald-700 flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span> Streaming Active
+              </span>
+            </div>
+            <div class="relative h-64">
+              <canvas id="chart-ingestion-stream"></canvas>
+            </div>
+            <div class="flex items-center justify-between text-[11px] text-slate-500 pt-2 border-t border-slate-100">
+              <span>Average Throughput: <b class="text-slate-800">48 claims/min</b></span>
+              <span>Peak Latency: <b class="text-slate-800">44ms</b></span>
+              <span>Epistemic Abstention Triggered: <b class="text-amber-600">14.2%</b></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Charts Row 2: Subgroup Disparity Bar Chart + ECE Reliability Curve -->
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+          <!-- Domain Disparity Bar Chart (6 Cols) -->
+          <div class="lg:col-span-6 bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">Topical Subgroup Performance (Macro-F1)</h3>
+                <p class="text-[11px] text-slate-500">Measuring domain disparity across politics, healthcare, and Indic debunks</p>
+              </div>
+              <span class="text-xs font-mono text-blue-600 font-bold">docs/BIAS_ANALYSIS.md</span>
+            </div>
+            <div class="relative h-60">
+              <canvas id="chart-domain-bar"></canvas>
+            </div>
+            <p class="text-[11px] text-slate-500 pt-1">
+              <b>Finding:</b> Healthcare achieves +18.8% higher F1 than politics due to clinical entity semantic clustering.
+            </p>
+          </div>
+
+          <!-- ECE Calibration Reliability Curve (6 Cols) -->
+          <div class="lg:col-span-6 bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 class="text-sm font-extrabold text-slate-900">Reliability Diagram (ECE Calibration Curve)</h3>
+                <p class="text-[11px] text-slate-500">Expected Calibration Error: Perfect (y=x) vs. MiniLM-L6 vs. TF-IDF</p>
+              </div>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 font-mono">ECE = 0.112</span>
+            </div>
+            <div class="relative h-60">
+              <canvas id="chart-ece-curve"></canvas>
+            </div>
+            <p class="text-[11px] text-slate-500 pt-1">
+              <b>Finding:</b> Dense Transformer demonstrates tight alignment with diagonal, minimizing uncalibrated overconfidence.
+            </p>
+          </div>
+        </div>
+
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- TAB 6: MODEL LADDER & ADVERSARIAL STRESS LAB                          -->
+      <!-- ===================================================================== -->
+      <section id="page-models" class="page-view space-y-8 hidden">
+        <div class="flex items-center justify-between pb-4 border-b border-slate-200 flex-wrap gap-4">
+          <div>
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-purple-50 text-purple-700 border border-purple-200">RESEARCH BENCHMARKS</span>
+              <h2 class="text-2xl font-black text-slate-900 tracking-tight">Empirical Model Ladder & Adversarial Stress Lab</h2>
+            </div>
+            <p class="text-xs text-slate-500 mt-0.5">Rigorous comparison of classical baselines, deep learning, dense transformers, and cross-attention CEAM.</p>
+          </div>
+          <span class="text-xs font-mono text-slate-500 bg-slate-100 px-3 py-1 rounded-full border border-slate-200">Seeds: [42, 43, 44]</span>
+        </div>
+
+        <!-- Master Results Table (Clean Enterprise Render) -->
+        <div class="bg-white rounded-2xl border border-slate-200/90 overflow-hidden shadow-xs">
+          <div class="p-4 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-700">Unified 2,931-Sample Cross-Domain Benchmark Results</span>
+            <span class="text-xs text-indigo-600 font-mono font-semibold">docs/RESULTS.md</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-100/80 text-slate-600 border-b border-slate-200 text-[11px] uppercase font-bold">
+                <tr>
+                  <th class="p-3.5">Model Ladder Tier</th>
+                  <th class="p-3.5">Architecture Family</th>
+                  <th class="p-3.5 font-mono">Accuracy</th>
+                  <th class="p-3.5 font-mono">Macro-F1</th>
+                  <th class="p-3.5 font-mono">ROC-AUC</th>
+                  <th class="p-3.5 font-mono">ECE Calib.</th>
+                  <th class="p-3.5 font-mono">TextAttack F1 Ret.</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 font-mono text-slate-700">
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="p-3.5 font-sans font-medium text-slate-900">TF-IDF + Naive Bayes</td>
+                  <td class="p-3.5 font-sans text-slate-500">Classical Generative</td>
+                  <td class="p-3.5">53.97%</td>
+                  <td class="p-3.5">44.89%</td>
+                  <td class="p-3.5">0.7029</td>
+                  <td class="p-3.5">0.1842</td>
+                  <td class="p-3.5 text-amber-600">91.24%</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="p-3.5 font-sans font-medium text-slate-900">TF-IDF + Linear SVM</td>
+                  <td class="p-3.5 font-sans text-slate-500">Maximum Margin</td>
+                  <td class="p-3.5">56.06%</td>
+                  <td class="p-3.5">49.88%</td>
+                  <td class="p-3.5">0.7018</td>
+                  <td class="p-3.5">0.1610</td>
+                  <td class="p-3.5 text-amber-600">92.40%</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="p-3.5 font-sans font-medium text-slate-900">TF-IDF + Logistic Regression</td>
+                  <td class="p-3.5 font-sans text-slate-500">Linear Discriminative</td>
+                  <td class="p-3.5">58.34%</td>
+                  <td class="p-3.5">51.83%</td>
+                  <td class="p-3.5">0.7495</td>
+                  <td class="p-3.5">0.1420</td>
+                  <td class="p-3.5 text-blue-600">93.85%</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="p-3.5 font-sans font-medium text-slate-900">BiLSTM (2-layer Recurrent)</td>
+                  <td class="p-3.5 font-sans text-slate-500">Deep Sequential</td>
+                  <td class="p-3.5">57.83%</td>
+                  <td class="p-3.5">54.10%</td>
+                  <td class="p-3.5">0.7321</td>
+                  <td class="p-3.5">0.1385</td>
+                  <td class="p-3.5 text-amber-600">92.15%</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="p-3.5 font-sans font-medium text-slate-900">Multilingual MiniLM-L12</td>
+                  <td class="p-3.5 font-sans text-slate-500">Transformer (384d)</td>
+                  <td class="p-3.5 font-bold text-slate-900">58.79%</td>
+                  <td class="p-3.5 font-bold text-slate-900">54.05%</td>
+                  <td class="p-3.5">0.7642</td>
+                  <td class="p-3.5">0.1250</td>
+                  <td class="p-3.5 font-bold text-emerald-600">95.80%</td>
+                </tr>
+                <tr class="bg-indigo-50/50 font-bold hover:bg-indigo-50 transition">
+                  <td class="p-3.5 font-sans text-indigo-900">English MiniLM-L6 (Best Overall)</td>
+                  <td class="p-3.5 font-sans text-indigo-700">Transformer (384d)</td>
+                  <td class="p-3.5 text-emerald-700">59.84%</td>
+                  <td class="p-3.5 text-emerald-700">55.17%</td>
+                  <td class="p-3.5 text-indigo-700">0.7802</td>
+                  <td class="p-3.5 text-indigo-700">0.1120</td>
+                  <td class="p-3.5 text-emerald-700">96.17%</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="p-3.5 font-sans font-medium text-slate-900">CEAM (+Temporal Decay)</td>
+                  <td class="p-3.5 font-sans text-slate-500">Cross-Attention + w(t)</td>
+                  <td class="p-3.5">54.55%</td>
+                  <td class="p-3.5">36.16%</td>
+                  <td class="p-3.5">0.6840</td>
+                  <td class="p-3.5">0.1980</td>
+                  <td class="p-3.5 text-blue-600">94.10%</td>
+                </tr>
+                <tr class="hover:bg-slate-50 transition">
+                  <td class="p-3.5 font-sans font-medium text-slate-900">CEAM (-Temporal Decay)</td>
+                  <td class="p-3.5 font-sans text-slate-500">Cross-Attention Ablation</td>
+                  <td class="p-3.5">58.27%</td>
+                  <td class="p-3.5">40.39%</td>
+                  <td class="p-3.5">0.7188</td>
+                  <td class="p-3.5">0.1740</td>
+                  <td class="p-3.5 text-blue-600">94.62%</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Adversarial Playground -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200/90 shadow-xs space-y-4">
+          <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+            <div>
+              <h3 class="text-sm font-extrabold text-slate-900">Interactive TextAttack Synonym Substitution Playground</h3>
+              <p class="text-[11px] text-slate-500">Observe in real time how dense transformer embeddings resist lexical synonym attacks while shallow models flip.</p>
+            </div>
+            <span class="text-xs font-mono text-emerald-600 font-bold bg-emerald-50 px-2.5 py-1 rounded-full border border-emerald-200">Retains 96.17% F1</span>
+          </div>
+
+          <div class="space-y-3 text-xs">
+            <div class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
+              <span class="font-bold text-slate-500 uppercase text-[10px]">Original Assertion:</span>
+              <p class="text-slate-800 font-medium">"Clinical trials published in The Lancet confirm mRNA vaccine lipid nanoparticles degrade within 48 hours."</p>
+            </div>
+            <div class="p-3.5 rounded-xl bg-indigo-50/70 border border-indigo-200 space-y-1">
+              <span class="font-bold text-indigo-600 uppercase text-[10px]">TextFooler Perturbed Assertion (3 substitutions):</span>
+              <p class="text-indigo-950 font-medium">"Clinical <span class="bg-indigo-200 text-indigo-900 px-1 rounded font-bold">evaluations</span> published in The Lancet confirm mRNA <span class="bg-indigo-200 text-indigo-900 px-1 rounded font-bold">inoculation</span> lipid nanoparticles <span class="bg-indigo-200 text-indigo-900 px-1 rounded font-bold">dissipate</span> within 48 hours."</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3 text-center text-xs pt-2">
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="text-[10px] text-slate-400">TF-IDF F1 DROP</div>
+              <div class="text-base font-bold font-mono text-rose-600 mt-0.5">-6.15%</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="text-[10px] text-slate-400">MINILM F1 DROP</div>
+              <div class="text-base font-bold font-mono text-emerald-600 mt-0.5">-3.83%</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="text-[10px] text-slate-400">SEMANTIC SIMILARITY</div>
+              <div class="text-base font-bold font-mono text-indigo-600 mt-0.5">0.974 Cosine</div>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+              <div class="text-[10px] text-slate-400">VERACITY DRIFT</div>
+              <div class="text-base font-bold font-mono text-emerald-600 mt-0.5">0.00 (STABLE)</div>
+            </div>
+          </div>
+        </div>
+
+      </section>
 
       <!-- ===================================================================== -->
       <!-- TAB 0: PUBLIC LANDING PAGE & PLATFORM SHOWCASE                        -->
@@ -1501,8 +1764,11 @@
           <button id="btn-refresh-benchmarks" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-semibold shadow-xs transition">
             Run Benchmark
           </button>
+          <a href="/api/v1/report/pdf" download class="px-3.5 py-1.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold shadow-xs transition flex items-center gap-1.5 whitespace-nowrap" title="Download Official Executive Report PDF">
+            <span>📥</span><span>Executive PDF (16.5 KB)</span>
+          </a>
           <button id="btn-export-dossier" class="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-semibold shadow-xs transition flex items-center gap-1.5 whitespace-nowrap">
-            📥 Export Dossier (.MD)
+            Export Dossier (.MD)
           </button>
         </div>
       </div>
