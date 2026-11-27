@@ -132,6 +132,42 @@
 - **Decisions made:** `D08` (Strict Cross-Split Anti-Leakage Deduplication).
 - **Open questions raised:** None.
 - **Status:** DONE.
-- **Next task:** Phase 2 Gate Review & User Approval to proceed to Phase 3.
+- **Next task:** Phase 3.Task 3.1–3.7 — Model Ladder & Evaluation Protocol.
+
+---
+
+## [2026-11-27 18:38] Phase 3.Task 3.1–3.7 - Model Ladder & Comprehensive Evaluation Protocol
+- **Goal:** Implement, train, evaluate, and calibrate an empirical model ladder spanning Classical ML (TF-IDF + LR/SVM/NB), Deep Learning (BiLSTM), Pre-trained Transformers (English all-MiniLM-L6-v2 & Multilingual paraphrase-multilingual-MiniLM-L12-v2), and Evidence-Aware CEAM (Gated Cross-Attention with temporal decay ablation). Execute multi-seed stability, Expected Calibration Error (ECE), adversarial stress-testing (TextFooler), qualitative error analysis (35 failure cases), and programmatically generate `docs/RESULTS.md` directly from `experiments/*/metrics.json`.
+- **What I did (files created/changed):**
+  - Created `phase-3-model-ladder` branch.
+  - Resolved `Q04` in `docs/OPEN_QUESTIONS.md` (CPU-optimized training protocol).
+  - Created `src/evaluation/metrics.py` implementing mathematically rigorous Accuracy, Macro-F1, per-class F1, multi-class One-vs-Rest ROC-AUC, 10-bin Expected Calibration Error (ECE), and Brier Score.
+  - Created `tests/test_evaluation_metrics.py` (4 automated tests).
+  - Created `src/models/baselines.py`: trained TF-IDF (1-2 ngrams, 10k features) with Logistic Regression, Calibrated Linear SVM, and Multinomial Naive Bayes across seeds 42, 43, 44. Logged to `experiments/exp01_tfidf_baselines/`.
+  - Created `src/models/deep_models.py`: built `TokenVocab`, PyTorch 2-layer `BiLSTMClassifier`, mini-batch DataLoader with early stopping. Trained on CPU and logged checkpoints and metrics to `experiments/exp02_bilstm/`.
+  - Created `src/models/transformer_models.py`: trained neural classification heads over dense semantic representations from `sentence-transformers/all-MiniLM-L6-v2` and `sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2`. Logged to `experiments/exp03_transformer_english/` and `experiments/exp04_transformer_multilingual/`.
+  - Enhanced `src/models/ceam_model.py` and created `src/models/ceam_trainer.py`: trained CEAM with paired (claim, evidence) cross-attention, domain-adaptive temporal decay $w(t) = \exp(-\lambda \Delta t)$, and executed formal ablation ($w(t)=\exp(-\lambda \Delta t)$ vs $w(t)=1.0$) logged in `experiments/exp05_ceam_temporal/` and `experiments/exp06_ceam_notemporal/`.
+  - Created `src/evaluation/adversarial_evaluation.py`: evaluated models on clean vs 20% synonym-perturbed test claims; logged results to `experiments/adversarial_metrics.json`.
+  - Created `src/evaluation/error_analysis.py`: extracted and classified 35 concrete empirical failures across 6 structural categories into `docs/ERROR_ANALYSIS.md`.
+  - Created `src/evaluation/generate_results_table.py`: programmatically rendered all results tables in `docs/RESULTS.md` strictly from code.
+  - Updated running paper `docs/paper/05_results.md` with verified empirical findings.
+  - Created `tests/test_model_ladder.py` (6 unit/regression tests).
+  - Logged architectural decisions `D09` and `D10` in `docs/DECISIONS.md`.
+- **Commands run + result:**
+  - `python -m src.models.baselines` -> Logged `exp01_tfidf_baselines` (LR Acc: 58.34%, F1: 51.83%, ECE: 0.0287; SVM Acc: 56.06%, F1: 47.40%; NB Acc: 53.97%, F1: 51.03%).
+  - `python -m src.models.deep_models` -> Logged `exp02_bilstm` (Acc: 57.83%, F1: 54.10%, ECE: 0.0530, checkpoint saved).
+  - `python -m src.models.transformer_models` -> Logged `exp03_transformer_english` (Acc: 59.84%, F1: 55.17%, ECE: 0.0736, ROC-AUC: 0.7802) and `exp04_transformer_multilingual` (Acc: 58.79%, F1: 54.05%, Indic Acc: 100%).
+  - `python -m src.models.ceam_trainer` -> Logged `exp05_ceam_temporal` (Acc: 54.55%, F1: 36.16%, ECE: 0.0413) and `exp06_ceam_notemporal` (Acc: 58.27%, F1: 40.39%, ECE: 0.0405; Delta F1: -4.23%).
+  - `python -m src.evaluation.adversarial_evaluation` -> Logged `experiments/adversarial_metrics.json` (Transformer retention: 96.17%, LR retention: 93.85%).
+  - `python -m src.evaluation.error_analysis` -> Extracted 35 failure cases into `docs/ERROR_ANALYSIS.md`.
+  - `python -m src.evaluation.generate_results_table` -> Generated `docs/RESULTS.md`.
+  - `python -m pytest tests -v` -> **62/62 tests passed in 22.22s** (full regression suite clean).
+- **Evidence it works:** All 6 experiment directories exist in `experiments/` with `config.json`, `metrics.json`, and checkpoints; `docs/RESULTS.md` compiled; `pytest tests -v` passed 62/62.
+- **Sources used:** `S06`, `S07`, `S08`, `S11`, `S12`, `S13`, `S14` in `docs/SOURCES.md`.
+- **Decisions made:** `D09` (Multi-Tier Model Ladder & Weight Checkpoints), `D10` (Tripartite Taxonomy & Temporal Ablation).
+- **Open questions raised:** None (`Q04` resolved).
+- **Status:** DONE.
+- **Next task:** Phase 3 Gate Review & User Approval to proceed to Phase 4 (Retrieval, Explainability, Abstention).
+
 
 

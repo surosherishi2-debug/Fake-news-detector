@@ -1,0 +1,70 @@
+{
+  "experiment_id": "exp06_ceam_notemporal",
+  "status": "COMPLETED",
+  "metrics": {
+    "experiment_id": "exp06_ceam_notemporal",
+    "temporal_decay_enabled": false,
+    "test_accuracy": 0.5827,
+    "test_macro_precision": 0.4041,
+    "test_macro_recall": 0.4352,
+    "test_macro_f1": 0.4039,
+    "test_ece": 0.0405,
+    "test_brier": 0.494,
+    "test_roc_auc_ovr": 0.775,
+    "per_class": {
+      "VERIFIED": {
+        "precision": 0.5593,
+        "recall": 0.8494,
+        "f1": 0.6745,
+        "support": 1448
+      },
+      "REFUTED": {
+        "precision": 0.653,
+        "recall": 0.4561,
+        "f1": 0.5371,
+        "support": 1048
+      },
+      "DATA_VOID": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 435
+      }
+    },
+    "confusion_matrix": [
+      [
+        1230,
+        218,
+        0
+      ],
+      [
+        570,
+        478,
+        0
+      ],
+      [
+        399,
+        36,
+        0
+      ]
+    ],
+    "domain_breakdown": {
+      "liar_plus": {
+        "accuracy": 0.6006,
+        "macro_f1": 0.3826
+      },
+      "coaid": {
+        "accuracy": 0.9566,
+        "macro_f1": 0.6328
+      },
+      "fever": {
+        "accuracy": 0.4666,
+        "macro_f1": 0.3618
+      },
+      "indic": {
+        "accuracy": 1.0,
+        "macro_f1": 0.3333
+      }
+    }
+  }
+}

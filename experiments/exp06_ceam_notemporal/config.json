@@ -1,0 +1,19 @@
+{
+  "experiment_id": "exp06_ceam_notemporal",
+  "model_architecture": "CEAMTruthLensModel",
+  "temporal_decay_enabled": false,
+  "embed_dim": 128,
+  "graph_dim": 64,
+  "num_heads": 4,
+  "claim_max_len": 64,
+  "evidence_max_len": 128,
+  "batch_size": 64,
+  "epochs": 4,
+  "lr": 0.001,
+  "seed": 42,
+  "classes": [
+    "VERIFIED",
+    "REFUTED",
+    "DATA_VOID"
+  ]
+}

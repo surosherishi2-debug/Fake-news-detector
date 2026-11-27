@@ -82,4 +82,25 @@
 - **Choice:** Option 2.
 - **Rationale:** Complete adherence to R1 and R5. Zero tolerance for train/test contamination. The evaluation sets remain pristine, and training claims with identical lowercased text are purged.
 
+---
+
+### [D09] Multi-Tier Model Ladder & Reproducible Weight Checkpoints
+- **Context:** Base code had uncalled neural architectures and static mock evaluator scores. Real models with saved weights, deterministic configs, and verifiable metric runs are required.
+- **Options Considered:**
+  1. Wrap an unverified monolithic third-party checkpoint.
+  2. Implement an empirical model ladder: Classical (TF-IDF + LR/SVM/NB), Deep Learning (BiLSTM), Pre-trained Transformers (English MiniLM-L6 & Multilingual MiniLM-L12), and CEAM (Gated Cross-Attention).
+- **Choice:** Option 2.
+- **Rationale:** Establishes progressive performance baselines, isolates model contributions, and produces concrete checkpoints in `experiments/exp01_*` through `exp06_*`.
+
+---
+
+### [D10] Grounded Tripartite Classification and Empirical Temporal Ablation
+- **Context:** Real-world claim verification requires acknowledging lack of evidence (`DATA_VOID`) and temporal obsolescence ($w(t) = \exp(-\lambda \Delta t)$).
+- **Options Considered:**
+  1. Train on binary real/fake without temporal decay or uncertainty abstention.
+  2. Standardize on tripartite taxonomy (`VERIFIED`, `REFUTED`, `DATA_VOID`) and execute a formal temporal decay ablation ($w(t)=\exp(-\lambda \Delta t)$ vs $w(t)=1.0$).
+- **Choice:** Option 2.
+- **Rationale:** Reflects scientific truth discovery where unsubstantiated claims are treated as `DATA_VOID` rather than assumed false. Ablation proved that temporal decay induces conservative calibration on static claims, preserving precision.
+
+
 

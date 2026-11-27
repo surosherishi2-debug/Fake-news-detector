@@ -1,0 +1,16 @@
+{
+  "Logistic_Regression": {
+    "clean_f1": 0.5155,
+    "adversarial_f1": 0.4838,
+    "robustness_retention": 93.85,
+    "clean_acc": 0.58,
+    "adversarial_acc": 0.554
+  },
+  "Transformer_English_MiniLM": {
+    "clean_f1": 0.5489,
+    "adversarial_f1": 0.5279,
+    "robustness_retention": 96.17,
+    "clean_acc": 0.596,
+    "adversarial_acc": 0.566
+  }
+}

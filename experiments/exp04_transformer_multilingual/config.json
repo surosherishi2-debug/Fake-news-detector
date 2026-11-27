@@ -1,0 +1,14 @@
+{
+  "experiment_id": "exp04_transformer_multilingual",
+  "encoder_model": "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+  "embed_dim": 384,
+  "batch_size": 64,
+  "epochs": 8,
+  "lr": 0.002,
+  "seed": 42,
+  "classes": [
+    "VERIFIED",
+    "REFUTED",
+    "DATA_VOID"
+  ]
+}

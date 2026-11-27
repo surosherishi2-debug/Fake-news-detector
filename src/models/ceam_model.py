@@ -195,7 +195,10 @@ class CEAMTruthLensModel(ModuleBase):
         logits, attn = self.forward(claim_token_ids, evidence_token_ids, graph_cascade_emb, temporal_decay_weights)
         probs = F.softmax(logits, dim=-1).squeeze(0).tolist()
         
-        labels = ["REAL", "FAKE", "SATIRE", "DATA_VOID"]
+        if logits.size(-1) == 3:
+            labels = ["VERIFIED", "REFUTED", "DATA_VOID"]
+        else:
+            labels = ["REAL", "FAKE", "SATIRE", "DATA_VOID"]
         max_idx = int(torch.argmax(logits, dim=-1).item())
         
         return {

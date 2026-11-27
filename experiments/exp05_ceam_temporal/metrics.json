@@ -1,0 +1,70 @@
+{
+  "experiment_id": "exp05_ceam_temporal",
+  "status": "COMPLETED",
+  "metrics": {
+    "experiment_id": "exp05_ceam_temporal",
+    "temporal_decay_enabled": true,
+    "test_accuracy": 0.5455,
+    "test_macro_precision": 0.3891,
+    "test_macro_recall": 0.3979,
+    "test_macro_f1": 0.3616,
+    "test_ece": 0.0413,
+    "test_brier": 0.5181,
+    "test_roc_auc_ovr": 0.737,
+    "per_class": {
+      "VERIFIED": {
+        "precision": 0.5241,
+        "recall": 0.8702,
+        "f1": 0.6542,
+        "support": 1448
+      },
+      "REFUTED": {
+        "precision": 0.6433,
+        "recall": 0.3235,
+        "f1": 0.4305,
+        "support": 1048
+      },
+      "DATA_VOID": {
+        "precision": 0.0,
+        "recall": 0.0,
+        "f1": 0.0,
+        "support": 435
+      }
+    },
+    "confusion_matrix": [
+      [
+        1260,
+        188,
+        0
+      ],
+      [
+        709,
+        339,
+        0
+      ],
+      [
+        435,
+        0,
+        0
+      ]
+    ],
+    "domain_breakdown": {
+      "liar_plus": {
+        "accuracy": 0.6101,
+        "macro_f1": 0.3916
+      },
+      "coaid": {
+        "accuracy": 0.9566,
+        "macro_f1": 0.6328
+      },
+      "fever": {
+        "accuracy": 0.3746,
+        "macro_f1": 0.1817
+      },
+      "indic": {
+        "accuracy": 1.0,
+        "macro_f1": 0.3333
+      }
+    }
+  }
+}

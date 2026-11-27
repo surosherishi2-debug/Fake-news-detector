@@ -1,0 +1,24 @@
+{
+  "experiment_id": "exp01_tfidf_baselines",
+  "model_type": "classical_ml_tfidf",
+  "feature_extractor": "TfidfVectorizer",
+  "ngram_range": [
+    1,
+    2
+  ],
+  "max_features": 10000,
+  "sublinear_tf": true,
+  "training_samples": 17960,
+  "validation_samples": 2944,
+  "unified_test_samples": 2931,
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "classes": [
+    "VERIFIED",
+    "REFUTED",
+    "DATA_VOID"
+  ]
+}
