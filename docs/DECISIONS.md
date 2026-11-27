@@ -72,3 +72,14 @@
 - **Choice:** Option 2.
 - **Rationale:** All 4 datasets were verified this session via direct HTTP fetches, possess open licenses, and cover multiple distinct domains and languages.
 
+---
+
+### [D08] Strict Cross-Split Anti-Leakage Deduplication
+- **Context:** Running `tests/test_data_pipeline.py` exposed 9 claims in the original PolitiFact LIAR-PLUS `train2.tsv` that verbatim duplicated claims in `test2.tsv` and `val2.tsv` (e.g. repetitive short policy statements).
+- **Options Considered:**
+  1. Ignore the 9 leaked claims because they exist in the author's official release.
+  2. Protect the validation and test sets by actively purging any training claim that appears in the evaluation splits.
+- **Choice:** Option 2.
+- **Rationale:** Complete adherence to R1 and R5. Zero tolerance for train/test contamination. The evaluation sets remain pristine, and training claims with identical lowercased text are purged.
+
+

@@ -1,9 +1,13 @@
 # 4. Experimental Setup
 
 ## 4.1 Datasets and Preprocessing
-The experimental evaluation protocol mandates strict separation between training, validation, and test splits with explicit deduplication and leakage auditing.
-- Planned Datasets: LIAR / LIAR-Plus (political assertions), CoAID (healthcare and vaccine claims), FEVER (fact extraction and verification).
-- Indic/Multilingual Evaluation: Multilingual test split evaluating cross-lingual transfer (English, Hindi, Marathi).
+The experimental evaluation protocol mandates strict separation between training, validation, and test splits with explicit deduplication and leakage auditing (`docs/datasheets/LEAKAGE_AUDIT_REPORT.md`).
+- **LIAR-Plus:** 12,763 clean samples across US political statements with PolitiFact justifications (Train: 10,212; Val: 1,284; Test: 1,267). Cross-split exact leakage was eliminated by purging 9 overlapping training claims.
+- **CoAID:** 2,302 healthcare and epidemiological items (Train: 1,611; Val: 345; Test: 346) partitioned under a 70/15/15 chronological split.
+- **FEVER (Stratified Subset):** 8,768 verified claims (Train: 6,137; Val: 1,315; Test: 1,316) stratified equally across SUPPORTS, REFUTES, and NOT ENOUGH INFO (calibrating the `DATA_VOID` abstention class).
+- **Indic Multilingual Benchmark:** 10 verified regional Hindi and Marathi claims and debunks for cross-lingual zero-shot and few-shot evaluation.
+- **Unified Cross-Domain Benchmark:** 2,931 test samples (`data/processed/unified_benchmark/test.jsonl`) spanning politics, healthcare, and general encyclopedic facts.
+
 
 ## 4.2 Baselines and Model Ladder
 1. **Classical Linear Baselines:** TF-IDF n-grams + Logistic Regression / Linear SVM / Multinomial Naive Bayes.

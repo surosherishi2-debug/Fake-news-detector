@@ -98,3 +98,40 @@
 - **Status:** DONE.
 - **Next task:** Phase 1 Gate Review: User approval of the Adopted Ideas List and Dataset List.
 
+---
+
+## [2026-11-27 18:00] Phase 2.Task 2.1–2.3 - Data Foundation & Train/Test Leakage Elimination
+- **Goal:** Download, version, and verify SHA-256 checksums for the 4 approved datasets; implement a deterministic cleaning, deduplication, and splitting pipeline (`src/data/pipeline.py`); author comprehensive datasheets in `docs/datasheets/`; and prove zero train/test leakage with automated pytest tests.
+- **What I did (files created/changed):**
+  - Created `phase-2-data-foundation` branch.
+  - Created `src/data/downloader.py` and downloaded raw files for LIAR-Plus (8.7 MB), CoAID (1.8 MB), FEVER (2.7 MB), and Indic Multilingual (7 KB).
+  - Generated master `data/checksums.sha256` recording cryptographic hashes for all 9 raw source files.
+  - Created `src/data/pipeline.py`:
+    - NFKC Unicode normalization, whitespace collapsing.
+    - Exact hash deduplication and near-duplicate detection ($J \ge 0.85$).
+    - Cross-split anti-leakage barrier: purged 9 verbatim duplicate training claims that contaminated the evaluation set in original LIAR-Plus.
+    - Standardized tripartite label mapping (`VERIFIED`, `REFUTED`, `DATA_VOID`).
+    - Partitioned each dataset into `train.jsonl`, `val.jsonl`, `test.jsonl` in `data/processed/`.
+    - Compiled unified cross-domain test suite of 2,931 samples in `data/processed/unified_benchmark/test.jsonl`.
+  - Created `tests/test_data_pipeline.py` with 14 automated integrity and leakage tests.
+  - Authored datasheets: `LIAR_PLUS_DATASHEET.md`, `COAID_DATASHEET.md`, `FEVER_DATASHEET.md`, `INDIC_MULTILINGUAL_DATASHEET.md`, and `LEAKAGE_AUDIT_REPORT.md` in `docs/datasheets/`.
+  - Logged decision `D08` in `docs/DECISIONS.md`.
+  - Updated `docs/paper/04_experiments.md` with exact dataset statistics.
+- **Commands run + result:**
+  - `python src/data/downloader.py` -> Successfully fetched all 9 raw source files and wrote `data/checksums.sha256`.
+  - `python src/data/pipeline.py` -> Cleaned and saved:
+    - LIAR-PLUS: 10,212 train, 1,284 val, 1,267 test.
+    - CoAID: 1,611 train, 345 val, 346 test.
+    - FEVER: 6,137 train, 1,315 val, 1,316 test.
+    - Indic: 6 train, 2 val, 2 test.
+    - Unified Benchmark: 2,931 test samples.
+  - `python -m pytest tests/test_data_pipeline.py -v` -> **14/14 tests passed in 0.73s** (0 exact overlap, Jaccard < 0.85, checksums matched).
+  - `python -m pytest tests -v` -> **52/52 tests passed in 6.71s** (full regression suite clean).
+- **Evidence it works:** Real terminal output showing 52 passed tests; `data/checksums.sha256` matching; `data/processed/` JSONL files present on disk.
+- **Sources used:** `S06`, `S07`, `S08`, `S12` in `docs/SOURCES.md`.
+- **Decisions made:** `D08` (Strict Cross-Split Anti-Leakage Deduplication).
+- **Open questions raised:** None.
+- **Status:** DONE.
+- **Next task:** Phase 2 Gate Review & User Approval to proceed to Phase 3.
+
+
