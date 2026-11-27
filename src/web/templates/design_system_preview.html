@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TruthLens-Omni | Modern Epistemic UI/UX Design System</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <style>
+    body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+    code, .font-mono { font-family: 'JetBrains Mono', monospace; }
+    .hairline-border { border: 1px solid rgba(226, 232, 240, 0.8); }
+    .dark .hairline-border { border: 1px solid rgba(30, 41, 59, 0.8); }
+    .tabular-nums { font-variant-numeric: tabular-nums; }
+  </style>
+</head>
+<body class="bg-[#F8FAFC] text-[#0F172A] antialiased p-4 md:p-8 min-h-screen transition-colors duration-200">
+
+  <!-- Main Container -->
+  <div class="max-w-6xl mx-auto space-y-8">
+
+    <!-- Top Navigation & Brand Header -->
+    <header class="flex items-center justify-between border-b border-slate-200 pb-5">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-slate-900 text-white flex items-center justify-center font-bold text-sm tracking-wider shadow-sm">
+          TL
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="text-base font-extrabold tracking-tight text-slate-900">TruthLens<span class="text-blue-600">Omni</span></h1>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-200 uppercase tracking-wide">Design System v2.0</span>
+          </div>
+          <p class="text-xs text-slate-500 font-medium">Epistemic Intelligence & Publishing Integrity Console</p>
+        </div>
+      </div>
+
+      <!-- Live Interactive Controls -->
+      <div class="flex items-center gap-3">
+        <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
+          <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Engine Online (33ms)
+        </span>
+        <button id="themeToggle" class="px-3 py-1.5 rounded-lg border border-slate-200 text-xs font-medium text-slate-700 hover:bg-slate-100 transition">
+          🌓 Toggle Contrast
+        </button>
+      </div>
+    </header>
+
+    <!-- Bento Grid Hero Section -->
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+
+      <!-- Left Column: Interactive Claim & Saliency Inspector (7 Cols) -->
+      <div class="lg:col-span-7 space-y-6">
+
+        <!-- Input Console -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-400">Claim Verification Console</span>
+            <span class="text-xs text-slate-500 font-mono">Model: MiniLM-L6 (Dual-Pass)</span>
+          </div>
+
+          <div class="relative">
+            <textarea id="claimInput" rows="3" class="w-full text-sm font-medium p-3.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-600 focus:border-transparent resize-none leading-relaxed" placeholder="Enter claim statement or paste URL to verify...">CDC reports COVID-19 vaccine 5G microchips cause instant cardiac arrest across 45 percent of hospital patients.</textarea>
+          </div>
+
+          <!-- Quick Curated Test Scenarios -->
+          <div class="flex items-center gap-2 flex-wrap text-xs">
+            <span class="text-slate-400 font-medium">Try Scenario:</span>
+            <button onclick="loadScenario('conspiracy')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition">Biomedical Conspiracy</button>
+            <button onclick="loadScenario('consensus')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition">FDA Health Consensus</button>
+            <button onclick="loadScenario('satire')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition">The Onion Satire</button>
+            <button onclick="loadScenario('datavoid')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition">Breaking Data-Void</button>
+            <button onclick="loadScenario('indic')" class="px-2.5 py-1 rounded-md bg-slate-100 hover:bg-slate-200 text-slate-700 font-medium transition">Marathi Regional</button>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="flex items-center justify-between pt-2 border-t border-slate-100">
+            <div class="flex items-center gap-3 text-xs text-slate-500 font-mono">
+              <span>Domain: <b class="text-slate-700" id="domainTag">Biomedical</b></span>
+              <span>•</span>
+              <span>Lang: <b class="text-slate-700" id="langTag">en</b></span>
+            </div>
+            <button id="verifyBtn" class="px-5 py-2 rounded-xl bg-slate-900 hover:bg-blue-600 text-white font-semibold text-xs transition-all shadow-sm flex items-center gap-2">
+              <span>Execute Verification</span>
+              <span class="font-mono text-[10px] text-slate-300">⌘↵</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Token Saliency & Evidence Attribution Panel -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Token-Level Saliency Attribution</h3>
+            <span class="text-xs font-mono text-emerald-600 font-semibold bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">Confidence Calibration: 0.112 ECE</span>
+          </div>
+
+          <div id="saliencyDisplay" class="p-4 rounded-xl bg-slate-50 border border-slate-100 text-sm leading-relaxed space-y-2">
+            <!-- Dynamically populated tokens with color-coded attributions -->
+          </div>
+
+          <div class="flex items-center gap-4 text-[11px] text-slate-500 pt-1">
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-red-100 border border-red-300"></span> Refuted / High Discrepancy</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-emerald-100 border border-emerald-300"></span> Corroborated / Verified</span>
+            <span class="flex items-center gap-1.5"><span class="w-3 h-3 rounded bg-amber-100 border border-amber-300"></span> Ambiguous / Data-Void</span>
+          </div>
+        </div>
+
+        <!-- Adversarial Stress-Test Playground -->
+        <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm space-y-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Adversarial Stress-Test Sandbox</h3>
+              <p class="text-xs text-slate-500 mt-0.5">Simulate TextFooler gradient-guided synonym substitutions</p>
+            </div>
+            <label class="relative inline-flex items-center cursor-pointer">
+              <input type="checkbox" id="adversarialToggle" class="sr-only peer">
+              <div class="w-9 h-5 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-blue-600"></div>
+            </label>
+          </div>
+
+          <div id="adversarialOutput" class="p-3.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono text-slate-600 hidden">
+            <span class="font-bold text-blue-600">Perturbed Input:</span> <span id="perturbedText"></span>
+            <div class="mt-2 text-[11px] text-slate-500 flex items-center justify-between">
+              <span>Semantic Similarity Preservation: <b class="text-slate-800">97.4%</b></span>
+              <span>Model Prediction Stability: <b class="text-emerald-600">STABLE (96.17% F1 Retention)</b></span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right Column: Contextual Nutrition Label & Epistemic Card (5 Cols) -->
+      <div class="lg:col-span-5 space-y-6">
+
+        <!-- FDA-Style Epistemic Nutrition Card -->
+        <div class="bg-white rounded-2xl p-6 border-2 border-slate-900 shadow-md space-y-4">
+          <div class="border-b-4 border-slate-900 pb-2">
+            <h2 class="text-2xl font-black uppercase tracking-tight text-slate-900">Epistemic Facts</h2>
+            <div class="flex items-center justify-between text-xs font-medium text-slate-500">
+              <span>Serving Size: 1 Evaluated Assertion</span>
+              <span>Verified Claims API</span>
+            </div>
+          </div>
+
+          <!-- Verdict Banner -->
+          <div id="verdictBanner" class="p-4 rounded-xl bg-red-50 border border-red-200 flex items-center justify-between">
+            <div>
+              <span class="text-[10px] font-bold uppercase tracking-wider text-red-600">Primary Grounded Verdict</span>
+              <div id="verdictText" class="text-xl font-black text-red-700 tracking-tight">REFUTED (FAKE)</div>
+            </div>
+            <div class="text-right">
+              <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Calibrated Conf.</span>
+              <div id="verdictScore" class="text-xl font-black font-mono text-slate-900 tabular-nums">98.2%</div>
+            </div>
+          </div>
+
+          <!-- 5-Dimension Nutrition Breakdown -->
+          <div class="space-y-3 pt-2 text-xs divide-y divide-slate-100">
+
+            <div class="flex items-center justify-between pt-2">
+              <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-blue-500"></span> Source Authority Weight
+              </span>
+              <span id="authWeight" class="font-mono font-bold text-slate-900 tabular-nums">0.95 / 1.00</span>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-indigo-500"></span> Dense Semantic Alignment (384d)
+              </span>
+              <span id="denseScore" class="font-mono font-bold text-slate-900 tabular-nums">0.862</span>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-purple-500"></span> Temporal Freshness Decay w(t)
+              </span>
+              <span id="temporalDecayVal" class="font-mono font-bold text-slate-900 tabular-nums">0.984 (λ=0.01)</span>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-emerald-500"></span> Fact-Check Stance Agreement
+              </span>
+              <span id="stanceLabel" class="font-bold text-red-600 uppercase">REFUTES</span>
+            </div>
+
+            <div class="flex items-center justify-between pt-2">
+              <span class="font-bold text-slate-700 flex items-center gap-1.5">
+                <span class="w-2 h-2 rounded-full bg-slate-400"></span> Social Cascade [SIMULATED]
+              </span>
+              <span class="font-mono text-slate-500">Viral Shockwave</span>
+            </div>
+
+          </div>
+
+          <!-- Primary Citation Trail -->
+          <div class="pt-3 border-t-2 border-slate-900 space-y-1.5">
+            <span class="text-[10px] font-bold uppercase tracking-wider text-slate-500">Primary Accredited Evidence Citation</span>
+            <div id="citationBox" class="p-3 rounded-lg bg-slate-50 border border-slate-200 text-[11px] leading-relaxed text-slate-700">
+              <b class="text-slate-900" id="citationPublisher">Reuters Fact Check / WHO Bulletin:</b> 
+              <span id="citationSnippet">Comprehensive longitudinal studies prove vaccines contain zero microchips or radio transmitters.</span>
+            </div>
+          </div>
+
+          <!-- Temporal Decay Interactive Slider -->
+          <div class="pt-3 border-t border-slate-200 space-y-2">
+            <div class="flex items-center justify-between text-xs">
+              <span class="font-bold text-slate-700">Dynamic Decay Factor (λ)</span>
+              <span id="lambdaDisplay" class="font-mono text-blue-600 font-bold">0.010 (Health)</span>
+            </div>
+            <input type="range" id="lambdaSlider" min="0.001" max="0.100" step="0.005" value="0.010" class="w-full accent-blue-600 cursor-pointer">
+            <p class="text-[10px] text-slate-400 leading-tight">Controls how aggressively historical fact-checks attenuate over elapsed publication days.</p>
+          </div>
+
+        </div>
+
+        <!-- System Diagnostic Quick Stats -->
+        <div class="bg-white rounded-2xl p-5 border border-slate-200 shadow-sm grid grid-cols-2 gap-4 text-center">
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="text-xs text-slate-400 font-medium">Test Coverage</div>
+            <div class="text-lg font-black font-mono text-slate-900 mt-0.5">70.1%</div>
+            <div class="text-[10px] text-emerald-600 font-semibold">89 Tests Passed</div>
+          </div>
+          <div class="p-3 rounded-xl bg-slate-50 border border-slate-100">
+            <div class="text-xs text-slate-400 font-medium">Inference Latency</div>
+            <div class="text-lg font-black font-mono text-blue-600 mt-0.5">32.6ms</div>
+            <div class="text-[10px] text-slate-500 font-semibold">CPU Local Cache</div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+  </div>
+
+  <!-- Interactive Demo Logic -->
+  <script>
+    const scenarios = {
+      conspiracy: {
+        text: "CDC reports COVID-19 vaccine 5G microchips cause instant cardiac arrest across 45 percent of hospital patients.",
+        domain: "Biomedical",
+        lang: "en",
+        verdict: "REFUTED (FAKE)",
+        verdictClass: "bg-red-50 border-red-200 text-red-700",
+        verdictTextClass: "text-red-700",
+        score: "98.2%",
+        auth: "0.95 / 1.00",
+        dense: "0.862",
+        stance: "REFUTES",
+        stanceColor: "text-red-600",
+        publisher: "Reuters Fact Check / WHO:",
+        snippet: "Comprehensive longitudinal trials prove vaccines contain zero microchips or 5G receivers.",
+        lambda: 0.010,
+        tokens: [
+          { text: "CDC reports", type: "refuted" },
+          { text: "COVID-19 vaccine", type: "neutral" },
+          { text: "5G microchips", type: "refuted" },
+          { text: "cause instant", type: "neutral" },
+          { text: "cardiac arrest", type: "refuted" },
+          { text: "across 45 percent", type: "refuted" },
+          { text: "of hospital patients.", type: "neutral" }
+        ],
+        perturbed: "CDC bulletins state COVID-19 inoculation 5G miniature transmitters trigger immediate heart cessation across 45 percent of patients."
+      },
+      consensus: {
+        text: "U.S. FDA approves updated seasonal booster vaccines following extensive randomized clinical trials.",
+        domain: "Biomedical",
+        lang: "en",
+        verdict: "VERIFIED (REAL)",
+        verdictClass: "bg-emerald-50 border-emerald-200 text-emerald-700",
+        verdictTextClass: "text-emerald-700",
+        score: "96.4%",
+        auth: "0.98 / 1.00",
+        dense: "0.914",
+        stance: "SUPPORTS",
+        stanceColor: "text-emerald-600",
+        publisher: "U.S. Food & Drug Administration:",
+        snippet: "Official regulatory approval granted based on multi-center clinical trials verifying efficacy.",
+        lambda: 0.010,
+        tokens: [
+          { text: "U.S. FDA approves", type: "verified" },
+          { text: "updated seasonal booster", type: "verified" },
+          { text: "following extensive", type: "neutral" },
+          { text: "randomized clinical trials.", type: "verified" }
+        ],
+        perturbed: "U.S. FDA authorizes revised annual booster shots subsequent to exhaustive randomized trials."
+      },
+      satire: {
+        text: "NASA postpones lunar mission after discovering moon is technically private property of local raccoon.",
+        domain: "Satire",
+        lang: "en",
+        verdict: "UNCERTAIN (SATIRE)",
+        verdictClass: "bg-amber-50 border-amber-200 text-amber-700",
+        verdictTextClass: "text-amber-700",
+        score: "88.5%",
+        auth: "0.40 / 1.00",
+        dense: "0.320",
+        stance: "PARODY",
+        stanceColor: "text-amber-600",
+        publisher: "The Onion Editorial:",
+        snippet: "Satirical publication with zero verifiable scientific assertions.",
+        lambda: 0.050,
+        tokens: [
+          { text: "NASA postpones", type: "neutral" },
+          { text: "lunar mission", type: "neutral" },
+          { text: "after discovering moon is", type: "ambiguous" },
+          { text: "private property of local raccoon.", type: "ambiguous" }
+        ],
+        perturbed: "NASA delays lunar flight subsequent to discovering moon is strictly personal estate of raccoon."
+      },
+      datavoid: {
+        text: "Breaking: Unknown luminous purple atmospheric phenomenon detected over Arctic archipelago today.",
+        domain: "Breaking News",
+        lang: "en",
+        verdict: "DATA_VOID (UNCONFIRMED)",
+        verdictClass: "bg-slate-100 border-slate-300 text-slate-800",
+        verdictTextClass: "text-slate-800",
+        score: "0.0%",
+        auth: "0.00 / 1.00",
+        dense: "0.185",
+        stance: "NO_EVIDENCE",
+        stanceColor: "text-slate-500",
+        publisher: "Epistemic Abstention Engine:",
+        snippet: "Zero verified fact-checks found. Similarity < 0.40 threshold. System strictly abstains from guessing.",
+        lambda: 0.100,
+        tokens: [
+          { text: "Breaking:", type: "ambiguous" },
+          { text: "Unknown luminous purple", type: "ambiguous" },
+          { text: "atmospheric phenomenon detected", type: "ambiguous" },
+          { text: "over Arctic archipelago today.", type: "ambiguous" }
+        ],
+        perturbed: "Breaking: Unidentified glowing violet atmospheric event observed above Arctic island cluster."
+      },
+      indic: {
+        text: "पुणे सायबर पोलिसांनी नवीन डिजिटल अटक नियम जारी केले असून व्हॉट्सॲप ग्रुप्सवर बंदी घातली आहे.",
+        domain: "Regional Indic",
+        lang: "mr",
+        verdict: "REFUTED (FAKE)",
+        verdictClass: "bg-red-50 border-red-200 text-red-700",
+        verdictTextClass: "text-red-700",
+        score: "94.6%",
+        auth: "0.90 / 1.00",
+        dense: "0.785",
+        stance: "REFUTES",
+        stanceColor: "text-red-600",
+        publisher: "BoomLive Marathi / Pune Police:",
+        snippet: "पुणे पोलिसांनी असा कोणताही नियम जारी केलेला नाही. हे बनावट परिपत्रक आहे.",
+        lambda: 0.020,
+        tokens: [
+          { text: "पुणे सायबर पोलिसांनी", type: "neutral" },
+          { text: "नवीन डिजिटल अटक नियम", type: "refuted" },
+          { text: "जारी केले असून", type: "neutral" },
+          { text: "व्हॉट्सॲप ग्रुप्सवर बंदी घातली आहे.", type: "refuted" }
+        ],
+        perturbed: "पुणे सायबर विभागाने नवीन डिजिटल अरेस्ट आदेश प्रसिद्ध करून व्हॉट्सॲप समूहांवर प्रतिबंध लावला."
+      }
+    };
+
+    let currentScenario = 'conspiracy';
+
+    function renderTokens(tokens) {
+      const container = document.getElementById('saliencyDisplay');
+      container.innerHTML = '';
+      tokens.forEach(tok => {
+        const span = document.createElement('span');
+        span.textContent = tok.text + ' ';
+        span.className = 'px-1.5 py-0.5 rounded cursor-pointer transition ';
+        if (tok.type === 'refuted') {
+          span.className += 'bg-red-100 text-red-900 border border-red-200 font-semibold';
+        } else if (tok.type === 'verified') {
+          span.className += 'bg-emerald-100 text-emerald-900 border border-emerald-200 font-semibold';
+        } else if (tok.type === 'ambiguous') {
+          span.className += 'bg-amber-100 text-amber-900 border border-amber-200 font-medium';
+        } else {
+          span.className += 'text-slate-700';
+        }
+        container.appendChild(span);
+      });
+    }
+
+    function loadScenario(key) {
+      currentScenario = key;
+      const data = scenarios[key];
+      document.getElementById('claimInput').value = data.text;
+      document.getElementById('domainTag').textContent = data.domain;
+      document.getElementById('langTag').textContent = data.lang;
+
+      // Update Verdict Banner
+      const banner = document.getElementById('verdictBanner');
+      banner.className = `p-4 rounded-xl border flex items-center justify-between ${data.verdictClass}`;
+      document.getElementById('verdictText').textContent = data.verdict;
+      document.getElementById('verdictText').className = `text-xl font-black tracking-tight ${data.verdictTextClass}`;
+      document.getElementById('verdictScore').textContent = data.score;
+
+      // Update Nutrition Card
+      document.getElementById('authWeight').textContent = data.auth;
+      document.getElementById('denseScore').textContent = data.dense;
+      document.getElementById('temporalDecayVal').textContent = `${(1.0 - data.lambda * 2).toFixed(3)} (λ=${data.lambda})`;
+      document.getElementById('stanceLabel').textContent = data.stance;
+      document.getElementById('stanceLabel').className = `font-bold uppercase ${data.stanceColor}`;
+      document.getElementById('citationPublisher').textContent = data.publisher;
+      document.getElementById('citationSnippet').textContent = data.snippet;
+      document.getElementById('lambdaSlider').value = data.lambda;
+      document.getElementById('lambdaDisplay').textContent = `${data.lambda.toFixed(3)} (${data.domain})`;
+
+      renderTokens(data.tokens);
+
+      // Perturbed Text
+      document.getElementById('perturbedText').textContent = data.perturbed;
+      if (document.getElementById('adversarialToggle').checked) {
+        document.getElementById('adversarialOutput').classList.remove('hidden');
+      }
+    }
+
+    // Event Listeners
+    document.getElementById('verifyBtn').addEventListener('click', () => {
+      loadScenario(currentScenario);
+    });
+
+    document.getElementById('adversarialToggle').addEventListener('change', (e) => {
+      const out = document.getElementById('adversarialOutput');
+      if (e.target.checked) {
+        out.classList.remove('hidden');
+      } else {
+        out.classList.add('hidden');
+      }
+    });
+
+    document.getElementById('lambdaSlider').addEventListener('input', (e) => {
+      const val = parseFloat(e.target.value);
+      document.getElementById('lambdaDisplay').textContent = `${val.toFixed(3)}`;
+      document.getElementById('temporalDecayVal').textContent = `${(1.0 - val * 2).toFixed(3)} (λ=${val.toFixed(3)})`;
+    });
+
+    // Theme Toggle
+    document.getElementById('themeToggle').addEventListener('click', () => {
+      document.documentElement.classList.toggle('dark');
+      if (document.documentElement.classList.contains('dark')) {
+        document.body.classList.replace('bg-[#F8FAFC]', 'bg-[#0B0F17]');
+        document.body.classList.replace('text-[#0F172A]', 'text-[#F1F5F9]');
+      } else {
+        document.body.classList.replace('bg-[#0B0F17]', 'bg-[#F8FAFC]');
+        document.body.classList.replace('text-[#F1F5F9]', 'text-[#0F172A]');
+      }
+    });
+
+    // Initial Render
+    loadScenario('conspiracy');
+  </script>
+</body>
+</html>
