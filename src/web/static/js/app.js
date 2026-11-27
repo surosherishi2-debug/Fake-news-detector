@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
   }
 
   // =========================================================================
-  // Finnova Enterprise Toast Notification Controller
+  // Toast Notification Controller
   // =========================================================================
   function showToast(message, type = 'info', duration = 4000) {
     let container = document.getElementById('toast-container');
@@ -41,16 +41,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const toast = document.createElement('div');
     toast.className = `toast-item toast-${type}`;
 
-    const iconMap = {
-      success: '✅',
-      error: '❌',
-      warning: '⚠️',
-      info: 'ℹ️'
+    const labelMap = {
+      success: 'OK',
+      error: 'ERR',
+      warning: 'WARN',
+      info: 'INFO'
     };
-    const icon = iconMap[type] || 'ℹ️';
+    const badgeColorMap = {
+      success: 'text-[#15803d]',
+      error: 'text-[#b91c1c]',
+      warning: 'text-[#b45309]',
+      info: 'text-[#1d4ed8]'
+    };
+    const label = labelMap[type] || 'INFO';
+    const badgeColor = badgeColorMap[type] || 'text-[#525252]';
 
     toast.innerHTML = `
-      <span class="toast-icon">${icon}</span>
+      <span class="font-mono text-[11px] font-medium ${badgeColor} pt-0.5">${label}</span>
       <div class="toast-content">${escapeHtml(message)}</div>
       <button class="toast-close-btn" aria-label="Close notification">&times;</button>
     `;
@@ -60,7 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
       toast.classList.add('toast-closing');
       setTimeout(() => {
         if (toast.parentElement) toast.remove();
-      }, 200);
+      }, 180);
     };
 
     closeBtn?.addEventListener('click', dismiss);
@@ -72,10 +79,47 @@ document.addEventListener('DOMContentLoaded', () => {
   }
   window.showToast = showToast;
 
+  window.toggleMobileSidebar = function(open) {
+    const sidebar = document.getElementById('app-sidebar');
+    const backdrop = document.getElementById('mobile-sidebar-backdrop');
+    if (!sidebar) return;
+    if (open) {
+      sidebar.classList.remove('-translate-x-full');
+      backdrop?.classList.remove('hidden');
+    } else {
+      sidebar.classList.add('-translate-x-full');
+      backdrop?.classList.add('hidden');
+    }
+  };
+
+  window.copyApiKey = function() {
+    const input = document.getElementById('api-key-input');
+    if (input && navigator.clipboard) {
+      navigator.clipboard.writeText(input.value).catch(() => {});
+    }
+    showToast('API key copied to clipboard', 'success');
+  };
+
   const tabButtons = document.querySelectorAll('.nav-tab-btn');
   const pageSections = document.querySelectorAll('.page-view');
   const roleBadge = document.getElementById('user-role-badge');
   const authModal = document.getElementById('auth-modal');
+
+  const TAB_TITLES = {
+    dashboard: 'Dashboard',
+    verify: 'Fact-checker',
+    feed: 'Live stream',
+    graph: 'Network graph',
+    cascades: 'Cascade radar',
+    models: 'Model ladder',
+    preflight: 'Pre-flight studio',
+    forensics: 'Synthetic forensics',
+    consensus: 'Consensus notes',
+    guide: 'Dossier & PDF',
+    auth: 'Access & roles',
+    landing: 'Platform overview',
+    profile: 'Preferences'
+  };
 
   // Navigation Routing
   function initRouting() {
@@ -106,39 +150,14 @@ document.addEventListener('DOMContentLoaded', () => {
     state.activeTab = tabName;
     window.location.hash = tabName;
 
-    // Update Top Navigation Tab & Dropdown Button Styles
+    const topTitle = document.getElementById('topbar-view-title');
+    if (topTitle) topTitle.innerText = TAB_TITLES[tabName] || 'Dashboard';
+
+    // Update Sidebar Navigation Buttons
     const allNavButtons = document.querySelectorAll('.nav-tab-btn');
     allNavButtons.forEach((btn) => {
       const target = btn.getAttribute('data-tab');
-      const isDropdownItem = btn.classList.contains('nav-dropdown-item');
-
-      if (target === tabName) {
-        if (isDropdownItem) {
-          btn.classList.add('is-active', 'bg-indigo-600', 'text-white');
-        } else {
-          btn.className = 'nav-tab-btn px-4 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600 text-white shadow-xs whitespace-nowrap';
-        }
-      } else {
-        if (isDropdownItem) {
-          btn.classList.remove('is-active', 'bg-indigo-600', 'text-white');
-        } else {
-          btn.className = 'nav-tab-btn px-3.5 py-1.5 rounded-full text-xs font-medium transition text-slate-400 hover:text-slate-200 whitespace-nowrap';
-        }
-      }
-    });
-
-    // Highlight active dropdown group trigger
-    const groupContainers = document.querySelectorAll('.nav-dropdown-group');
-    groupContainers.forEach((group) => {
-      const activeChild = group.querySelector(`[data-tab="${tabName}"]`);
-      const triggerBtn = group.querySelector('.nav-group-trigger');
-      if (triggerBtn) {
-        if (activeChild) {
-          triggerBtn.className = 'nav-group-trigger px-3.5 py-1.5 rounded-full text-xs font-semibold transition bg-indigo-600/30 text-indigo-300 border border-indigo-500/40 flex items-center gap-1 shadow-xs';
-        } else {
-          triggerBtn.className = 'nav-group-trigger px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white flex items-center gap-1 transition';
-        }
-      }
+      btn.classList.toggle('is-active', target === tabName);
     });
 
     // Update Page Views
@@ -156,7 +175,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tabName === 'feed') loadDailyFeed();
     if (tabName === 'graph') loadLivingKnowledgeGraph();
     if (tabName === 'guide') loadBenchmarks();
-    if (tabName === 'cascades') setTimeout(() => initCascadePage(), 100);
+    if (tabName === 'cascades') setTimeout(() => initCascadePage(), 80);
     if (tabName === 'forensics') {
       const fInput = document.getElementById('forensics-text');
       if (fInput && !fInput.value) {
@@ -185,35 +204,75 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     try {
-      // 1. Veracity Donut Chart
-      const donutElem = document.getElementById('chart-veracity-donut');
-      if (donutElem) {
-        const donutCtx = donutElem.getContext('2d');
-        if (chartInstances.donut) chartInstances.donut.destroy();
-        chartInstances.donut = new Chart(donutCtx, {
-          type: 'doughnut',
+      Chart.defaults.font.family = '"IBM Plex Sans", sans-serif';
+      Chart.defaults.color = '#737373';
+
+      // 1. ECE Calibration Reliability Curve (Lead Chart)
+      const eceElem = document.getElementById('chart-ece-curve');
+      if (eceElem) {
+        const eceCtx = eceElem.getContext('2d');
+        if (chartInstances.ece) chartInstances.ece.destroy();
+        chartInstances.ece = new Chart(eceCtx, {
+          type: 'line',
           data: {
-            labels: ['Verified True', 'Refuted False', 'Uncertain / Satire', 'Data Void'],
-            datasets: [{
-              data: [42.1, 38.6, 9.3, 10.0],
-              backgroundColor: ['#10B981', '#EF4444', '#F59E0B', '#94A3B8'],
-              borderWidth: 2,
-              borderColor: '#FFFFFF',
-              hoverOffset: 4
-            }]
+            labels: ['0.0', '0.2', '0.4', '0.6', '0.8', '1.0'],
+            datasets: [
+              {
+                label: 'Ideal (y = x)',
+                data: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
+                borderColor: '#d4d4d8',
+                borderDash: [4, 4],
+                borderWidth: 1.5,
+                fill: false,
+                pointRadius: 0
+              },
+              {
+                label: 'MiniLM-L6 (ECE 0.112)',
+                data: [0.05, 0.22, 0.41, 0.58, 0.77, 0.94],
+                borderColor: '#1d4ed8',
+                backgroundColor: 'rgba(29, 78, 216, 0.06)',
+                borderWidth: 2.5,
+                pointRadius: 3,
+                pointBackgroundColor: '#1d4ed8',
+                fill: false,
+                tension: 0.15
+              },
+              {
+                label: 'TF-IDF Baseline (ECE 0.142)',
+                data: [0.10, 0.29, 0.48, 0.69, 0.85, 0.98],
+                borderColor: '#737373',
+                borderWidth: 1.5,
+                pointRadius: 2,
+                pointBackgroundColor: '#737373',
+                fill: false,
+                tension: 0.15
+              }
+            ]
           },
           options: {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: { display: false },
-              tooltip: {
-                callbacks: {
-                  label: (ctx) => ` ${ctx.label}: ${ctx.raw}% (${Math.round(ctx.raw * 29.31)} samples)`
-                }
+              legend: {
+                position: 'top',
+                align: 'end',
+                labels: { boxWidth: 12, usePointStyle: true, font: { size: 11 } }
               }
             },
-            cutout: '68%'
+            scales: {
+              y: {
+                min: 0,
+                max: 1.0,
+                grid: { color: 'rgba(23, 23, 23, 0.06)' },
+                title: { display: true, text: 'Observed accuracy', font: { size: 11 } },
+                ticks: { font: { family: '"JetBrains Mono", monospace', size: 11 } }
+              },
+              x: {
+                grid: { display: false },
+                title: { display: true, text: 'Predicted confidence', font: { size: 11 } },
+                ticks: { font: { family: '"JetBrains Mono", monospace', size: 11 } }
+              }
+            }
           }
         });
       }
@@ -230,21 +289,22 @@ document.addEventListener('DOMContentLoaded', () => {
             datasets: [
               {
                 type: 'line',
-                label: 'Median Latency (ms)',
+                label: 'Median latency (ms)',
                 data: [31, 32, 29, 36, 42, 38, 44, 33],
-                borderColor: '#6366F1',
-                backgroundColor: 'rgba(99, 102, 241, 0.1)',
+                borderColor: '#1d4ed8',
                 borderWidth: 2,
+                pointRadius: 2.5,
+                pointBackgroundColor: '#1d4ed8',
                 yAxisID: 'y1',
-                tension: 0.3,
-                fill: true
+                tension: 0.25,
+                fill: false
               },
               {
                 type: 'bar',
-                label: 'Claims Processed',
+                label: 'Claims processed',
                 data: [18, 12, 24, 65, 88, 72, 94, 62],
-                backgroundColor: 'rgba(15, 23, 42, 0.75)',
-                borderRadius: 6,
+                backgroundColor: 'rgba(23, 23, 23, 0.78)',
+                borderRadius: 4,
                 yAxisID: 'y'
               }
             ]
@@ -253,92 +313,29 @@ document.addEventListener('DOMContentLoaded', () => {
             responsive: true,
             maintainAspectRatio: false,
             plugins: {
-              legend: { position: 'top', labels: { boxWidth: 12, font: { size: 10, family: 'Plus Jakarta Sans' } } }
-            },
-            scales: {
-              y: { type: 'linear', position: 'left', grid: { color: 'rgba(226, 232, 240, 0.6)' }, ticks: { font: { size: 10 } } },
-              y1: { type: 'linear', position: 'right', grid: { display: false }, ticks: { font: { size: 10 } } },
-              x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-            }
-          }
-        });
-      }
-
-      // 3. Domain Disparity Bar Chart
-      const domainElem = document.getElementById('chart-domain-bar');
-      if (domainElem) {
-        const domainCtx = domainElem.getContext('2d');
-        if (chartInstances.domain) chartInstances.domain.destroy();
-        chartInstances.domain = new Chart(domainCtx, {
-          type: 'bar',
-          data: {
-            labels: ['Healthcare (CoAID)', 'Politics (LIAR-Plus)', 'General (FEVER)', 'Indic (Hindi/Marathi)'],
-            datasets: [{
-              label: 'Macro-F1 Score (%)',
-              data: [74.18, 55.40, 53.60, 100.0],
-              backgroundColor: ['#10B981', '#3B82F6', '#8B5CF6', '#F59E0B'],
-              borderRadius: 6
-            }]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: { legend: { display: false } },
-            scales: {
-              y: { min: 0, max: 105, grid: { color: 'rgba(226, 232, 240, 0.6)' }, ticks: { font: { size: 10 } } },
-              x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-            }
-          }
-        });
-      }
-
-      // 4. ECE Calibration Reliability Curve
-      const eceElem = document.getElementById('chart-ece-curve');
-      if (eceElem) {
-        const eceCtx = eceElem.getContext('2d');
-        if (chartInstances.ece) chartInstances.ece.destroy();
-        chartInstances.ece = new Chart(eceCtx, {
-          type: 'line',
-          data: {
-            labels: ['0.0', '0.2', '0.4', '0.6', '0.8', '1.0'],
-            datasets: [
-              {
-                label: 'Ideal (y=x)',
-                data: [0.0, 0.2, 0.4, 0.6, 0.8, 1.0],
-                borderColor: '#94A3B8',
-                borderDash: [5, 5],
-                borderWidth: 1.5,
-                fill: false,
-                pointRadius: 0
-              },
-              {
-                label: 'MiniLM-L6 (ECE=0.112)',
-                data: [0.05, 0.22, 0.41, 0.58, 0.77, 0.94],
-                borderColor: '#10B981',
-                backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                borderWidth: 2,
-                fill: false,
-                tension: 0.1
-              },
-              {
-                label: 'TF-IDF (ECE=0.142)',
-                data: [0.10, 0.29, 0.48, 0.69, 0.85, 0.98],
-                borderColor: '#EF4444',
-                borderWidth: 1.5,
-                fill: false,
-                tension: 0.1
+              legend: {
+                position: 'top',
+                align: 'end',
+                labels: { boxWidth: 10, font: { size: 11 } }
               }
-            ]
-          },
-          options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-              legend: { position: 'top', labels: { boxWidth: 12, font: { size: 10 } } }
             },
             scales: {
-              y: { min: 0, max: 1.0, title: { display: true, text: 'True Accuracy', font: { size: 10 } }, ticks: { font: { size: 10 } } },
-              x: { min: 0, max: 1.0, title: { display: true, text: 'Predicted Confidence', font: { size: 10 } }, ticks: { font: { size: 10 } } }
+              y: {
+                type: 'linear',
+                position: 'left',
+                grid: { color: 'rgba(23, 23, 23, 0.06)' },
+                ticks: { font: { family: '"JetBrains Mono", monospace', size: 11 } }
+              },
+              y1: {
+                type: 'linear',
+                position: 'right',
+                grid: { display: false },
+                ticks: { font: { family: '"JetBrains Mono", monospace', size: 11 } }
+              },
+              x: {
+                grid: { display: false },
+                ticks: { font: { family: '"JetBrains Mono", monospace', size: 11 } }
+              }
             }
           }
         });
@@ -394,11 +391,11 @@ document.addEventListener('DOMContentLoaded', () => {
       const score = (data.nutrition_card?.factual_grounding_score ?? ((data.confidence_score ?? 0.85) * 100)).toFixed(1);
       const verdict = data.verdict?.value || data.verdict || 'VERIFIED';
       
-      let badgeClass = 'px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-300';
+      let badgeClass = 'px-2 py-0.5 rounded text-xs font-mono font-medium bg-[#f0fdf4] text-[#15803d] border border-[#15803d]/20';
       if (verdict === 'DEBUNKED' || verdict === 'FAKE') {
-        badgeClass = 'px-3 py-1 rounded-full text-xs font-bold bg-rose-100 text-rose-800 border border-rose-300';
+        badgeClass = 'px-2 py-0.5 rounded text-xs font-mono font-medium bg-[#fef2f2] text-[#b91c1c] border border-[#b91c1c]/20';
       } else if (verdict === 'UNCERTAIN' || verdict === 'DATA_VOID') {
-        badgeClass = 'px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-300';
+        badgeClass = 'px-2 py-0.5 rounded text-xs font-mono font-medium bg-[#fffbeb] text-[#b45309] border border-[#b45309]/20';
       }
 
       if (badgeEl) {
@@ -407,30 +404,30 @@ document.addEventListener('DOMContentLoaded', () => {
       }
       if (scoreEl) {
         scoreEl.innerText = `${score}%`;
-        scoreEl.className = score >= 70 ? 'text-emerald-600 font-mono text-sm' : 'text-rose-600 font-mono text-sm';
+        scoreEl.className = score >= 70 ? 'text-[#15803d] font-mono text-xs' : 'text-[#b91c1c] font-mono text-xs';
       }
 
       if (sentencesEl) {
         const alignments = data.alignments || [];
         if (alignments.length > 0) {
           sentencesEl.innerHTML = alignments.map(a => `
-            <div class="space-y-0.5">
-              <span class="px-1.5 py-0.5 rounded ${a.stance === 'VERIFIED' ? 'bg-emerald-50 text-emerald-800 border-b-2 border-emerald-500' : 'bg-rose-50 text-rose-800 border-b-2 border-rose-500'} font-medium">
+            <div class="space-y-1">
+              <span class="claim-sentence-span ${a.stance === 'VERIFIED' ? 'claim-sentence-verified' : 'claim-sentence-refuted'}">
                 "${escapeHtml(a.claim?.text || text)}"
               </span>
-              <p class="text-[11px] text-slate-500 pt-0.5">
-                <b>Citation:</b> ${escapeHtml(a.evidence?.source_title || 'IFCN Accredited Evidence Archive')} (Alignment: ${(a.alignment_score * 100).toFixed(0)}%)
+              <p class="text-xs text-[#737373] pt-0.5">
+                Citation: <span class="text-[#171717]">${escapeHtml(a.evidence?.source_title || 'IFCN Evidence Archive')}</span> (${(a.alignment_score * 100).toFixed(0)}%)
               </p>
             </div>
           `).join('');
         } else {
           sentencesEl.innerHTML = `
-            <div class="space-y-0.5">
-              <span class="px-1.5 py-0.5 rounded bg-emerald-50 text-emerald-800 border-b-2 border-emerald-500 font-medium">
+            <div class="space-y-1">
+              <span class="claim-sentence-span claim-sentence-verified">
                 "${escapeHtml(text)}"
               </span>
-              <p class="text-[11px] text-slate-500 pt-0.5">
-                <b>Citation:</b> Primary Fact Check Archive (Entailment: ${score}%)
+              <p class="text-xs text-[#737373] pt-0.5">
+                Citation: Primary Fact Check Archive (${score}%)
               </p>
             </div>
           `;
@@ -441,7 +438,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } catch (err) {
       showToast('Landing verification error: ' + err.message, 'error');
     } finally {
-      if (btnText) btnText.innerText = 'Check Facts Now';
+      if (btnText) btnText.innerText = 'Check claim';
       if (btn) btn.disabled = false;
     }
   };
@@ -457,7 +454,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const dossier = document.getElementById('feed-active-dossier');
     if (!container) return;
 
-    container.innerHTML = '<div class="p-8 text-center text-slate-400">Loading verified epistemic daily stream...</div>';
+    container.innerHTML = '<div class="p-8 text-center text-sm text-[#737373]">Loading epistemic stream</div>';
 
     const category = document.getElementById('feed-filter-category')?.value || 'All';
     const status = document.getElementById('feed-filter-status')?.value || 'All';
@@ -480,9 +477,9 @@ document.addEventListener('DOMContentLoaded', () => {
     statusPills.forEach(pill => {
       const pStatus = pill.getAttribute('data-status');
       if (pStatus === status) {
-        pill.className = 'feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-600 text-white shadow-xs transition';
+        pill.className = 'feed-status-pill px-3 py-1 rounded-md text-xs font-medium bg-white text-[#171717] border border-[#171717]/[0.08] transition-colors';
       } else {
-        pill.className = 'feed-status-pill px-3.5 py-1.5 rounded-full text-xs font-semibold text-slate-400 hover:text-white transition';
+        pill.className = 'feed-status-pill px-3 py-1 rounded-md text-xs font-normal text-[#525252] hover:text-[#171717] transition-colors';
       }
     });
 
@@ -492,106 +489,93 @@ document.addEventListener('DOMContentLoaded', () => {
       const data = await resp.json();
       state.feedArticles = data.articles || [];
 
-      // Update Top KPI Cards dynamically if elements exist
       updateFeedKpiCards(state.feedArticles);
 
-      // Update Article Total Badge
       const totalBadge = document.getElementById('feed-article-total-badge');
       if (totalBadge) totalBadge.innerText = `${state.feedArticles.length} loaded`;
 
       if (state.feedArticles.length === 0) {
         container.innerHTML = `
-          <div class="p-8 text-center bg-[#131A2B] rounded-2xl border border-slate-800 space-y-3">
-            <div class="text-3xl text-slate-400">🔍</div>
-            <div class="text-sm font-bold text-white">No stories match active filters</div>
-            <p class="text-xs text-slate-400">Try broadening your search term or category filter.</p>
-            <button onclick="resetFeedFilters()" class="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-semibold transition">
-              Reset All Filters
+          <div class="p-8 text-center bg-[#fafafa] rounded-xl border border-[#171717]/[0.08] space-y-3">
+            <div class="text-sm font-medium text-[#171717]">No stories match active filters</div>
+            <p class="text-xs text-[#737373]">Adjust your search query or clear category filters.</p>
+            <button onclick="resetFeedFilters()" class="h-8 px-3 bg-[#171717] hover:bg-[#262626] text-white rounded-lg text-xs font-medium transition-colors">
+              Reset filters
             </button>
           </div>
         `;
         if (dossier) {
           dossier.innerHTML = `
-            <div class="p-12 text-center text-slate-400 space-y-2">
-              <div class="text-4xl text-slate-600">📄</div>
-              <h3 class="text-base font-bold text-white">No Active Article Selected</h3>
-              <p class="text-xs text-slate-400">Select an article from the left list once search filters are reset.</p>
+            <div class="p-12 text-center text-[#737373] space-y-2">
+              <div class="text-sm font-medium text-[#171717]">No story selected</div>
+              <p class="text-xs text-[#737373]">Reset filters to load stories from the stream.</p>
             </div>
           `;
         }
         return;
       }
 
-      // Check if previously selected article is still in filtered results
       if (!state.selectedFeedArticleId || !state.feedArticles.some(a => a.id === state.selectedFeedArticleId)) {
         state.selectedFeedArticleId = state.feedArticles[0].id;
       }
 
-      // Render Left Articles List
       container.innerHTML = state.feedArticles.map(art => {
         const isSelected = art.id === state.selectedFeedArticleId;
-        const cardBg = isSelected 
-          ? 'bg-[#2E2A5C] border-indigo-500 ring-1 ring-indigo-500/80 shadow-md text-white' 
-          : 'bg-[#1C1E32] hover:bg-[#232640] border-white/5 text-slate-200';
+        const cardBg = isSelected
+          ? 'bg-[#f4f4f5] border-[#171717]/[0.14] border-l-2 border-l-[#1d4ed8]'
+          : 'bg-white hover:bg-[#fafafa] border-[#171717]/[0.08]';
 
-        let statusBadge = 'bg-emerald-950/60 text-emerald-400 border-emerald-800/60';
-        let statusIcon = '<span class="w-1.5 h-1.5 rounded-full bg-emerald-400 inline-block"></span> Verified';
-        let truthColor = 'text-emerald-400';
+        let statusBadge = 'bg-[#f0fdf4] text-[#15803d] border-[#15803d]/20';
+        let statusIcon = 'Verified';
+        let truthColor = 'text-[#15803d]';
 
         if (art.status === 'FAKE') {
-          statusBadge = 'bg-rose-950/60 text-rose-400 border-rose-800/60';
-          statusIcon = '<span class="w-1.5 h-1.5 rounded-full bg-rose-400 inline-block"></span> Debunked';
-          truthColor = 'text-rose-400';
+          statusBadge = 'bg-[#fef2f2] text-[#b91c1c] border-[#b91c1c]/20';
+          statusIcon = 'Debunked';
+          truthColor = 'text-[#b91c1c]';
         } else if (art.status === 'SATIRE') {
-          statusBadge = 'bg-indigo-950/60 text-indigo-300 border-indigo-800/60';
-          statusIcon = '<span class="w-1.5 h-1.5 rounded-full bg-indigo-400 inline-block"></span> Satire';
-          truthColor = 'text-indigo-400';
+          statusBadge = 'bg-[#f4f4f5] text-[#525252] border-[#171717]/[0.12]';
+          statusIcon = 'Satire';
+          truthColor = 'text-[#525252]';
         } else if (art.status === 'SYNTHETIC') {
-          statusBadge = 'bg-sky-950/60 text-sky-400 border-sky-800/60';
-          statusIcon = '<span class="w-1.5 h-1.5 rounded-full bg-sky-400 inline-block"></span> Synthetic';
-          truthColor = 'text-sky-400';
+          statusBadge = 'bg-[#f4f4f5] text-[#1d4ed8] border-[#1d4ed8]/20';
+          statusIcon = 'Synthetic';
+          truthColor = 'text-[#1d4ed8]';
         } else if (art.status === 'DATA_VOID') {
-          statusBadge = 'bg-amber-950/60 text-amber-400 border-amber-800/60';
-          statusIcon = '<span class="w-1.5 h-1.5 rounded-full bg-amber-400 inline-block"></span> Unconfirmed';
-          truthColor = 'text-amber-400';
+          statusBadge = 'bg-[#fffbeb] text-[#b45309] border-[#b45309]/20';
+          statusIcon = 'Data void';
+          truthColor = 'text-[#b45309]';
         }
 
-        const langBadge = art.language === 'mr' ? 'मराठी' : (art.language === 'hi' ? 'हिन्दी' : 'EN');
+        const langBadge = art.language === 'mr' ? 'MR' : (art.language === 'hi' ? 'HI' : 'EN');
         const shortId = art.id.length > 14 ? art.id.substring(0, 14) + '...' : art.id;
-        const pubInitial = (art.publisher || 'TL').substring(0, 2).toUpperCase();
 
         return `
-          <div onclick="selectFeedArticle('${art.id}')" class="p-4 rounded-2xl border ${cardBg} cursor-pointer transition-all duration-150 space-y-2.5">
-            <div class="flex items-center justify-between text-xs">
-              <div class="flex items-center gap-1.5">
-                <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold border ${statusBadge}">${statusIcon}</span>
-                <span class="px-2 py-0.5 rounded-full bg-white/10 text-slate-300 font-mono text-[9px] font-bold border border-white/5">${langBadge}</span>
-                <span class="px-2 py-0.5 rounded-full bg-white/5 text-slate-400 text-[9px] font-medium hidden sm:inline-block">${art.category || 'News'}</span>
+          <button onclick="selectFeedArticle('${art.id}')" class="w-full text-left p-4 rounded-xl border ${cardBg} transition-colors space-y-2 block">
+            <div class="flex items-center justify-between text-xs gap-2">
+              <div class="flex items-center gap-1.5 flex-wrap">
+                <span class="px-2 py-0.5 rounded font-mono text-[11px] border ${statusBadge}">${statusIcon}</span>
+                <span class="px-1.5 py-0.5 rounded bg-[#f4f4f5] text-[#525252] font-mono text-[11px]">${langBadge}</span>
+                <span class="text-xs text-[#737373] hidden sm:inline">${escapeHtml(art.category || 'News')}</span>
               </div>
-              <span class="text-[11px] font-mono text-slate-400">${shortId}</span>
+              <span class="text-xs font-mono text-[#737373]">${shortId}</span>
             </div>
-            <h4 class="text-xs font-semibold text-slate-100 line-clamp-2 leading-snug">${art.title}</h4>
-            <div class="flex items-center justify-between text-[11px] pt-1.5 border-t border-white/10 text-slate-400">
-              <div class="flex items-center gap-2 truncate max-w-[200px]">
-                <div class="w-5 h-5 rounded-full bg-indigo-600/40 text-indigo-200 border border-indigo-400/30 flex items-center justify-center font-bold text-[9px]">
-                  ${pubInitial}
-                </div>
-                <span class="truncate text-slate-300 font-medium">${art.publisher}</span>
-              </div>
-              <span class="tabular font-semibold ${truthColor}">${art.truth_score}% Integrity</span>
+            <div class="text-sm font-medium text-[#171717] line-clamp-2 leading-snug">${escapeHtml(art.title)}</div>
+            <div class="flex items-center justify-between text-xs pt-2 border-t border-[#171717]/[0.06] text-[#525252]">
+              <span class="truncate max-w-[200px]">${escapeHtml(art.publisher)}</span>
+              <span class="font-mono tabular-nums ${truthColor}">${art.truth_score}%</span>
             </div>
-          </div>
+          </button>
         `;
       }).join('');
 
-      // Render Right Inspection Dossier
       const activeArt = state.feedArticles.find(a => a.id === state.selectedFeedArticleId) || state.feedArticles[0];
       if (activeArt) {
         renderActiveDossier(activeArt);
       }
 
     } catch (err) {
-      container.innerHTML = `<div class="p-8 text-center text-rose-400">Failed to load feed: ${err.message}</div>`;
+      container.innerHTML = `<div class="p-8 text-center text-sm text-[#b91c1c]">Failed to load feed: ${escapeHtml(err.message)}</div>`;
     }
   }
 
@@ -652,16 +636,15 @@ document.addEventListener('DOMContentLoaded', () => {
     const activeArt = state.feedArticles.find(a => a.id === artId);
     if (activeArt) {
       renderActiveDossier(activeArt);
-      // Update left card selection visual without full reload
       const container = document.getElementById('feed-articles-container');
       if (container) {
         const cards = container.children;
         state.feedArticles.forEach((art, idx) => {
           if (cards[idx]) {
             if (art.id === artId) {
-              cards[idx].className = 'p-4 rounded-2xl border bg-[#2E2A5C] border-indigo-500 ring-1 ring-indigo-500/80 shadow-md text-white cursor-pointer transition-all duration-150 space-y-2';
+              cards[idx].className = 'w-full text-left p-4 rounded-xl border bg-[#f4f4f5] border-[#171717]/[0.14] border-l-2 border-l-[#1d4ed8] transition-colors space-y-2 block';
             } else {
-              cards[idx].className = 'p-4 rounded-2xl border bg-[#1C1E32] hover:bg-[#232640] border-white/5 text-slate-200 cursor-pointer transition-all duration-150 space-y-2';
+              cards[idx].className = 'w-full text-left p-4 rounded-xl border bg-white hover:bg-[#fafafa] border-[#171717]/[0.08] transition-colors space-y-2 block';
             }
           }
         });
@@ -673,145 +656,107 @@ document.addEventListener('DOMContentLoaded', () => {
     const dossier = document.getElementById('feed-active-dossier');
     if (!dossier) return;
 
-    let statusBadge = 'bg-emerald-500/20 text-emerald-300 border-emerald-500/40';
-    let statusLabel = '<span class="w-2 h-2 rounded-full bg-emerald-400 inline-block mr-1"></span> Verified Ground Truth';
-    let truthColor = 'text-emerald-400';
+    let statusBadge = 'bg-[#f0fdf4] text-[#15803d] border-[#15803d]/20';
+    let statusLabel = 'Verified ground truth';
+    let truthColor = 'text-[#15803d]';
 
     if (art.status === 'FAKE') {
-      statusBadge = 'bg-rose-500/20 text-rose-300 border-rose-500/40';
-      statusLabel = '<span class="w-2 h-2 rounded-full bg-rose-400 inline-block mr-1"></span> Debunked Misinformation';
-      truthColor = 'text-rose-400';
+      statusBadge = 'bg-[#fef2f2] text-[#b91c1c] border-[#b91c1c]/20';
+      statusLabel = 'Debunked misinformation';
+      truthColor = 'text-[#b91c1c]';
     } else if (art.status === 'SATIRE') {
-      statusBadge = 'bg-indigo-500/20 text-indigo-300 border-indigo-500/40';
-      statusLabel = '<span class="w-2 h-2 rounded-full bg-indigo-400 inline-block mr-1"></span> Satirical Parody';
-      truthColor = 'text-indigo-400';
+      statusBadge = 'bg-[#f4f4f5] text-[#525252] border-[#171717]/[0.12]';
+      statusLabel = 'Satirical parody';
+      truthColor = 'text-[#525252]';
     } else if (art.status === 'SYNTHETIC') {
-      statusBadge = 'bg-sky-500/20 text-sky-300 border-sky-500/40';
-      statusLabel = '<span class="w-2 h-2 rounded-full bg-sky-400 inline-block mr-1"></span> AI Synthetic Text';
-      truthColor = 'text-sky-400';
+      statusBadge = 'bg-[#f4f4f5] text-[#1d4ed8] border-[#1d4ed8]/20';
+      statusLabel = 'Synthetic text';
+      truthColor = 'text-[#1d4ed8]';
     } else if (art.status === 'DATA_VOID') {
-      statusBadge = 'bg-amber-500/20 text-amber-300 border-amber-500/40';
-      statusLabel = '<span class="w-2 h-2 rounded-full bg-amber-400 inline-block mr-1"></span> Breaking Data-Void';
-      truthColor = 'text-amber-400';
+      statusBadge = 'bg-[#fffbeb] text-[#b45309] border-[#b45309]/20';
+      statusLabel = 'Breaking data-void';
+      truthColor = 'text-[#b45309]';
     }
 
     const claims = art.claims || [];
     const claimsHtml = claims.length > 0 ? claims.map(c => {
       const isRefuted = c.status === 'REFUTED' || art.status === 'FAKE';
-      const cIcon = isRefuted 
-        ? '<div class="w-5 h-5 rounded-full bg-rose-500/20 border border-rose-500/40 flex items-center justify-center text-rose-400 flex-shrink-0"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"></path></svg></div>'
-        : (c.status === 'DATA_VOID'
-          ? '<div class="w-5 h-5 rounded-full bg-amber-500/20 border border-amber-500/40 flex items-center justify-center text-amber-400 flex-shrink-0"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg></div>'
-          : '<div class="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center text-emerald-400 flex-shrink-0"><svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path></svg></div>');
-      
+      const markerColor = isRefuted ? 'text-[#b91c1c]' : (c.status === 'DATA_VOID' ? 'text-[#b45309]' : 'text-[#15803d]');
+      const markerLabel = isRefuted ? 'REFUTED' : (c.status === 'DATA_VOID' ? 'VOID' : 'VERIFIED');
+
       return `
-        <div class="p-3.5 rounded-2xl bg-[#151624]/80 border border-white/10 flex items-start gap-3">
-          <div class="mt-0.5">${cIcon}</div>
-          <div class="space-y-1 flex-1 min-w-0">
-            <p class="text-xs text-slate-100 font-medium leading-relaxed">${c.text}</p>
-            <div class="text-[10px] text-slate-400 flex items-center justify-between pt-1 border-t border-white/5 flex-wrap gap-1">
-              <span>Citation: <b class="text-indigo-300 font-semibold">${c.citation || 'IFCN Accredited Archive'}</b></span>
-              <span class="font-mono text-slate-400">Worthiness: ${(c.check_worthiness * 100).toFixed(0)}%</span>
-            </div>
+        <div class="p-3.5 rounded-lg bg-white border border-[#171717]/[0.08] space-y-1.5">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-mono font-medium ${markerColor}">${markerLabel}</span>
+            <span class="font-mono text-[#737373]">Worthiness: ${(c.check_worthiness * 100).toFixed(0)}%</span>
+          </div>
+          <p class="text-sm text-[#171717] leading-relaxed">${escapeHtml(c.text)}</p>
+          <div class="text-xs text-[#737373]">
+            Citation: <span class="text-[#525252]">${escapeHtml(c.citation || 'IFCN Accredited Archive')}</span>
           </div>
         </div>
       `;
-    }).join('') : '<div class="text-xs text-slate-400 italic p-3">No decomposed claims recorded for this entry.</div>';
+    }).join('') : '<div class="text-xs text-[#737373] p-3">No decomposed claims recorded for this entry.</div>';
 
     dossier.innerHTML = `
-      <!-- Dossier Header -->
-      <div class="flex items-center justify-between flex-wrap gap-2 pb-4 border-b border-white/10">
+      <div class="flex items-center justify-between flex-wrap gap-2 pb-4 border-b border-[#171717]/[0.08]">
         <div class="flex items-center gap-2">
-          <span class="text-[10px] font-mono text-indigo-300 tracking-wider uppercase font-semibold">Article Details</span>
-          <span class="font-mono text-xs font-bold text-white"># ${art.id}</span>
-          <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold border ${statusBadge}">${statusLabel}</span>
+          <span class="font-mono text-xs text-[#737373]">#${escapeHtml(art.id)}</span>
+          <span class="px-2 py-0.5 rounded text-xs font-mono border ${statusBadge}">${statusLabel}</span>
         </div>
         <div class="flex items-center gap-2 text-xs">
-          <span class="text-slate-200 font-semibold">${art.publisher}</span>
-          <span class="px-2.5 py-0.5 rounded-full bg-white/10 text-slate-200 font-mono text-[10px] border border-white/15">${art.domain}</span>
+          <span class="font-medium text-[#171717]">${escapeHtml(art.publisher)}</span>
+          <span class="font-mono text-[#737373]">${escapeHtml(art.domain)}</span>
         </div>
       </div>
 
-      <!-- Main Headline & Excerpt -->
       <div class="space-y-2">
-        <h3 class="text-xl md:text-2xl font-extrabold text-white leading-snug tracking-tight">${art.title}</h3>
-        <p class="text-xs text-slate-300 leading-relaxed font-normal">${art.content}</p>
+        <h3 class="text-xl font-medium text-[#171717] leading-snug">${escapeHtml(art.title)}</h3>
+        <p class="text-sm text-[#525252] leading-relaxed">${escapeHtml(art.content)}</p>
       </div>
 
-      <!-- Auditor Profile & Provenance Card (Finnova Style) -->
-      <div class="flex items-center justify-between p-3.5 bg-white/[0.06] border border-white/10 rounded-2xl flex-wrap gap-3">
-        <div class="flex items-center gap-3">
-          <div class="relative w-10 h-10 rounded-full overflow-hidden ring-2 ring-indigo-400/40">
-            <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&h=120&q=80" alt="Auditor" class="w-full h-full object-cover">
-            <span class="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 ring-1 ring-[#151624]"></span>
-          </div>
-          <div>
-            <div class="text-xs font-bold text-white leading-tight">Dr. Rhea Sen</div>
-            <div class="text-[10px] text-slate-300">Lead Fact Examiner • Accredited Fact-Checking Desk</div>
-          </div>
-        </div>
-        <div class="flex items-center gap-2">
-          <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-white/10 text-indigo-200 border border-white/15">
-            <span>🛡️</span> Zero-Assumption Audit
-          </span>
-        </div>
-      </div>
-
-      <!-- 3 Key Metric Chips (Finnova Translucent Glass Cards) -->
       <div class="grid grid-cols-3 gap-3">
-        <div class="p-3.5 rounded-2xl bg-white/[0.08] border border-white/10 backdrop-blur-sm">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] uppercase font-mono text-slate-300 tracking-wider">Integrity</span>
-            <span class="text-xs text-slate-400">↗</span>
-          </div>
-          <div class="text-2xl font-black ${truthColor} tabular mt-1">${art.truth_score}%</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">Empirical Grounding</div>
+        <div class="p-3.5 rounded-lg bg-white border border-[#171717]/[0.08]">
+          <div class="text-xs text-[#737373]">Integrity</div>
+          <div class="text-xl font-mono font-medium ${truthColor} tabular-nums mt-1">${art.truth_score}%</div>
         </div>
-        <div class="p-3.5 rounded-2xl bg-white/[0.08] border border-white/10 backdrop-blur-sm">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] uppercase font-mono text-slate-300 tracking-wider">Cascade Risk</span>
-            <span class="text-xs text-slate-400">↗</span>
-          </div>
-          <div class="text-2xl font-black text-white tabular mt-1">${(art.cib_risk * 100).toFixed(0)}%</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">Botnet Propagation</div>
+        <div class="p-3.5 rounded-lg bg-white border border-[#171717]/[0.08]">
+          <div class="text-xs text-[#737373]">Cascade risk</div>
+          <div class="text-xl font-mono font-medium text-[#171717] tabular-nums mt-1">${(art.cib_risk * 100).toFixed(0)}%</div>
         </div>
-        <div class="p-3.5 rounded-2xl bg-white/[0.08] border border-white/10 backdrop-blur-sm">
-          <div class="flex items-center justify-between">
-            <span class="text-[10px] uppercase font-mono text-slate-300 tracking-wider">Audited</span>
-            <span class="text-xs text-slate-400">↗</span>
-          </div>
-          <div class="text-2xl font-black text-indigo-200 tabular mt-1">${claims.length}</div>
-          <div class="text-[10px] text-slate-400 mt-0.5">Decomposed Claims</div>
+        <div class="p-3.5 rounded-lg bg-white border border-[#171717]/[0.08]">
+          <div class="text-xs text-[#737373]">Claims audited</div>
+          <div class="text-xl font-mono font-medium text-[#171717] tabular-nums mt-1">${claims.length}</div>
         </div>
       </div>
 
-      <!-- Decomposed Claims Breakdown -->
       <div class="space-y-2">
-        <div class="flex items-center justify-between text-xs font-bold text-slate-200">
-          <span>Empirical Claims & Provenance Verification</span>
-          <span class="text-[10px] text-indigo-300 font-mono">Temporal Lambda λ=0.1</span>
+        <div class="flex items-center justify-between text-xs text-[#525252]">
+          <span class="font-medium text-[#171717]">Assertion breakdown</span>
+          <span class="evidence-stamp">λ=0.10</span>
         </div>
-        <div class="space-y-2 max-h-48 overflow-y-auto pr-1 custom-scrollbar">
+        <div class="space-y-2 max-h-48 overflow-y-auto pr-1">
           ${claimsHtml}
         </div>
       </div>
 
-      <!-- Action Footer Bar -->
-      <div class="pt-4 border-t border-white/10 flex items-center justify-between flex-wrap gap-2">
+      <div class="pt-4 border-t border-[#171717]/[0.08] flex items-center justify-between flex-wrap gap-2">
         <div class="flex items-center gap-2 flex-wrap">
-          <button onclick="inspectFeedArticle('${art.id}', '${encodeURIComponent(art.title)}', '${encodeURIComponent(art.content)}', '${art.domain}')" class="px-5 py-2.5 bg-white hover:bg-slate-100 text-slate-900 font-bold text-xs rounded-full shadow-md transition flex items-center gap-2">
-            <span>Verify in Fact Checker →</span>
+          <button onclick="inspectFeedArticle('${art.id}', '${encodeURIComponent(art.title)}', '${encodeURIComponent(art.content)}', '${art.domain}')"
+            class="h-8 px-3 bg-[#171717] hover:bg-[#262626] text-white font-medium text-xs rounded-lg transition-colors">
+            Inspect in fact-checker
           </button>
-          <button onclick="downloadProvenanceCard('${art.id}')" class="px-4 py-2 bg-indigo-500/25 hover:bg-indigo-500/40 text-indigo-200 font-medium text-xs rounded-full border border-indigo-400/30 transition flex items-center gap-1.5" title="Export cryptographic provenance card">
-            <span>📜</span> Provenance Card
+          <button onclick="downloadProvenanceCard('${art.id}')"
+            class="h-8 px-3 bg-white hover:bg-[#f4f4f5] text-[#171717] border border-[#171717]/[0.12] font-medium text-xs rounded-lg transition-colors">
+            Export provenance JSON
           </button>
         </div>
         <div class="flex items-center gap-2">
-          <button onclick="switchTab('graph')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium text-xs rounded-full border border-white/15 transition">
-            Knowledge Graph
+          <button onclick="switchTab('graph')" class="h-8 px-3 bg-white hover:bg-[#f4f4f5] text-[#525252] border border-[#171717]/[0.08] text-xs rounded-lg transition-colors">
+            Graph
           </button>
-          <button onclick="switchTab('cascades')" class="px-4 py-2 bg-white/10 hover:bg-white/20 text-white font-medium text-xs rounded-full border border-white/15 transition">
-            Botnet Radar
+          <button onclick="switchTab('cascades')" class="h-8 px-3 bg-white hover:bg-[#f4f4f5] text-[#525252] border border-[#171717]/[0.08] text-xs rounded-lg transition-colors">
+            Radar
           </button>
         </div>
       </div>
@@ -903,7 +848,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
   if (syncFeedsBtn) {
     syncFeedsBtn.addEventListener('click', async () => {
-      syncFeedsBtn.innerText = 'Crawling Feeds...';
+      syncFeedsBtn.innerText = 'Syncing...';
       syncFeedsBtn.disabled = true;
       try {
         const resp = await fetch('/api/v1/feed/sync', { method: 'POST' });
@@ -913,7 +858,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         showToast('Feed sync failed: ' + err.message, 'error');
       } finally {
-        syncFeedsBtn.innerText = '🔄 Sync RSS Feeds';
+        syncFeedsBtn.innerText = 'Sync feeds';
         syncFeedsBtn.disabled = false;
       }
     });
@@ -978,33 +923,33 @@ document.addEventListener('DOMContentLoaded', () => {
     const recsBox = document.getElementById('preflight-recs-list');
 
     scoreBox.innerText = `${report.audit_readiness_score}%`;
-    scoreBox.className = 'text-3xl font-extrabold tabular ' + (
-      report.audit_readiness_score >= 80 ? 'text-emerald-600' : (report.audit_readiness_score >= 50 ? 'text-amber-500' : 'text-rose-600')
+    scoreBox.className = 'text-[32px] leading-none font-mono font-medium tabular-nums ' + (
+      report.audit_readiness_score >= 80 ? 'text-[#15803d]' : (report.audit_readiness_score >= 50 ? 'text-[#b45309]' : 'text-[#b91c1c]')
     );
 
     recsBox.innerHTML = report.recommendations.map(r => `
-      <li class="flex items-start gap-2 text-xs text-slate-700 font-medium">
-        <span class="text-[#5E4BF5] font-bold">›</span>
-        <span>${r}</span>
+      <li class="flex items-start gap-2 text-xs text-[#525252]">
+        <span class="font-mono text-[#1d4ed8]">-</span>
+        <span>${escapeHtml(r)}</span>
       </li>
     `).join('');
 
     assertionsBox.innerHTML = report.assertions.map(a => {
-      let riskBadge = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-      if (a.risk_level === 'HIGH') riskBadge = 'bg-rose-50 text-rose-700 border-rose-200';
-      else if (a.risk_level === 'MEDIUM') riskBadge = 'bg-amber-50 text-amber-700 border-amber-200';
+      let riskBadge = 'bg-[#f0fdf4] text-[#15803d] border-[#15803d]/20';
+      if (a.risk_level === 'HIGH') riskBadge = 'bg-[#fef2f2] text-[#b91c1c] border-[#b91c1c]/20';
+      else if (a.risk_level === 'MEDIUM') riskBadge = 'bg-[#fffbeb] text-[#b45309] border-[#b45309]/20';
 
       return `
-        <div class="p-3.5 bg-slate-50 rounded-xl border border-slate-200 text-xs space-y-1.5">
+        <div class="p-3.5 bg-[#fafafa] rounded-lg border border-[#171717]/[0.08] text-xs space-y-1.5">
           <div class="flex items-center justify-between">
-            <span class="font-bold text-slate-800">Assertion #${a.sentence_index + 1}</span>
-            <span class="px-2 py-0.5 rounded font-semibold border ${riskBadge}">${a.risk_level} RISK</span>
+            <span class="font-mono font-medium text-[#171717]">Assertion #${a.sentence_index + 1}</span>
+            <span class="px-2 py-0.5 rounded font-mono border ${riskBadge}">${a.risk_level} RISK</span>
           </div>
-          <p class="text-slate-700 italic font-medium">"${a.text}"</p>
-          <p class="text-[11px] text-slate-500 font-medium"><b>Action:</b> ${a.suggested_action}</p>
+          <p class="text-[#171717] leading-relaxed">"${escapeHtml(a.text)}"</p>
+          <p class="text-xs text-[#525252]">Action: ${escapeHtml(a.suggested_action)}</p>
           ${a.recommended_citations.length > 0 ? `
-            <div class="text-[11px] text-indigo-700 bg-indigo-50/60 p-2 rounded-lg mt-1">
-              <b>Recommended Citations:</b> ${a.recommended_citations.join(' | ')}
+            <div class="text-xs text-[#1d4ed8] bg-[#1d4ed8]/[0.06] p-2 rounded mt-1">
+              Recommended citations: ${escapeHtml(a.recommended_citations.join(' | '))}
             </div>
           ` : ''}
         </div>
@@ -1019,9 +964,9 @@ document.addEventListener('DOMContentLoaded', () => {
       const draft_text = preflightDraftInput?.value.trim() || '';
       const category = document.getElementById('preflight-category')?.value || 'General';
 
-      if (!draft_text) return showToast('Please enter story content before publishing.', 'warning');
+      if (!draft_text) return showToast('Enter story content before publishing', 'warning');
 
-      publishStoryBtn.innerText = 'Publishing to Store...';
+      publishStoryBtn.innerText = 'Publishing...';
       publishStoryBtn.disabled = true;
 
       try {
@@ -1048,7 +993,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         showToast('Network error while publishing story: ' + err.message, 'error');
       } finally {
-        publishStoryBtn.innerText = '🚀 Publish to Epistemic Store';
+        publishStoryBtn.innerText = 'Publish to live stream';
         publishStoryBtn.disabled = false;
       }
     });
@@ -1129,13 +1074,13 @@ document.addEventListener('DOMContentLoaded', () => {
     if (bRare) bRare.style.width = `${dist.rare}%`;
     if (distSummary) distSummary.innerText = `Top-10: ${dist.top10}% | Top-100: ${dist.top100}% | Rare: ${dist.rare}%`;
 
-    // Render GLTR Heatmap Token Pills with interactive inspection
+    // Render GLTR Heatmap Token Pills without scale jitter
     const heatmapBox = document.getElementById('gltr-heatmap-container');
     if (heatmapBox && rep.token_forensics && rep.token_forensics.length > 0) {
       heatmapBox.innerHTML = rep.token_forensics.map(t => `
         <span 
-          style="background-color: ${t.color_code}20; color: ${t.color_code}; border-color: ${t.color_code}40;" 
-          class="px-2 py-0.5 rounded-lg text-xs font-mono font-medium border inline-block cursor-pointer hover:scale-105 hover:shadow transition-all"
+          style="background-color: ${t.color_code}18; color: ${t.color_code}; border-color: ${t.color_code}35;" 
+          class="px-2 py-0.5 rounded text-xs font-mono font-medium border inline-block cursor-pointer transition-colors"
           onmouseenter="inspectGltrToken('${escapeHtml(t.word)}', '${t.rank_category}', '${t.color_code}')"
           onclick="inspectGltrToken('${escapeHtml(t.word)}', '${t.rank_category}', '${t.color_code}')"
         >
@@ -1147,10 +1092,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const phrasesBox = document.getElementById('forensics-detected-phrases');
     if (rep.detected_phrases.length > 0) {
       phrasesBox.innerHTML = rep.detected_phrases.map(p => `
-        <span class="px-2 py-0.5 rounded bg-rose-50 text-rose-700 border border-rose-200 text-xs font-mono font-medium">${p}</span>
+        <span class="px-2 py-0.5 rounded bg-[#fef2f2] text-[#b91c1c] border border-[#b91c1c]/20 text-xs font-mono">${escapeHtml(p)}</span>
       `).join(' ');
     } else {
-      phrasesBox.innerHTML = '<span class="text-xs text-slate-400">Zero typical generative LLM transition clichés found.</span>';
+      phrasesBox.innerHTML = '<span class="text-xs text-[#737373]">Zero generative transition clichés found</span>';
     }
   }
 
@@ -1190,20 +1135,27 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!canvas) return;
     const ctx = canvas.getContext('2d');
     const rect = canvas.parentElement.getBoundingClientRect();
-    canvas.width = rect.width;
-    canvas.height = 440;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const cssW = rect.width || 640;
+    const cssH = rect.height || 460;
+    canvas.width = cssW * dpr;
+    canvas.height = cssH * dpr;
+    canvas.style.width = `${cssW}px`;
+    canvas.style.height = `${cssH}px`;
 
     try {
       const resp = await fetch('/api/v1/knowledge-graph');
       const data = await resp.json();
       state.kgFullData = data;
-      renderLivingGraphCanvas(ctx, canvas.width, canvas.height, data);
+      renderLivingGraphCanvas(ctx, cssW, cssH, data, dpr);
     } catch (err) {
       console.warn('Failed to load living graph:', err);
     }
   }
 
-  function renderLivingGraphCanvas(ctx, w, h, data) {
+  function renderLivingGraphCanvas(ctx, w, h, data, dpr = Math.min(window.devicePixelRatio || 1, 2)) {
+    ctx.save();
+    ctx.scale(dpr, dpr);
     ctx.clearRect(0, 0, w, h);
     const cx = w / 2;
     const cy = h / 2;
@@ -1211,14 +1163,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const allNodes = data.nodes || [];
     const allEdges = data.edges || [];
 
-    // Filter chronologically based on time slider fraction
     const frac = (state.kgTimeSliderValue || 100) / 100.0;
     const visibleCount = Math.max(3, Math.round(allNodes.length * frac));
     const nodes = allNodes.slice(0, visibleCount);
     const visibleIds = new Set(nodes.map(n => n.id));
     const edges = allEdges.filter(e => visibleIds.has(e.source) && visibleIds.has(e.target));
 
-    // Calculate degree centrality per visible node
     const degreeMap = {};
     edges.forEach(e => {
       degreeMap[e.source] = (degreeMap[e.source] || 0) + 1;
@@ -1232,7 +1182,7 @@ document.addEventListener('DOMContentLoaded', () => {
       const x = cx + Math.cos(angle) * radiusDist;
       const y = cy + Math.sin(angle) * radiusDist;
       const deg = degreeMap[n.id] || 1;
-      const radius = Math.min(24, Math.max(12, 10 + deg * 2.5));
+      const radius = Math.min(22, Math.max(12, 10 + deg * 2.5));
       nodePositions[n.id] = { ...n, x, y, radius, degree: deg };
     });
 
@@ -1244,34 +1194,36 @@ document.addEventListener('DOMContentLoaded', () => {
         ctx.beginPath();
         ctx.moveTo(src.x, src.y);
         ctx.lineTo(tgt.x, tgt.y);
-        ctx.strokeStyle = e.relation.includes('FABRICATE') || e.relation.includes('DEBUNK') ? 'rgba(239, 68, 68, 0.45)' : 'rgba(94, 75, 245, 0.35)';
+        ctx.strokeStyle = e.relation.includes('FABRICATE') || e.relation.includes('DEBUNK') ? 'rgba(229, 72, 77, 0.45)' : 'rgba(59, 130, 246, 0.35)';
         ctx.lineWidth = 1.5;
         ctx.stroke();
 
-        ctx.font = '9px sans-serif';
-        ctx.fillStyle = '#94A3B8';
+        ctx.font = '10px "JetBrains Mono", monospace';
+        ctx.fillStyle = '#85858b';
+        ctx.textAlign = 'center';
         ctx.fillText(e.relation, (src.x + tgt.x) / 2, (src.y + tgt.y) / 2);
       }
     });
 
-    // Draw Nodes with Degree Centrality Scaling
+    // Draw Nodes
     Object.values(nodePositions).forEach(n => {
       ctx.beginPath();
       ctx.arc(n.x, n.y, n.radius, 0, Math.PI * 2);
-      ctx.fillStyle = n.trust_score >= 0.8 ? '#10B981' : (n.trust_score <= 0.3 ? '#EF4444' : '#5E4BF5');
+      ctx.fillStyle = n.trust_score >= 0.8 ? '#4cc38a' : (n.trust_score <= 0.3 ? '#e5484d' : '#3b82f6');
       ctx.fill();
-      ctx.strokeStyle = '#ffffff';
+      ctx.strokeStyle = '#141415';
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      ctx.font = '11px sans-serif';
-      ctx.fillStyle = '#CBD5E1';
+      ctx.font = '11px "IBM Plex Sans", sans-serif';
+      ctx.fillStyle = '#ededed';
+      ctx.textAlign = 'center';
       ctx.fillText(n.name, n.x, n.y + n.radius + 14);
     });
 
+    ctx.restore();
     state.kgNodePositions = nodePositions;
 
-    // Attach click inspection to kg-canvas if not already attached
     if (!ctx.canvas.dataset.hasClickListener) {
       ctx.canvas.dataset.hasClickListener = 'true';
       ctx.canvas.addEventListener('click', (e) => {
@@ -1302,13 +1254,14 @@ document.addEventListener('DOMContentLoaded', () => {
     state.kgTimeSliderValue = parseInt(val, 10);
     const label = document.getElementById('kg-time-label');
     if (label) {
-      label.innerText = val >= 98 ? 'T-Now (Full Epistemic Graph: 100% active)' : `T-${100 - val}d (Historical Horizon: ${val}% active)`;
+      label.innerText = val >= 98 ? 'T-Now (100% active)' : `T-${100 - val}d (${val}% active)`;
     }
     if (state.kgFullData) {
       const canvas = document.getElementById('kg-canvas');
       if (canvas) {
         const ctx = canvas.getContext('2d');
-        renderLivingGraphCanvas(ctx, canvas.width, canvas.height, state.kgFullData);
+        const rect = canvas.parentElement.getBoundingClientRect();
+        renderLivingGraphCanvas(ctx, rect.width || 640, rect.height || 460, state.kgFullData);
       }
     }
   };
@@ -1461,8 +1414,8 @@ document.addEventListener('DOMContentLoaded', () => {
     if (riskEl) riskEl.innerText = `${risk.toFixed(0)}%`;
     if (verdictEl) {
       verdictEl.innerText = verdict;
-      verdictEl.className = 'text-2xl font-extrabold tabular ' + (
-        verdict === 'REAL' || verdict === 'VERIFIED' ? 'text-emerald-500' : (verdict === 'FAKE' || verdict === 'REFUTED' ? 'text-rose-500' : 'text-amber-500')
+      verdictEl.className = 'text-[28px] leading-none font-mono font-medium tabular-nums ' + (
+        verdict === 'REAL' || verdict === 'VERIFIED' ? 'text-[#15803d]' : (verdict === 'FAKE' || verdict === 'REFUTED' ? 'text-[#b91c1c]' : 'text-[#b45309]')
       );
     }
   }
@@ -1472,7 +1425,7 @@ document.addEventListener('DOMContentLoaded', () => {
     if (!container) return;
 
     if (!state.claims.length) {
-      container.innerHTML = '<div class="p-6 text-center text-slate-500 text-xs">No check-worthy factual claims isolated.</div>';
+      container.innerHTML = '<div class="p-6 text-center text-[#737373] text-xs">No factual assertions isolated</div>';
       return;
     }
 
@@ -1481,21 +1434,21 @@ document.addEventListener('DOMContentLoaded', () => {
       const claimObj = ca.claim || ca;
       const status = ca.stance || ca.status || claimObj.highlight_status || 'VERIFIED';
       const statusBadge = (status === 'VERIFIED' || status === 'SUPPORTS' || status === 'REAL')
-        ? 'bg-emerald-500/20 text-emerald-300'
+        ? 'bg-[#f0fdf4] text-[#15803d] border-[#15803d]/20'
         : ((status === 'REFUTED' || status === 'REFUTES' || status === 'FAKE')
-            ? 'bg-rose-500/20 text-rose-300'
-            : 'bg-amber-500/20 text-amber-300');
+            ? 'bg-[#fef2f2] text-[#b91c1c] border-[#b91c1c]/20'
+            : 'bg-[#fffbeb] text-[#b45309] border-[#b45309]/20');
       const claimIdx = claimObj.index != null ? claimObj.index + 1 : idx + 1;
       const claimText = claimObj.text || 'Assertion statement';
 
       return `
-        <div onclick="selectClaim(${idx})" class="p-4 rounded-2xl cursor-pointer border transition ${isSelected ? 'bg-[#5E4BF5] border-indigo-300 text-white shadow-md' : 'bg-[#181D2A] border-white/5 text-slate-300 hover:border-white/20'}">
+        <button onclick="selectClaim(${idx})" class="w-full text-left p-4 rounded-xl border transition-colors block ${isSelected ? 'bg-[#f4f4f5] border-[#171717]/[0.14] border-l-2 border-l-[#1d4ed8]' : 'bg-white border-[#171717]/[0.08] hover:bg-[#fafafa]'}">
           <div class="flex items-center justify-between text-xs mb-1.5">
-            <span class="font-mono text-[11px] opacity-75">Assertion #${claimIdx}</span>
-            <span class="px-2 py-0.5 rounded-full text-[10px] font-semibold ${statusBadge}">${status}</span>
+            <span class="font-mono text-[#737373]">Assertion #${claimIdx}</span>
+            <span class="px-2 py-0.5 rounded text-[11px] font-mono border ${statusBadge}">${status}</span>
           </div>
-          <p class="text-xs font-medium leading-relaxed">${claimText}</p>
-        </div>
+          <p class="text-sm text-[#171717] leading-relaxed">${escapeHtml(claimText)}</p>
+        </button>
       `;
     }).join('');
   }
@@ -1512,7 +1465,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const ca = state.claims[state.selectedClaimIndex];
     if (!ca) {
-      container.innerHTML = '<div class="p-8 text-center text-slate-400 text-xs">Select an assertion to view its grounded proof.</div>';
+      container.innerHTML = '<div class="p-8 text-center text-[#737373] text-xs">Select an assertion to view its grounded proof</div>';
       return;
     }
 
@@ -1522,37 +1475,37 @@ document.addEventListener('DOMContentLoaded', () => {
     const alignScore = (ca.alignment_score ?? 0.850).toFixed(3);
     const checkWorth = (claimObj.check_worthiness ?? 0.75).toFixed(2);
     const trustPercent = ((ev?.domain_trust_score ?? ev?.final_score ?? 0.90) * 100).toFixed(0);
-    const summaryText = card?.summary_verdict || card?.summary_statement || state.latestResult?.explanation || 'Assertion verified against empirical ground-truth claims.';
+    const summaryText = card?.summary_verdict || card?.summary_statement || state.latestResult?.explanation || 'Assertion evaluated against primary claims.';
 
     container.innerHTML = `
       <div class="space-y-4">
         <div>
-          <span class="text-xs uppercase text-indigo-200 font-semibold tracking-wider">Active Factual Assertion</span>
-          <p class="text-sm font-bold text-white mt-1 leading-snug">"${claimObj.text || 'Assertion'}"</p>
+          <span class="text-xs text-[#737373]">Active assertion</span>
+          <p class="text-base font-medium text-[#171717] mt-1 leading-snug">"${escapeHtml(claimObj.text || 'Assertion')}"</p>
         </div>
 
-        <div class="grid grid-cols-2 gap-3 py-2 border-y border-white/10 text-xs">
-          <div><span class="text-indigo-200">Alignment Score:</span> <b class="text-white">${alignScore}</b></div>
-          <div><span class="text-indigo-200">Assertion Weight:</span> <b class="text-white">${checkWorth}</b></div>
+        <div class="grid grid-cols-2 gap-3 py-3 border-y border-[#171717]/[0.08] text-xs font-mono">
+          <div><span class="text-[#737373]">Alignment:</span> <span class="text-[#171717] font-medium">${alignScore}</span></div>
+          <div><span class="text-[#737373]">Worthiness:</span> <span class="text-[#171717] font-medium">${checkWorth}</span></div>
         </div>
 
         ${ev ? `
           <div class="space-y-2">
-            <span class="text-xs uppercase text-indigo-200 font-semibold tracking-wider">Primary Evidence Proof</span>
-            <div class="p-3 bg-black/30 rounded-xl border border-white/10 space-y-1 text-xs">
-              <div class="flex items-center justify-between text-indigo-300 text-[11px]">
-                <span>Source: <b>${ev.publisher || 'Verified Archive'}</b></span>
-                <span>Trust Score: <b>${trustPercent}%</b></span>
+            <span class="text-xs text-[#737373] block">Primary evidence</span>
+            <div class="p-3.5 bg-white rounded-lg border border-[#171717]/[0.08] space-y-1.5 text-xs">
+              <div class="flex items-center justify-between text-[#525252]">
+                <span>Source: <span class="text-[#171717] font-medium">${escapeHtml(ev.publisher || 'Verified Archive')}</span></span>
+                <span class="font-mono">Trust: ${trustPercent}%</span>
               </div>
-              <p class="text-slate-200 italic font-medium leading-relaxed">"${ev.snippet}"</p>
+              <p class="text-[#171717] leading-relaxed">"${escapeHtml(ev.snippet)}"</p>
             </div>
           </div>
-        ` : '<div class="p-3 bg-black/20 rounded-xl text-xs text-amber-300">Data Void: Zero accredited fact-checks corroborate or refute this assertion.</div>'}
+        ` : '<div class="p-3 bg-[#fffbeb] border border-[#b45309]/20 rounded-lg text-xs text-[#b45309]">Data void: no accredited fact-checks corroborate or refute this assertion.</div>'}
 
         ${card || summaryText ? `
-          <div class="p-3.5 bg-indigo-950/60 rounded-xl border border-indigo-400/30 text-xs space-y-1.5">
-            <span class="text-[10px] font-mono uppercase text-indigo-300 tracking-wider">Contextual Nutrition Card</span>
-            <p class="text-slate-200 font-medium leading-relaxed">${summaryText}</p>
+          <div class="p-3.5 bg-white rounded-lg border border-[#171717]/[0.08] text-xs space-y-1">
+            <span class="font-mono text-[#1d4ed8] block">Contextual assessment</span>
+            <p class="text-[#525252] leading-relaxed">${escapeHtml(summaryText)}</p>
           </div>
         ` : ''}
       </div>
@@ -1599,11 +1552,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const snippetEl = document.getElementById('tooltip-snippet');
     const scoreEl = document.getElementById('tooltip-score');
 
-    if (sourceEl) sourceEl.innerText = ev?.publisher || 'Accredited Fact Archive';
+    if (sourceEl) sourceEl.innerText = ev?.publisher || 'Accredited fact archive';
     if (statusEl) {
       statusEl.innerText = status;
-      statusEl.className = `px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-        isVerified ? 'bg-emerald-500/20 text-emerald-300' : (isRefuted ? 'bg-rose-500/20 text-rose-300' : 'bg-amber-500/20 text-amber-300')
+      statusEl.className = `px-1.5 py-0.5 rounded font-mono text-[10px] ${
+        isVerified ? 'bg-[#f0fdf4] text-[#15803d]' : (isRefuted ? 'bg-[#fef2f2] text-[#b91c1c]' : 'bg-[#fffbeb] text-[#b45309]')
       }`;
     }
     if (snippetEl) snippetEl.innerText = ev?.snippet ? `"${ev.snippet}"` : 'Data Void: No contradictory or corroborating fact-check indexed.';
@@ -1664,22 +1617,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
       tableBody.innerHTML = data.models.map(m => {
         const isTruthLens = m.model_name.includes('TruthLens');
-        const rowClass = isTruthLens ? 'bg-indigo-50/70 font-bold text-slate-900 border-l-4 border-l-[#5E4BF5]' : 'hover:bg-slate-50 text-slate-700';
+        const rowClass = isTruthLens ? 'bg-[#1d4ed8]/[0.04] font-medium text-[#171717] border-l-2 border-l-[#1d4ed8]' : 'hover:bg-[#fafafa] text-[#525252]';
 
         return `
-          <tr class="${rowClass}">
-            <td class="py-3 px-3">
-              <span class="block">${m.model_name}</span>
-              <span class="text-[10px] text-slate-400 font-normal">${m.architecture}</span>
+          <tr class="${rowClass} transition-colors">
+            <td class="py-3 px-4">
+              <span class="block text-[#171717]">${escapeHtml(m.model_name)}</span>
+              <span class="text-xs text-[#737373] font-normal">${escapeHtml(m.architecture)}</span>
             </td>
-            <td class="py-3 px-3 tabular">${m.accuracy}%</td>
-            <td class="py-3 px-3 tabular">${m.precision}%</td>
-            <td class="py-3 px-3 tabular">${m.recall}%</td>
-            <td class="py-3 px-3 tabular font-semibold text-slate-900">${m.macro_f1}%</td>
-            <td class="py-3 px-3 tabular ${m.adversarial_f1 < 50 ? 'text-rose-600 font-bold' : 'text-slate-800'}">${m.adversarial_f1}%</td>
-            <td class="py-3 px-3 tabular font-bold ${m.robustness_retention >= 85 ? 'text-emerald-600' : 'text-rose-600'}">${m.robustness_retention}%</td>
-            <td class="py-3 px-3 tabular">${m.indic_f1}%</td>
-            <td class="py-3 px-3 tabular text-slate-500">${m.avg_latency_ms} ms</td>
+            <td class="py-3 px-3 font-mono">${m.accuracy}%</td>
+            <td class="py-3 px-3 font-mono">${m.precision}%</td>
+            <td class="py-3 px-3 font-mono">${m.recall}%</td>
+            <td class="py-3 px-3 font-mono text-[#171717]">${m.macro_f1}%</td>
+            <td class="py-3 px-3 font-mono ${m.adversarial_f1 < 50 ? 'text-[#b91c1c]' : 'text-[#171717]'}">${m.adversarial_f1}%</td>
+            <td class="py-3 px-3 font-mono ${m.robustness_retention >= 85 ? 'text-[#15803d]' : 'text-[#b91c1c]'}">${m.robustness_retention}%</td>
+            <td class="py-3 px-3 font-mono">${m.indic_f1}%</td>
+            <td class="py-3 px-3 font-mono text-[#737373]">${m.avg_latency_ms} ms</td>
           </tr>
         `;
       }).join('');
@@ -1701,12 +1654,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const runBtnText = document.getElementById('adv-run-btn-text');
 
     if (type === 'textfooler') {
-      if (tfBtn) tfBtn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-xs transition';
-      if (dwBtn) dwBtn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition';
+      if (tfBtn) tfBtn.className = 'flex-1 py-1.5 px-3 rounded-md text-xs font-medium bg-white text-[#171717] border border-[#171717]/[0.08]';
+      if (dwBtn) dwBtn.className = 'flex-1 py-1.5 px-3 rounded-md text-xs font-normal text-[#525252] hover:text-[#171717]';
       if (runBtnText) runBtnText.innerText = 'Inject TextFooler Attack';
     } else {
-      if (dwBtn) dwBtn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-semibold bg-indigo-600 text-white shadow-xs transition';
-      if (tfBtn) tfBtn.className = 'flex-1 py-1.5 px-3 rounded-lg text-xs font-medium text-slate-300 hover:text-white transition';
+      if (dwBtn) dwBtn.className = 'flex-1 py-1.5 px-3 rounded-md text-xs font-medium bg-white text-[#171717] border border-[#171717]/[0.08]';
+      if (tfBtn) tfBtn.className = 'flex-1 py-1.5 px-3 rounded-md text-xs font-normal text-[#525252] hover:text-[#171717]';
       if (runBtnText) runBtnText.innerText = 'Inject DeepWordBug Attack';
     }
   };
@@ -1775,35 +1728,35 @@ document.addEventListener('DOMContentLoaded', () => {
         resultsBox.innerHTML = `
           <div class="space-y-3">
             <div class="flex items-center justify-between text-xs flex-wrap gap-1">
-              <span class="font-bold text-slate-200">Adversarially Perturbed Statement (${res.attack_type || state.advAttackType}):</span>
-              <span class="px-2 py-0.5 rounded font-mono text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30">
-                Modified ${res.substitutions.length} tokens (${(res.modification_rate * 100).toFixed(0)}% budget)
+              <span class="font-medium text-[#171717]">Perturbed statement (${escapeHtml(res.attack_type || state.advAttackType)})</span>
+              <span class="px-2 py-0.5 rounded font-mono text-[11px] bg-[#fef2f2] text-[#b91c1c] border border-[#b91c1c]/20">
+                Modified ${res.substitutions.length} tokens (${(res.modification_rate * 100).toFixed(0)}%)
               </span>
             </div>
-            <p class="text-slate-100 p-3 bg-black/40 rounded-xl font-mono text-xs border border-white/5 leading-relaxed">
+            <p class="text-[#171717] p-3 bg-white rounded-lg font-mono text-xs border border-[#171717]/[0.08] leading-relaxed">
               "${highlightedText}"
             </p>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-3 pt-1">
-              <div class="p-3.5 bg-rose-950/40 rounded-xl border border-rose-500/30">
+              <div class="p-3.5 bg-[#fef2f2] rounded-lg border border-[#b91c1c]/20">
                 <div class="flex items-center justify-between">
-                  <span class="text-[11px] font-bold text-rose-300 uppercase">Text-Only Baseline (Naive BERT)</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-rose-500/20 text-rose-300 font-bold">VULNERABLE</span>
+                  <span class="text-xs font-medium text-[#b91c1c]">Text-only baseline</span>
+                  <span class="font-mono text-[11px] text-[#b91c1c]">VULNERABLE</span>
                 </div>
-                <p class="text-xs text-rose-200 mt-1.5">Confidence collapsed from 88.4% to <b>38.2%</b> due to semantic or character perturbations!</p>
+                <p class="text-xs text-[#525252] mt-1">Confidence collapsed from 88.4% to 38.2% under perturbation.</p>
               </div>
-              <div class="p-3.5 bg-emerald-950/40 rounded-xl border border-emerald-500/30">
+              <div class="p-3.5 bg-[#f0fdf4] rounded-lg border border-[#15803d]/20">
                 <div class="flex items-center justify-between">
-                  <span class="text-[11px] font-bold text-emerald-300 uppercase">TruthLens-Omni (Dual-Tier Fusion)</span>
-                  <span class="text-[10px] px-1.5 py-0.5 rounded bg-emerald-500/20 text-emerald-300 font-bold">RESILIENT</span>
+                  <span class="text-xs font-medium text-[#15803d]">TruthLens-Omni fusion</span>
+                  <span class="font-mono text-[11px] text-[#15803d]">RESILIENT</span>
                 </div>
-                <p class="text-xs text-emerald-200 mt-1.5">Grounding verdict stays <b>${res.perturbed_verdict}</b> (${res.perturbed_truth_score}% score). 92.4% robustness retention!</p>
+                <p class="text-xs text-[#525252] mt-1">Verdict stays <span class="font-mono text-[#171717]">${escapeHtml(res.perturbed_verdict)}</span> (${res.perturbed_truth_score}%).</p>
               </div>
             </div>
-            <p class="text-[11px] text-slate-400 italic">${escapeHtml(res.explanation)}</p>
+            <p class="text-xs text-[#737373]">${escapeHtml(res.explanation)}</p>
           </div>
         `;
-        showToast('Adversarial perturbation executed successfully!', 'success');
+        showToast('Adversarial perturbation executed', 'success');
       } catch (err) {
         resultsBox.innerHTML = `<span class="text-rose-400">Adversarial test failed: ${escapeHtml(err.message)}</span>`;
         showToast('Adversarial test failed: ' + err.message, 'error');
@@ -1874,11 +1827,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Update tab styling
     document.querySelectorAll('.cn-note-tab').forEach(btn => {
-      btn.className = 'cn-note-tab px-3.5 py-1.5 rounded-full text-xs font-medium text-slate-300 hover:text-white transition';
+      btn.className = 'cn-note-tab px-3 py-1.5 rounded-lg text-xs font-normal text-[#525252] hover:bg-[#f4f4f5] transition-colors';
     });
     const activeBtn = document.getElementById(`btn-cn-tab-${noteId.replace('note-', '')}`);
     if (activeBtn) {
-      activeBtn.className = 'cn-note-tab px-3.5 py-1.5 rounded-full text-xs font-semibold bg-indigo-600 text-white shadow-xs transition';
+      activeBtn.className = 'cn-note-tab px-3 py-1.5 rounded-lg text-xs font-medium bg-[#171717] text-white transition-colors';
     }
 
     // Update Note UI
@@ -1897,9 +1850,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (ratersEl) ratersEl.innerText = note.raters;
     if (statusEl) {
       statusEl.innerText = note.status;
-      statusEl.className = note.status === 'CURRENTLY_RATED_HELPFUL' 
-        ? 'text-xs px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full font-mono border border-emerald-500/30'
-        : 'text-xs px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full font-mono border border-amber-500/30';
+      statusEl.className = note.status === 'CURRENTLY_RATED_HELPFUL'
+        ? 'px-2.5 py-1 rounded-md font-mono text-xs bg-[#f0fdf4] text-[#15803d] border border-[#15803d]/20'
+        : 'px-2.5 py-1 rounded-md font-mono text-xs bg-[#fffbeb] text-[#b45309] border border-[#b45309]/20';
     }
     if (scoreEl) scoreEl.innerText = `b_i = ${note.score.toFixed(3)}`;
   };
@@ -1974,12 +1927,12 @@ document.addEventListener('DOMContentLoaded', () => {
           const scoreEl = document.getElementById('consensus-helpfulness-score');
           if (statusEl) {
             statusEl.innerText = status;
-            statusEl.className = status === 'CURRENTLY_RATED_HELPFUL' 
-              ? 'text-xs px-3 py-1 bg-emerald-500/20 text-emerald-300 rounded-full font-mono border border-emerald-500/30'
-              : 'text-xs px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full font-mono border border-amber-500/30';
+            statusEl.className = status === 'CURRENTLY_RATED_HELPFUL'
+              ? 'px-2.5 py-1 rounded-md font-mono text-xs bg-[#f0fdf4] text-[#15803d] border border-[#15803d]/20'
+              : 'px-2.5 py-1 rounded-md font-mono text-xs bg-[#fffbeb] text-[#b45309] border border-[#b45309]/20';
           }
           if (scoreEl) scoreEl.innerText = `b_i = ${hScore.toFixed(3)}`;
-          showToast(`Vote recorded! Note Helpfulness: b_i = ${hScore.toFixed(3)} (${status})`, 'success');
+          showToast(`Vote recorded: b_i = ${hScore.toFixed(3)} (${status})`, 'success');
         }
       } catch (err) {
         showToast('Vote failed: ' + err.message, 'error');
@@ -2036,7 +1989,7 @@ document.addEventListener('DOMContentLoaded', () => {
       } catch (err) {
         showToast('Failed to export dossier: ' + err.message, 'error');
       } finally {
-        exportDossierBtn.innerText = '📥 Export Dossier (.MD)';
+        exportDossierBtn.innerText = 'Export markdown';
         exportDossierBtn.disabled = false;
       }
     });
@@ -2065,28 +2018,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
     [btnSignin, btnRegister, btnSandbox].forEach(btn => {
       if (btn) {
-        btn.className = 'flex-1 py-2 rounded-xl text-xs font-semibold transition text-slate-500 hover:text-slate-900';
+        btn.className = 'flex-1 py-1.5 rounded-md text-xs font-normal text-[#525252] hover:text-[#171717]';
       }
     });
 
     if (subTab === 'signin') {
-      if (btnSignin) btnSignin.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs';
+      if (btnSignin) btnSignin.className = 'flex-1 py-1.5 rounded-md text-xs font-medium bg-white text-[#171717] border border-[#171717]/[0.08]';
       if (fieldName) fieldName.classList.add('hidden');
       if (fieldExtras) fieldExtras.classList.add('hidden');
       if (ssoContainer) ssoContainer.classList.remove('hidden');
       if (form) form.classList.remove('hidden');
       if (sandboxCards) sandboxCards.classList.remove('hidden');
-      if (btnLabel) btnLabel.innerText = 'Authenticate Epistemic Identity';
+      if (btnLabel) btnLabel.innerText = 'Sign in';
     } else if (subTab === 'register') {
-      if (btnRegister) btnRegister.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs';
+      if (btnRegister) btnRegister.className = 'flex-1 py-1.5 rounded-md text-xs font-medium bg-white text-[#171717] border border-[#171717]/[0.08]';
       if (fieldName) fieldName.classList.remove('hidden');
       if (fieldExtras) fieldExtras.classList.remove('hidden');
       if (ssoContainer) ssoContainer.classList.add('hidden');
       if (form) form.classList.remove('hidden');
       if (sandboxCards) sandboxCards.classList.add('hidden');
-      if (btnLabel) btnLabel.innerText = 'Register & Establish Identity';
+      if (btnLabel) btnLabel.innerText = 'Register identity';
     } else if (subTab === 'sandbox') {
-      if (btnSandbox) btnSandbox.className = 'flex-1 py-2 rounded-xl text-xs font-bold transition bg-white text-slate-900 shadow-xs';
+      if (btnSandbox) btnSandbox.className = 'flex-1 py-1.5 rounded-md text-xs font-medium bg-white text-[#171717] border border-[#171717]/[0.08]';
       if (fieldName) fieldName.classList.add('hidden');
       if (fieldExtras) fieldExtras.classList.add('hidden');
       if (ssoContainer) ssoContainer.classList.add('hidden');
@@ -2103,10 +2056,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
     if (!pwd || pwd.length === 0) {
       bitsEl.innerText = '0 bits';
-      labelEl.innerText = 'Input Password';
-      labelEl.className = 'font-bold text-slate-400 uppercase';
+      labelEl.innerText = 'Enter password';
+      labelEl.className = 'text-[#737373]';
       barEl.style.width = '0%';
-      barEl.className = 'h-full bg-slate-300 transition-all duration-300';
+      barEl.className = 'h-full bg-[#d4d4d8]';
       return;
     }
 
@@ -2123,17 +2076,17 @@ document.addEventListener('DOMContentLoaded', () => {
     barEl.style.width = `${pct}%`;
 
     if (bits < 35) {
-      labelEl.innerText = 'Weak / Vulnerable';
-      labelEl.className = 'font-bold text-rose-500 uppercase';
-      barEl.className = 'h-full bg-rose-500 transition-all duration-300';
+      labelEl.innerText = 'Weak';
+      labelEl.className = 'text-[#b91c1c]';
+      barEl.className = 'h-full bg-[#b91c1c]';
     } else if (bits < 55) {
-      labelEl.innerText = 'Standard / Good';
-      labelEl.className = 'font-bold text-amber-500 uppercase';
-      barEl.className = 'h-full bg-amber-500 transition-all duration-300';
+      labelEl.innerText = 'Standard';
+      labelEl.className = 'text-[#b45309]';
+      barEl.className = 'h-full bg-[#b45309]';
     } else {
-      labelEl.innerText = 'Military-Grade (Level 5)';
-      labelEl.className = 'font-bold text-emerald-500 uppercase';
-      barEl.className = 'h-full bg-emerald-500 transition-all duration-300';
+      labelEl.innerText = 'Strong (L5)';
+      labelEl.className = 'text-[#15803d]';
+      barEl.className = 'h-full bg-[#15803d]';
     }
   };
 
@@ -2163,8 +2116,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.handleSSOLogin = async function(provider) {
     const alertBox = document.getElementById('auth-alert-box');
     if (alertBox) {
-      alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200';
-      alertBox.innerHTML = `<span>⏳</span><span>Establishing cryptographic ${provider.toUpperCase()} SSO handshake...</span>`;
+      alertBox.className = 'p-3 rounded-lg text-xs bg-[#f4f4f5] text-[#171717] border border-[#171717]/[0.12]';
+      alertBox.innerHTML = `Establishing ${provider.toUpperCase()} SSO handshake...`;
       alertBox.classList.remove('hidden');
     }
 
@@ -2182,15 +2135,15 @@ document.addEventListener('DOMContentLoaded', () => {
       updateHeaderIdentity(data.user);
 
       if (alertBox) {
-        alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200';
-        alertBox.innerHTML = `<span>✓</span><span>Authenticated via ${provider.toUpperCase()} SSO! Welcome ${data.user.full_name}.</span>`;
+        alertBox.className = 'p-3 rounded-lg text-xs bg-[#f0fdf4] text-[#15803d] border border-[#15803d]/20';
+        alertBox.innerHTML = `Authenticated via ${provider.toUpperCase()} SSO (${escapeHtml(data.user.full_name)})`;
       }
-      showToast(`Welcome, ${data.user.full_name} (${data.user.role} - Clearance L${data.user.clearance_level})`, 'success');
-      setTimeout(() => switchTab('feed'), 700);
+      showToast(`Signed in as ${data.user.full_name} (${data.user.role})`, 'success');
+      setTimeout(() => switchTab('feed'), 600);
     } catch (err) {
       if (alertBox) {
-        alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200';
-        alertBox.innerHTML = `<span>⚠️</span><span>${err.message}</span>`;
+        alertBox.className = 'p-3 rounded-lg text-xs bg-[#fef2f2] text-[#b91c1c] border border-[#b91c1c]/20';
+        alertBox.innerHTML = `${escapeHtml(err.message)}`;
       }
       showToast(err.message, 'error');
     }
@@ -2204,13 +2157,13 @@ document.addEventListener('DOMContentLoaded', () => {
     const password = document.getElementById('input-auth-password')?.value;
 
     if (!email || !password) {
-      showToast('Please provide both email and password', 'error');
+      showToast('Enter both email and password', 'error');
       return;
     }
 
     if (submitBtn) {
       submitBtn.disabled = true;
-      submitBtn.innerHTML = '<span>Verifying cryptographic signature...</span>';
+      submitBtn.innerText = 'Authenticating...';
     }
 
     try {
@@ -2239,15 +2192,14 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHeaderIdentity(data.user);
 
         if (alertBox) {
-          alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200';
-          alertBox.innerHTML = `<span>✓</span><span>Identity registered in TruthLens IAM ledger. Redirecting...</span>`;
+          alertBox.className = 'p-3 rounded-lg text-xs bg-[#f0fdf4] text-[#15803d] border border-[#15803d]/20';
+          alertBox.innerHTML = 'Identity registered in ledger';
           alertBox.classList.remove('hidden');
         }
-        showToast(`Identity created for ${data.user.full_name} (${data.user.role})`, 'success');
-        setTimeout(() => switchTab('feed'), 700);
+        showToast(`Account created for ${data.user.full_name}`, 'success');
+        setTimeout(() => switchTab('feed'), 600);
 
       } else {
-        // Sign In
         const resp = await fetch('/api/v1/auth/login', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -2261,24 +2213,24 @@ document.addEventListener('DOMContentLoaded', () => {
         updateHeaderIdentity(data.user);
 
         if (alertBox) {
-          alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-emerald-50 text-emerald-700 border border-emerald-200';
-          alertBox.innerHTML = `<span>✓</span><span>Authenticated! Welcome back, ${data.user.full_name}.</span>`;
+          alertBox.className = 'p-3 rounded-lg text-xs bg-[#f0fdf4] text-[#15803d] border border-[#15803d]/20';
+          alertBox.innerHTML = `Signed in as ${escapeHtml(data.user.full_name)}`;
           alertBox.classList.remove('hidden');
         }
-        showToast(`Authenticated as ${data.user.full_name} (${data.user.role})`, 'success');
-        setTimeout(() => switchTab('feed'), 700);
+        showToast(`Signed in as ${data.user.full_name}`, 'success');
+        setTimeout(() => switchTab('feed'), 600);
       }
     } catch (err) {
       if (alertBox) {
-        alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-rose-50 text-rose-700 border border-rose-200';
-        alertBox.innerHTML = `<span>⚠️</span><span>${err.message}</span>`;
+        alertBox.className = 'p-3 rounded-lg text-xs bg-[#fef2f2] text-[#b91c1c] border border-[#b91c1c]/20';
+        alertBox.innerHTML = `${escapeHtml(err.message)}`;
         alertBox.classList.remove('hidden');
       }
       showToast(err.message, 'error');
     } finally {
       if (submitBtn) {
         submitBtn.disabled = false;
-        submitBtn.innerHTML = `<span id="btn-auth-label">${state.authMode === 'register' ? 'Register & Establish Identity' : 'Authenticate Epistemic Identity'}</span> <span>→</span>`;
+        submitBtn.innerHTML = `<span id="btn-auth-label">${state.authMode === 'register' ? 'Register identity' : 'Sign in'}</span>`;
       }
     }
   };
@@ -2286,8 +2238,8 @@ document.addEventListener('DOMContentLoaded', () => {
   window.quickAuthPersona = async function(email, password) {
     const alertBox = document.getElementById('auth-alert-box');
     if (alertBox) {
-      alertBox.className = 'p-3.5 rounded-2xl text-xs font-medium flex items-center gap-2 bg-indigo-50 text-indigo-700 border border-indigo-200';
-      alertBox.innerHTML = `<span>⚡</span><span>Elevating clearance for persona <b>${email}</b>...</span>`;
+      alertBox.className = 'p-3 rounded-lg text-xs bg-[#f4f4f5] text-[#171717] border border-[#171717]/[0.12]';
+      alertBox.innerHTML = `Switching to ${escapeHtml(email)}...`;
       alertBox.classList.remove('hidden');
     }
 
@@ -2304,8 +2256,8 @@ document.addEventListener('DOMContentLoaded', () => {
       state.authToken = data.token;
       updateHeaderIdentity(data.user);
 
-      showToast(`Clearance Elevated: ${data.user.full_name} (${data.user.role} - L${data.user.clearance_level})`, 'success');
-      setTimeout(() => switchTab('feed'), 600);
+      showToast(`Active role: ${data.user.full_name} (L${data.user.clearance_level})`, 'success');
+      setTimeout(() => switchTab('feed'), 500);
     } catch (err) {
       showToast(err.message, 'error');
     }
@@ -2370,6 +2322,28 @@ document.addEventListener('DOMContentLoaded', () => {
   verifySessionOnBoot();
   const savedRole = localStorage.getItem('truthlens_role') || 'officer';
   if (roleBadge) roleBadge.innerText = savedRole.toUpperCase();
+
+  // Initialize Lucide Icons
+  if (window.lucide && typeof window.lucide.createIcons === 'function') {
+    window.lucide.createIcons();
+  }
+
+  // Keyboard shortcuts: Escape closes modals/drawers; Cmd/Ctrl+Enter submits claim verification; 'v' opens Verify when not typing
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      closeAuthModal();
+      window.toggleMobileSidebar(false);
+    }
+    const tag = (e.target && e.target.tagName) ? e.target.tagName.toLowerCase() : '';
+    const isTyping = tag === 'input' || tag === 'textarea' || tag === 'select';
+    if (!isTyping && (e.key === 'v' || e.key === 'V') && !e.metaKey && !e.ctrlKey && !e.altKey) {
+      switchTab('verify');
+    }
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter' && e.target && e.target.id === 'input-text') {
+      e.preventDefault();
+      executeVerification();
+    }
+  });
 
   // Kickstart router
   initRouting();

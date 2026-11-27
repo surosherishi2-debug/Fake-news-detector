@@ -1,6 +1,6 @@
 /**
- * Interactive 2D Social Propagation Cascade & Living Knowledge Graph Visualizers.
- * Renders heterogeneous Article, User, Publisher, Botnet, and Entity nodes on HTML5 Canvas.
+ * Interactive 2D Social Propagation Cascade Visualizer.
+ * Renders heterogeneous Article, User, Publisher, and Botnet nodes on HTML5 Canvas.
  */
 
 class CascadeGraphVisualizer {
@@ -10,20 +10,24 @@ class CascadeGraphVisualizer {
     this.ctx = this.canvas.getContext('2d');
     this.nodes = [];
     this.edges = [];
-    this.animationFrame = null;
     this.hoveredNode = null;
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
 
     this.resizeCanvas();
     window.addEventListener('resize', () => this.resizeCanvas());
-
     this.canvas.addEventListener('mousemove', (e) => this.handleMouseMove(e));
   }
 
   resizeCanvas() {
-    if (!this.canvas) return;
+    if (!this.canvas || !this.canvas.parentElement) return;
     const rect = this.canvas.parentElement.getBoundingClientRect();
-    this.canvas.width = rect.width;
-    this.canvas.height = rect.height || 420;
+    this.dpr = Math.min(window.devicePixelRatio || 1, 2);
+    this.width = rect.width || 640;
+    this.height = rect.height || 460;
+    this.canvas.width = this.width * this.dpr;
+    this.canvas.height = this.height * this.dpr;
+    this.canvas.style.width = `${this.width}px`;
+    this.canvas.style.height = `${this.height}px`;
     this.draw();
   }
 
@@ -33,45 +37,43 @@ class CascadeGraphVisualizer {
 
   loadCascade(cascadeData) {
     if (!this.canvas) return;
-    const w = this.canvas.width;
-    const h = this.canvas.height;
+    const w = this.width || this.canvas.clientWidth || 640;
+    const h = this.height || this.canvas.clientHeight || 460;
     const cx = w / 2;
     const cy = h / 2;
 
     this.nodes = [];
     this.edges = cascadeData.edges || [];
 
-    // Layout nodes algorithmically
     const rawNodes = cascadeData.nodes || [];
     rawNodes.forEach((n, idx) => {
       let x, y, color, radius;
       if (n.type === 'article') {
         x = cx;
         y = cy;
-        color = '#5E4BF5';
-        radius = 24;
+        color = '#3b82f6';
+        radius = 22;
       } else if (n.type === 'publisher') {
         x = cx - 180;
         y = cy - 80;
-        color = '#38BDF8';
-        radius = 18;
+        color = '#a1a1aa';
+        radius = 16;
       } else if (n.id.includes('bot')) {
-        // Cluster bots on the right side in tight ring
-        const angle = (idx * 1.2);
+        const angle = idx * 1.2;
         x = cx + 160 + Math.cos(angle) * 60;
         y = cy + Math.sin(angle) * 70;
-        color = '#EF4444';
+        color = '#e5484d';
         radius = 12;
       } else if (n.verified) {
         x = cx - 120;
         y = cy + 100;
-        color = '#10B981';
-        radius = 16;
+        color = '#4cc38a';
+        radius = 15;
       } else {
         x = cx + (idx % 2 === 0 ? -90 : 90);
         y = cy - 130;
-        color = '#94A3B8';
-        radius = 13;
+        color = '#737373';
+        radius = 12;
       }
 
       this.nodes.push({
@@ -87,7 +89,7 @@ class CascadeGraphVisualizer {
       });
     });
 
-    this.startAnimation();
+    this.draw();
   }
 
   handleMouseMove(e) {
@@ -95,39 +97,27 @@ class CascadeGraphVisualizer {
     const mouseX = e.clientX - rect.left;
     const mouseY = e.clientY - rect.top;
 
-    this.hoveredNode = null;
+    let nextHover = null;
     for (const node of this.nodes) {
       const dist = Math.hypot(node.x - mouseX, node.y - mouseY);
-      if (dist < node.radius + 4) {
-        this.hoveredNode = node;
+      if (dist < node.radius + 6) {
+        nextHover = node;
         break;
       }
     }
-    this.draw();
-  }
-
-  startAnimation() {
-    let t = 0;
-    const animate = () => {
-      t += 0.03;
-      this.nodes.forEach((n, idx) => {
-        if (n.type !== 'article') {
-          n.dy = Math.sin(t + idx) * 0.4;
-        } else {
-          n.dy = 0;
-        }
-      });
+    if (nextHover !== this.hoveredNode) {
+      this.hoveredNode = nextHover;
+      this.canvas.style.cursor = nextHover ? 'pointer' : 'default';
       this.draw();
-      this.animationFrame = requestAnimationFrame(animate);
-    };
-    if (this.animationFrame) cancelAnimationFrame(this.animationFrame);
-    animate();
+    }
   }
 
   draw() {
     if (!this.ctx) return;
     const ctx = this.ctx;
-    ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
+    ctx.save();
+    ctx.scale(this.dpr, this.dpr);
+    ctx.clearRect(0, 0, this.width, this.height);
 
     // Draw Edges
     this.edges.forEach((edge) => {
@@ -135,17 +125,17 @@ class CascadeGraphVisualizer {
       const tgt = this.nodes.find((n) => n.id === edge.target);
       if (src && tgt) {
         ctx.beginPath();
-        ctx.moveTo(src.x, src.y + (src.dy || 0));
-        ctx.lineTo(tgt.x, tgt.y + (tgt.dy || 0));
+        ctx.moveTo(src.x, src.y);
+        ctx.lineTo(tgt.x, tgt.y);
 
         if (src.id.includes('bot') || tgt.id.includes('bot')) {
-          ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+          ctx.strokeStyle = 'rgba(229, 72, 77, 0.45)';
           ctx.setLineDash([4, 4]);
-          ctx.lineWidth = 2;
-        } else {
-          ctx.strokeStyle = 'rgba(165, 180, 252, 0.25)';
-          ctx.setLineDash([]);
           ctx.lineWidth = 1.5;
+        } else {
+          ctx.strokeStyle = 'rgba(161, 161, 170, 0.25)';
+          ctx.setLineDash([]);
+          ctx.lineWidth = 1.25;
         }
         ctx.stroke();
         ctx.setLineDash([]);
@@ -154,52 +144,56 @@ class CascadeGraphVisualizer {
 
     // Draw Nodes
     this.nodes.forEach((node) => {
-      const ny = node.y + (node.dy || 0);
+      const isHovered = this.hoveredNode && this.hoveredNode.id === node.id;
 
-      // Pulsing outer halo for bot nodes
       if (node.id.includes('bot')) {
         ctx.beginPath();
-        ctx.arc(node.x, ny, node.radius + 6, 0, Math.PI * 2);
-        ctx.fillStyle = 'rgba(239, 68, 68, 0.15)';
+        ctx.arc(node.x, node.y, node.radius + 5, 0, Math.PI * 2);
+        ctx.fillStyle = 'rgba(229, 72, 77, 0.14)';
         ctx.fill();
       }
 
       ctx.beginPath();
-      ctx.arc(node.x, ny, node.radius, 0, Math.PI * 2);
+      ctx.arc(node.x, node.y, node.radius, 0, Math.PI * 2);
       ctx.fillStyle = node.color;
       ctx.fill();
-      ctx.lineWidth = 2;
-      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = isHovered ? 2.5 : 1.5;
+      ctx.strokeStyle = isHovered ? '#ffffff' : '#141415';
       ctx.stroke();
 
-      // Label
-      ctx.font = '11px sans-serif';
-      ctx.fillStyle = '#E2E8F0';
+      ctx.font = '11px "IBM Plex Sans", sans-serif';
+      ctx.fillStyle = '#a1a1a6';
       ctx.textAlign = 'center';
-      ctx.fillText(node.name, node.x, ny + node.radius + 14);
+      ctx.fillText(node.name, node.x, node.y + node.radius + 14);
     });
 
     // Tooltip for hovered node
     if (this.hoveredNode) {
       const n = this.hoveredNode;
-      const ny = n.y + (n.dy || 0);
-      const tipText = `${n.name} (${n.type.toUpperCase()}) | Followers: ${n.followers.toLocaleString()}`;
+      const tipText = `${n.name} (${n.type}) · ${n.followers.toLocaleString()} followers`;
 
-      ctx.font = '12px sans-serif';
+      ctx.font = '12px "JetBrains Mono", monospace';
       const textWidth = ctx.measureText(tipText).width;
+      const boxW = textWidth + 16;
+      const boxX = Math.max(8, Math.min(this.width - boxW - 8, n.x - boxW / 2));
+      const boxY = Math.max(8, n.y - n.radius - 34);
 
-      ctx.fillStyle = 'rgba(15, 23, 42, 0.9)';
+      ctx.fillStyle = '#232325';
+      ctx.strokeStyle = 'rgba(237, 237, 237, 0.14)';
+      ctx.lineWidth = 1;
       ctx.beginPath();
-      ctx.roundRect(n.x - textWidth / 2 - 10, ny - n.radius - 32, textWidth + 20, 24, 6);
+      ctx.roundRect(boxX, boxY, boxW, 24, 6);
       ctx.fill();
+      ctx.stroke();
 
-      ctx.fillStyle = '#ffffff';
+      ctx.fillStyle = '#ededed';
       ctx.textAlign = 'center';
-      ctx.fillText(tipText, n.x, ny - n.radius - 16);
+      ctx.fillText(tipText, boxX + boxW / 2, boxY + 16);
     }
+
+    ctx.restore();
   }
 }
 
-// Global Aliases for seamless linking
 window.CascadeGraphVisualizer = CascadeGraphVisualizer;
 window.CascadeVisualizer = CascadeGraphVisualizer;
