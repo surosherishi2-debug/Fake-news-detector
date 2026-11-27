@@ -32,3 +32,18 @@
   `pyreadline3` attempts to free Windows console handles during interpreter exit. On Windows PowerShell running in automated subshells, the handle is closed before the garbage collector invokes `Console.__del__`.
 - **Root Cause Remediation:**
   This is an ignored Python interpreter teardown exception in an optional interactive CLI library (`pyreadline3`). Pytest exited with code 0 and all 38 tests passed. No code changes needed; documented for full transparency.
+
+---
+
+### [F03] PowerShell 5.1 Statement Chaining Syntax (`&&` Not Supported)
+- **Date/Time:** 2026-11-27 17:41:30
+- **Command:** `git add ... && git commit ...`
+- **Full Error Output:**
+  ```text
+  The token '&&' is not a valid statement separator in this version.
+  ```
+- **Diagnosis:**
+  Windows PowerShell 5.1 does not support bash-style `&&` pipeline chaining. It requires `;` or separate statement execution.
+- **Root Cause Remediation:**
+  Replaced `&&` with `;` for sequential command execution in PowerShell. Documented for future shell invocations.
+
