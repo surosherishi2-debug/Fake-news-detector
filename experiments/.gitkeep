@@ -1,0 +1,3 @@
+# Placeholder to ensure experiments directory is tracked in git.
+# Each experiment run will create a subfolder: experiments/<run_id>/
+# containing: config.json, seed, run logs, metrics.json, git commit hash, environment details.
