@@ -145,3 +145,13 @@
   2. Enforce standard pyproject toolchains (`ruff` for 10x faster linting/formatting than flake8+black, `pytest-cov` for verifiable line coverage), package via lightweight multi-stage `Dockerfile` + `docker-compose.yml`, and deliver dual cross-platform reproduction scripts (`scripts/reproduce.sh` and `scripts/reproduce.ps1`).
 - **Choice:** Option 2.
 - **Rationale:** Strict adherence to R1 (No assumptions), R4 (External memory), R5 (Verification), and R9 (Determinism). Judges and CI systems can spin up the environment with a single command (`docker compose up` or `./scripts/reproduce.sh`) and independently verify all 89 test cases and headline benchmark metrics in `docs/RESULTS.md`.
+
+---
+
+### [D15] Responsible AI Framework, Model Card, Subgroup Bias Auditing, and Defense Dossier
+- **Context:** Phase 7 requires establishing ethical guardrails, documenting performance characteristics according to international standards (Mitchell et al., 2019), quantifying subgroup disparities, and providing a comprehensive defense dossier for industry judging panels.
+- **Options Considered:**
+  1. Produce a minimal generic README summary.
+  2. Implement a complete Responsible AI suite: (1) `docs/MODEL_CARD.md` detailing architecture, intended use, out-of-scope risks, compute footprint, and ethical trade-offs; (2) `docs/BIAS_ANALYSIS.md` quantifying topic (health vs politics), language (English vs Indic), and syntactic complexity disparities; (3) final assembly of all 7 running paper chapters in `docs/paper/`; and (4) `docs/DEFENSE_DOSSIER.md` providing a definitive handover guide with the 50%-to-100% production roadmap.
+- **Choice:** Option 2.
+- **Rationale:** Strict adherence to R1 (No assumptions), R2 (No fabricated numbers), R4 (External memory), R6 (Citations), and R12 (Honest reporting). Guarantees complete transparency and reproducible documentation for academic and industry panels.
