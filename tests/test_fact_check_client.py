@@ -1,12 +1,14 @@
 """Unit tests for Fact Check Client."""
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
+
 from src.retrieval.fact_check_client import FactCheckClient
+
 
 def test_fact_check_offline_search():
     client = FactCheckClient()
     query = "COVID vaccine causes microchip infertility"
-    now = datetime(2024, 1, 1, tzinfo=timezone.utc)
+    now = datetime(2024, 1, 1, tzinfo=UTC)
     evidences = client.search_evidence(query, claim_time=now, max_results=3)
 
     assert len(evidences) >= 1
@@ -15,6 +17,7 @@ def test_fact_check_offline_search():
     assert top.semantic_similarity > 0.50
     assert 0.0 < top.temporal_weight <= 1.0
     assert "False" in top.snippet
+
 
 def test_fact_check_no_match():
     client = FactCheckClient()

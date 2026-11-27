@@ -1,0 +1,35 @@
+services:
+  truthlens-api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: truthlens-omni
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - SEED=42
+    volumes:
+      - ./experiments:/app/experiments
+      - ./docs:/app/docs
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    command: ["uvicorn", "src.api.server:app", "--host", "0.0.0.0", "--port", "8000"]
+
+  truthlens-demo:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: truthlens-demo
+    environment:
+      - PYTHONUNBUFFERED=1
+      - PYTHONPATH=/app
+      - SEED=42
+    profiles: ["demo"]
+    command: ["python", "run.py", "--demo"]

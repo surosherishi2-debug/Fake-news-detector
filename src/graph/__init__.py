@@ -1,12 +1,12 @@
 """Graph package initialization."""
 
-from src.graph.hgt_encoder import HeteroGraphEncoder, CascadeTopologyAnalyzer
 from src.graph.consensus_matrix import (
     BridgingConsensusEngine,
     NoteRating,
-    NoteStatus,
     NoteScoringResult,
+    NoteStatus,
 )
+from src.graph.hgt_encoder import CascadeTopologyAnalyzer, HeteroGraphEncoder
 
 __all__ = [
     "HeteroGraphEncoder",

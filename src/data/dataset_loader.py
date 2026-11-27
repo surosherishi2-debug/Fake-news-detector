@@ -8,11 +8,11 @@ Supports standard misinformation research datasets referenced in literature:
 """
 
 import os
-import json
-import random
-from typing import List, Dict, Any, Tuple, Optional
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
+from typing import Dict, List
+
 from pydantic import BaseModel, Field
+
 
 class BenchmarkSample(BaseModel):
     id: str
@@ -24,9 +24,10 @@ class BenchmarkSample(BaseModel):
     domain: str
     publish_date: str
     claims: List[str] = Field(default_factory=list)
-    evidence_text: Optional[str] = None
+    evidence_text: str | None = None
     social_retweets: int = 0
     botnet_fraction: float = 0.0
+
 
 class BenchmarkMetrics(BaseModel):
     dataset_name: str
@@ -35,10 +36,11 @@ class BenchmarkMetrics(BaseModel):
     language_distribution: Dict[str, int]
     domain_distribution: Dict[str, int]
 
+
 class DatasetLoader:
     """Loads and standardizes multi-domain, multi-lingual academic benchmarks."""
 
-    def __init__(self, data_dir: Optional[str] = None):
+    def __init__(self, data_dir: str | None = None):
         self.data_dir = data_dir or os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
         os.makedirs(self.data_dir, exist_ok=True)
         self._cache: Dict[str, List[BenchmarkSample]] = {}
@@ -66,7 +68,7 @@ class DatasetLoader:
         return {
             "PuneFakeNews-2024": self.get_dataset("pune_fakenews_2024"),
             "LIAR-Plus": self.get_dataset("liar_plus"),
-            "CoAID": self.get_dataset("coaid")
+            "CoAID": self.get_dataset("coaid"),
         }
 
     def compute_dataset_metrics(self, name: str) -> BenchmarkMetrics:
@@ -86,7 +88,7 @@ class DatasetLoader:
             total_samples=len(samples),
             class_distribution=class_dist,
             language_distribution=lang_dist,
-            domain_distribution=dom_dist
+            domain_distribution=dom_dist,
         )
 
     # -------------------------------------------------------------------------
@@ -98,7 +100,7 @@ class DatasetLoader:
         Encompasses regional Indic WhatsApp forwards, regional municipal elections,
         public infrastructure rumors, and health claims across English, Hindi, and Marathi.
         """
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         corpus = [
             BenchmarkSample(
                 id="pfn-001",
@@ -109,10 +111,13 @@ class DatasetLoader:
                 language="en",
                 domain="Infrastructure",
                 publish_date=(now - timedelta(days=2)).isoformat(),
-                claims=["Bund Garden underground metro tunnel flooded during monsoon.", "Structural cracks observed in Aqua line tunnel."],
+                claims=[
+                    "Bund Garden underground metro tunnel flooded during monsoon.",
+                    "Structural cracks observed in Aqua line tunnel.",
+                ],
                 evidence_text="MahaMetro Managing Director issued a video statement from Bund Garden station confirming normal dry operations and zero flooding.",
                 social_retweets=1420,
-                botnet_fraction=0.68
+                botnet_fraction=0.68,
             ),
             BenchmarkSample(
                 id="pfn-002",
@@ -126,7 +131,7 @@ class DatasetLoader:
                 claims=["पीएमसी सर्व मतदारांच्या बँक खात्यात ५००० रुपये जमा करणार."],
                 evidence_text="पुणे महानगरपालिका अधिकृत ट्विटर/X खात्यावरून असा कोणताही आदेश जारी न केल्याचे परिपत्रक प्रसिद्ध.",
                 social_retweets=3890,
-                botnet_fraction=0.82
+                botnet_fraction=0.82,
             ),
             BenchmarkSample(
                 id="pfn-003",
@@ -140,7 +145,7 @@ class DatasetLoader:
                 claims=["NCRA GMRT telescope detected repeating fast radio burst from distant magnetar."],
                 evidence_text="Published in Monthly Notices of the Royal Astronomical Society (MNRAS), peer-reviewed observation logs.",
                 social_retweets=450,
-                botnet_fraction=0.03
+                botnet_fraction=0.03,
             ),
             BenchmarkSample(
                 id="pfn-004",
@@ -154,7 +159,7 @@ class DatasetLoader:
                 claims=["कात्रज घाटात बिबट्यांचा कळप राष्ट्रीय महामार्गावर आला."],
                 evidence_text="महाराष्ट्र वन विभाग पुणे परिमंडळ स्पष्टीकरण: व्हिडिओ जुना आणि परराज्यातील आहे.",
                 social_retweets=2100,
-                botnet_fraction=0.54
+                botnet_fraction=0.54,
             ),
             BenchmarkSample(
                 id="pfn-005",
@@ -168,7 +173,7 @@ class DatasetLoader:
                 claims=["Serum Institute scaled R21 malaria vaccine capacity to 100M doses."],
                 evidence_text="WHO Vaccine Prequalification Certificate and SII Corporate Regulatory Filing.",
                 social_retweets=620,
-                botnet_fraction=0.02
+                botnet_fraction=0.02,
             ),
             BenchmarkSample(
                 id="pfn-006",
@@ -182,7 +187,7 @@ class DatasetLoader:
                 claims=["आरबीआयने डॉ. आंबेडकरांच्या फोटोसह नवीन ५०० रुपयांची नोट जारी केली."],
                 evidence_text="RBI अधिकृत प्रेस नोट: चलनी नोटांच्या डिझाइनमध्ये कोणताही बदल केलेला नाही.",
                 social_retweets=5400,
-                botnet_fraction=0.76
+                botnet_fraction=0.76,
             ),
             BenchmarkSample(
                 id="pfn-007",
@@ -196,7 +201,7 @@ class DatasetLoader:
                 claims=["MSBSHSE uploaded revised HSC 2025 curriculum aligned with NEP 2020."],
                 evidence_text="Official Government Resolution (GR) published on mahahsscboard.in.",
                 social_retweets=830,
-                botnet_fraction=0.05
+                botnet_fraction=0.05,
             ),
             BenchmarkSample(
                 id="pfn-008",
@@ -210,14 +215,14 @@ class DatasetLoader:
                 claims=["Raw onion and rock salt increases dengue platelet count in 6 hours."],
                 evidence_text="Indian Council of Medical Research (ICMR) clinical protocol: No botanical evidence supports onion as platelet restorative; severe dengue requires clinical monitoring.",
                 social_retweets=4120,
-                botnet_fraction=0.61
-            )
+                botnet_fraction=0.61,
+            ),
         ]
         return corpus
 
     def _generate_liar_plus_corpus(self) -> List[BenchmarkSample]:
         """LIAR-Plus Benchmark subset with fine-grained political assertions and PolitiFact justifications."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return [
             BenchmarkSample(
                 id="liar-001",
@@ -231,7 +236,7 @@ class DatasetLoader:
                 claims=["Unemployment rate reached 3.4%, a 50-year historic record."],
                 evidence_text="Bureau of Labor Statistics (BLS) Current Population Survey Table A-1.",
                 social_retweets=1100,
-                botnet_fraction=0.08
+                botnet_fraction=0.08,
             ),
             BenchmarkSample(
                 id="liar-002",
@@ -242,10 +247,13 @@ class DatasetLoader:
                 language="en",
                 domain="Finance",
                 publish_date=(now - timedelta(days=45)).isoformat(),
-                claims=["Federal Reserve executive order bans paper currency next month.", "FedNow is a mandatory consumer CBDC replacement."],
+                claims=[
+                    "Federal Reserve executive order bans paper currency next month.",
+                    "FedNow is a mandatory consumer CBDC replacement.",
+                ],
                 evidence_text="Federal Reserve Board official statement: FedNow is an interbank payments rail, not a consumer CBDC; Fed does not have statutory authority to abolish physical currency.",
                 social_retweets=8900,
-                botnet_fraction=0.88
+                botnet_fraction=0.88,
             ),
             BenchmarkSample(
                 id="liar-003",
@@ -259,7 +267,7 @@ class DatasetLoader:
                 claims=["Congress enacted a 40% tax surcharge on Social Security benefits."],
                 evidence_text="Congressional Research Service (CRS) analysis and Roll Call vote records confirm no such legislation was drafted or voted upon.",
                 social_retweets=6400,
-                botnet_fraction=0.79
+                botnet_fraction=0.79,
             ),
             BenchmarkSample(
                 id="liar-004",
@@ -273,13 +281,13 @@ class DatasetLoader:
                 claims=["Wind and solar electricity generation exceeded coal generation share in Q2."],
                 evidence_text="US EIA Electric Power Monthly Report June 2023, Table 1.1.",
                 social_retweets=1890,
-                botnet_fraction=0.04
-            )
+                botnet_fraction=0.04,
+            ),
         ]
 
     def _generate_coaid_corpus(self) -> List[BenchmarkSample]:
         """CoAID (COVID-19 Healthcare Misinformation Benchmark)."""
-        now = datetime.now(timezone.utc)
+        now = datetime.now(UTC)
         return [
             BenchmarkSample(
                 id="coaid-001",
@@ -293,7 +301,7 @@ class DatasetLoader:
                 claims=["Steam inhalation kills coronavirus in nasal pathways."],
                 evidence_text="World Health Organization (WHO) Mythbusters: Inhaling steam does not cure COVID-19 and may cause thermal airway injury.",
                 social_retweets=5200,
-                botnet_fraction=0.71
+                botnet_fraction=0.71,
             ),
             BenchmarkSample(
                 id="coaid-002",
@@ -307,7 +315,6 @@ class DatasetLoader:
                 claims=["FDA approved updated COVID-19 mRNA vaccines for individuals 12 and older."],
                 evidence_text="FDA Center for Biologics Evaluation and Research (CBER) Regulatory Approval Dossier.",
                 social_retweets=940,
-                botnet_fraction=0.02
-            )
+                botnet_fraction=0.02,
+            ),
         ]
-

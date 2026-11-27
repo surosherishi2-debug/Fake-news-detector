@@ -7,18 +7,17 @@ Architecture:
 - Abstention Boundary: Quantifies Maximum Evidence Alignment S_max to trigger calibrated DATA_VOID.
 """
 
-import re
-import math
 import logging
-from typing import List, Dict, Any, Optional, Tuple
-from datetime import datetime, timezone
+import re
+from datetime import UTC, datetime
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 from sentence_transformers import SentenceTransformer
 
-from src.retrieval.knowledge_store import KnowledgeStore
-from src.nlp.temporal_decay import calculate_temporal_decay, get_domain_lambda
 from src.core.types import Evidence
+from src.nlp.temporal_decay import calculate_temporal_decay
+from src.retrieval.knowledge_store import KnowledgeStore
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -38,11 +37,11 @@ class TwoStageEvidenceRetriever:
 
     def __init__(
         self,
-        knowledge_store: Optional[KnowledgeStore] = None,
+        knowledge_store: KnowledgeStore | None = None,
         model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
         dense_top_k: int = 10,
         rerank_top_m: int = 3,
-        abstention_threshold: float = 0.40
+        abstention_threshold: float = 0.40,
     ):
         self.store = knowledge_store or KnowledgeStore()
         self.model_name = model_name
@@ -56,13 +55,10 @@ class TwoStageEvidenceRetriever:
 
     def _is_devanagari(self, text: str) -> bool:
         """Detect if text contains Devanagari script (Hindi/Marathi)."""
-        return any("\u0900" <= char <= "\u097F" for char in text)
+        return any("\u0900" <= char <= "\u097f" for char in text)
 
     def retrieve_and_rerank(
-        self,
-        claim_text: str,
-        claim_time: Optional[datetime] = None,
-        domain: Optional[str] = None
+        self, claim_text: str, claim_time: datetime | None = None, domain: str | None = None
     ) -> Tuple[List[Evidence], Dict[str, Any]]:
         """
         Executes two-stage dense retrieval and re-ranking for a claim.
@@ -72,7 +68,7 @@ class TwoStageEvidenceRetriever:
               - List[Evidence]: Top re-ranked evidence items with calculated temporal decay.
               - metadata: Dict with S_max, is_evidence_void, and retrieval telemetry.
         """
-        now = claim_time or datetime.now(timezone.utc)
+        now = claim_time or datetime.now(UTC)
         corpus = self.store.get_corpus()
         doc_embeddings = self.store.get_embeddings()
 
@@ -94,7 +90,7 @@ class TwoStageEvidenceRetriever:
         # Check abstention condition: If highest similarity is below threshold, signal DATA_VOID
         is_evidence_void = s_max < self.abstention_threshold
 
-        top_indices = np.argsort(similarities)[::-1][:self.dense_top_k]
+        top_indices = np.argsort(similarities)[::-1][: self.dense_top_k]
 
         # 3. Stage 2: Multi-Factor Re-Ranking
         ranked_candidates = []
@@ -119,11 +115,7 @@ class TwoStageEvidenceRetriever:
                     ev_date = None
 
             doc_domain = domain or doc.get("domain", "general")
-            w_t = calculate_temporal_decay(
-                claim_time=now,
-                evidence_time=ev_date,
-                domain=doc_domain
-            )
+            w_t = calculate_temporal_decay(claim_time=now, evidence_time=ev_date, domain=doc_domain)
 
             # Multi-factor composite ranking score:
             # Semantic relevance is primary; irrelevant candidates (dense < 0.20) are filtered out.
@@ -146,15 +138,17 @@ class TwoStageEvidenceRetriever:
                 grounded_verdict=doc.get("grounded_verdict", None),
             )
 
-            ranked_candidates.append({
-                "evidence": evidence_item,
-                "composite_score": composite_score,
-                "grounded_verdict": doc.get("grounded_verdict", "VERIFIED")
-            })
+            ranked_candidates.append(
+                {
+                    "evidence": evidence_item,
+                    "composite_score": composite_score,
+                    "grounded_verdict": doc.get("grounded_verdict", "VERIFIED"),
+                }
+            )
 
         # Sort by composite score
         ranked_candidates.sort(key=lambda x: x["composite_score"], reverse=True)
-        top_ranked = ranked_candidates[:self.rerank_top_m]
+        top_ranked = ranked_candidates[: self.rerank_top_m]
 
         evidences = [item["evidence"] for item in top_ranked]
         primary_verdict = top_ranked[0]["grounded_verdict"] if top_ranked else "DATA_VOID"
@@ -166,7 +160,7 @@ class TwoStageEvidenceRetriever:
             "is_evidence_void": is_evidence_void,
             "abstention_threshold": self.abstention_threshold,
             "retrieved_count": len(evidences),
-            "suggested_grounded_verdict": "DATA_VOID" if is_evidence_void else primary_verdict
+            "suggested_grounded_verdict": "DATA_VOID" if is_evidence_void else primary_verdict,
         }
 
         return evidences, metadata
@@ -177,6 +171,8 @@ if __name__ == "__main__":
     query = "COVID vaccines contain microchips and cause infertility"
     evs, meta = retriever.retrieve_and_rerank(query)
     print(f"Query: {query}")
-    print(f"Max Sim: {meta['max_dense_similarity']}, Void: {meta['is_evidence_void']}, Verdict: {meta['suggested_grounded_verdict']}")
+    print(
+        f"Max Sim: {meta['max_dense_similarity']}, Void: {meta['is_evidence_void']}, Verdict: {meta['suggested_grounded_verdict']}"
+    )
     for e in evs:
         print(f" - [{e.semantic_similarity:.2f}] {e.source_title} (Temporal w={e.temporal_weight:.2f})")

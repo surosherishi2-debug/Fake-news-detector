@@ -7,26 +7,19 @@ Provides:
 - Multi-metric evaluation and artifact persistence in experiments/exp03_* and exp04_*
 """
 
-import os
 import json
 import logging
-import joblib
-import numpy as np
-from typing import List, Dict, Any, Tuple, Optional
+import os
+from typing import Any, Dict
 
+import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from sentence_transformers import SentenceTransformer
 
 from src.evaluation.metrics import compute_classification_metrics
-from src.models.baselines import (
-    get_combined_splits,
-    load_jsonl_samples,
-    LABEL_MAP,
-    CLASS_NAMES,
-    PROCESSED_DIR
-)
+from src.models.baselines import CLASS_NAMES, LABEL_MAP, PROCESSED_DIR, get_combined_splits, load_jsonl_samples
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -47,7 +40,7 @@ class TransformerClassifier(nn.Module):
             nn.BatchNorm1d(hidden_dim),
             nn.ReLU(),
             nn.Dropout(dropout),
-            nn.Linear(hidden_dim, num_classes)
+            nn.Linear(hidden_dim, num_classes),
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
@@ -65,7 +58,7 @@ class TransformerTrainer:
         seed: int = 42,
         batch_size: int = 64,
         epochs: int = 10,
-        lr: float = 2e-3
+        lr: float = 2e-3,
     ):
         self.model_name = model_name
         self.exp_dir = exp_dir
@@ -94,9 +87,15 @@ class TransformerTrainer:
 
         logger.info("Extracting dense sentence embeddings (batch encoding)...")
         # Pre-compute embeddings for fast, deterministic training on CPU
-        x_train = encoder.encode(train_texts, batch_size=self.batch_size, show_progress_bar=False, normalize_embeddings=True)
-        x_val = encoder.encode(val_texts, batch_size=self.batch_size, show_progress_bar=False, normalize_embeddings=True)
-        x_test = encoder.encode(test_texts, batch_size=self.batch_size, show_progress_bar=False, normalize_embeddings=True)
+        x_train = encoder.encode(
+            train_texts, batch_size=self.batch_size, show_progress_bar=False, normalize_embeddings=True
+        )
+        x_val = encoder.encode(
+            val_texts, batch_size=self.batch_size, show_progress_bar=False, normalize_embeddings=True
+        )
+        x_test = encoder.encode(
+            test_texts, batch_size=self.batch_size, show_progress_bar=False, normalize_embeddings=True
+        )
 
         embed_dim = x_train.shape[1]
         device = torch.device("cpu")
@@ -139,7 +138,7 @@ class TransformerTrainer:
                 val_metrics = compute_classification_metrics(val_labels, val_preds, class_names=CLASS_NAMES)
 
             logger.info(
-                f"[{self.exp_id}] Epoch {epoch}/{self.epochs} | Train Loss: {total_loss/len(train_loader):.4f} | "
+                f"[{self.exp_id}] Epoch {epoch}/{self.epochs} | Train Loss: {total_loss / len(train_loader):.4f} | "
                 f"Val Loss: {val_loss:.4f} | Val F1: {val_metrics['macro_f1']:.4f}"
             )
 
@@ -159,10 +158,7 @@ class TransformerTrainer:
             test_preds = np.argmax(test_probs, axis=1).tolist()
 
         test_metrics = compute_classification_metrics(
-            test_labels,
-            test_preds,
-            y_prob=test_probs,
-            class_names=CLASS_NAMES
+            test_labels, test_preds, y_prob=test_probs, class_names=CLASS_NAMES
         )
 
         # Domain breakdown
@@ -172,17 +168,16 @@ class TransformerTrainer:
             d_texts = [s["claim_text"] for s in ds_samples if s.get("grounded_label") in LABEL_MAP]
             d_labels = [LABEL_MAP[s["grounded_label"]] for s in ds_samples if s.get("grounded_label") in LABEL_MAP]
             if d_texts:
-                d_embs = encoder.encode(d_texts, batch_size=self.batch_size, show_progress_bar=False, normalize_embeddings=True)
+                d_embs = encoder.encode(
+                    d_texts, batch_size=self.batch_size, show_progress_bar=False, normalize_embeddings=True
+                )
                 d_x = torch.tensor(d_embs, dtype=torch.float32).to(device)
                 with torch.no_grad():
                     d_logits = head(d_x)
                     d_probs = F.softmax(d_logits, dim=-1).cpu().numpy()
                     d_preds = np.argmax(d_probs, axis=1).tolist()
                 d_metrics = compute_classification_metrics(d_labels, d_preds, d_probs, class_names=CLASS_NAMES)
-                domain_breakdown[ds] = {
-                    "accuracy": d_metrics["accuracy"],
-                    "macro_f1": d_metrics["macro_f1"]
-                }
+                domain_breakdown[ds] = {"accuracy": d_metrics["accuracy"], "macro_f1": d_metrics["macro_f1"]}
 
         results = {
             "experiment_id": self.exp_id,
@@ -196,7 +191,7 @@ class TransformerTrainer:
             "test_roc_auc_ovr": test_metrics.get("roc_auc_ovr"),
             "per_class": test_metrics["per_class"],
             "confusion_matrix": test_metrics["confusion_matrix"],
-            "domain_breakdown": domain_breakdown
+            "domain_breakdown": domain_breakdown,
         }
 
         config = {
@@ -207,7 +202,7 @@ class TransformerTrainer:
             "epochs": self.epochs,
             "lr": self.lr,
             "seed": self.seed,
-            "classes": CLASS_NAMES
+            "classes": CLASS_NAMES,
         }
         with open(os.path.join(self.exp_dir, "config.json"), "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
@@ -229,7 +224,7 @@ if __name__ == "__main__":
         exp_dir=EXP03_DIR,
         exp_id="exp03_transformer_english",
         epochs=8,
-        batch_size=64
+        batch_size=64,
     )
     trainer_en.run_training_pipeline()
 
@@ -240,6 +235,6 @@ if __name__ == "__main__":
         exp_dir=EXP04_DIR,
         exp_id="exp04_transformer_multilingual",
         epochs=8,
-        batch_size=64
+        batch_size=64,
     )
     trainer_multi.run_training_pipeline()

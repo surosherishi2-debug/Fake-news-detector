@@ -2,6 +2,7 @@
 
 from src.nlp.claim_decomposer import ClaimDecomposer
 
+
 def test_decomposer_factual_assertions():
     decomposer = ClaimDecomposer()
     text = (
@@ -15,6 +16,7 @@ def test_decomposer_factual_assertions():
     for c in claims:
         assert c.check_worthiness >= 0.50
 
+
 def test_decomposer_filters_opinions():
     decomposer = ClaimDecomposer()
     text = "In my opinion, perhaps we should go to the cinema tomorrow. Hello and welcome everyone!"
@@ -22,6 +24,7 @@ def test_decomposer_filters_opinions():
     # Pure opinion with no facts should either be filtered or have low check-worthiness
     if claims:
         assert claims[0].check_worthiness <= 0.65
+
 
 def test_decomposer_empty_input():
     decomposer = ClaimDecomposer()

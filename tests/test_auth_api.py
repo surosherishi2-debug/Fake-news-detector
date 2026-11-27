@@ -1,18 +1,19 @@
 """Direct unit tests for TruthLens Enterprise IAM API endpoints."""
 
-import pytest
 import secrets
+
+import pytest
 from fastapi import HTTPException
+
 from src.api.server import (
-    auth_telemetry,
-    auth_login,
-    auth_register,
-    auth_sso,
-    auth_me,
-    auth_logout,
     LoginRequest,
     RegisterRequest,
-    SSORequest,
+    auth_login,
+    auth_logout,
+    auth_me,
+    auth_register,
+    auth_sso,
+    auth_telemetry,
 )
 
 
@@ -59,7 +60,7 @@ def test_auth_register_endpoint():
         full_name="Lead Investigator Alpha",
         role="JOURNALIST",
         organization="Reuters Investigations",
-        clearance_level=4
+        clearance_level=4,
     )
     res = auth_register(reg_req)
     assert res["status"] == "registered"

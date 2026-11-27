@@ -8,21 +8,18 @@ Provides standardized, mathematically rigorous implementations of:
 - Adversarial Robustness Metrics (Clean F1, Adv F1, Robustness Retention)
 """
 
+from typing import Any, Dict, List, Tuple
+
 import numpy as np
-from typing import Dict, Any, List, Optional, Tuple
 from sklearn.metrics import (
     accuracy_score,
+    confusion_matrix,
     precision_recall_fscore_support,
     roc_auc_score,
-    brier_score_loss,
-    confusion_matrix
 )
 
-def compute_ece(
-    y_true: np.ndarray,
-    y_prob: np.ndarray,
-    n_bins: int = 10
-) -> Tuple[float, List[Dict[str, Any]]]:
+
+def compute_ece(y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10) -> Tuple[float, List[Dict[str, Any]]]:
     """
     Computes Expected Calibration Error (ECE) and reliability bin statistics.
 
@@ -71,13 +68,15 @@ def compute_ece(
             bin_acc = 0.0
             bin_conf = float((low + high) / 2.0)
 
-        bin_stats.append({
-            "bin_idx": i,
-            "range": [round(float(low), 3), round(float(high), 3)],
-            "count": bin_count,
-            "accuracy": round(bin_acc, 4),
-            "confidence": round(bin_conf, 4),
-        })
+        bin_stats.append(
+            {
+                "bin_idx": i,
+                "range": [round(float(low), 3), round(float(high), 3)],
+                "count": bin_count,
+                "accuracy": round(bin_acc, 4),
+                "confidence": round(bin_conf, 4),
+            }
+        )
 
     return float(round(ece, 4)), bin_stats
 
@@ -104,10 +103,7 @@ def compute_multi_brier_score(y_true: np.ndarray, y_prob: np.ndarray, num_classe
 
 
 def compute_classification_metrics(
-    y_true: List[int],
-    y_pred: List[int],
-    y_prob: Optional[np.ndarray] = None,
-    class_names: Optional[List[str]] = None
+    y_true: List[int], y_pred: List[int], y_prob: np.ndarray | None = None, class_names: List[str] | None = None
 ) -> Dict[str, Any]:
     """
     Computes full evaluation metrics suite for truth discovery and claim verification.
@@ -126,18 +122,14 @@ def compute_classification_metrics(
     n_samples = len(y_true_arr)
 
     if class_names is None:
-        unique_labels = sorted(list(set(y_true_arr) | set(y_pred_arr)))
+        unique_labels = sorted(set(y_true_arr) | set(y_pred_arr))
         class_names = [f"Class_{i}" for i in unique_labels]
     else:
         unique_labels = list(range(len(class_names)))
 
     acc = float(accuracy_score(y_true_arr, y_pred_arr))
     prec, rec, f1, support = precision_recall_fscore_support(
-        y_true_arr,
-        y_pred_arr,
-        labels=unique_labels,
-        average=None,
-        zero_division=0
+        y_true_arr, y_pred_arr, labels=unique_labels, average=None, zero_division=0
     )
 
     macro_prec = float(np.mean(prec))
@@ -151,7 +143,7 @@ def compute_classification_metrics(
                 "precision": round(float(prec[idx]), 4),
                 "recall": round(float(rec[idx]), 4),
                 "f1": round(float(f1[idx]), 4),
-                "support": int(support[idx])
+                "support": int(support[idx]),
             }
 
     cm = confusion_matrix(y_true_arr, y_pred_arr, labels=unique_labels).tolist()
@@ -170,7 +162,7 @@ def compute_classification_metrics(
     if y_prob is not None:
         y_prob_arr = np.asarray(y_prob)
         num_classes = len(class_names)
-        
+
         # Expected Calibration Error (ECE)
         ece, bin_stats = compute_ece(y_true_arr, y_prob_arr, n_bins=10)
         result["ece"] = ece
@@ -185,12 +177,7 @@ def compute_classification_metrics(
             # Check if all classes present in y_true
             present_classes = set(y_true_arr)
             if len(present_classes) > 1:
-                auc = float(roc_auc_score(
-                    y_true_arr,
-                    y_prob_arr,
-                    multi_class="ovr",
-                    labels=unique_labels
-                ))
+                auc = float(roc_auc_score(y_true_arr, y_prob_arr, multi_class="ovr", labels=unique_labels))
                 result["roc_auc_ovr"] = round(auc, 4)
             else:
                 result["roc_auc_ovr"] = None

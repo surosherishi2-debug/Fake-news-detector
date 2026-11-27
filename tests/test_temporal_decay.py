@@ -1,13 +1,16 @@
 """Unit tests for Temporal Credibility Decay module."""
 
 import math
-from datetime import datetime, timezone, timedelta
+from datetime import UTC, datetime, timedelta
+
 import pytest
+
 from src.nlp.temporal_decay import calculate_temporal_decay
+
 
 def test_temporal_decay_contemporary():
     """Contemporary or newer evidence must retain maximal weight w(t) = 1.0."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     # Evidence published on the same day as claim
     weight = calculate_temporal_decay(claim_time=now, evidence_time=now)
     assert weight == 1.0
@@ -17,11 +20,12 @@ def test_temporal_decay_contemporary():
     weight_future = calculate_temporal_decay(claim_time=now, evidence_time=future_evidence)
     assert weight_future == 1.0
 
+
 def test_temporal_decay_mathematical_precision():
     """Verify w(t) matches exp(-λ * Δt) for 1 year and 5 years."""
-    now = datetime(2025, 1, 1, tzinfo=timezone.utc)
-    one_year_prior = datetime(2024, 1, 1, tzinfo=timezone.utc)
-    five_years_prior = datetime(2020, 1, 1, tzinfo=timezone.utc)
+    now = datetime(2025, 1, 1, tzinfo=UTC)
+    one_year_prior = datetime(2024, 1, 1, tzinfo=UTC)
+    five_years_prior = datetime(2020, 1, 1, tzinfo=UTC)
 
     # 1 year decay with λ = 0.1: exp(-0.1 * 1.0) ≈ 0.904837
     weight_1yr = calculate_temporal_decay(claim_time=now, evidence_time=one_year_prior, decay_lambda=0.1)
@@ -32,20 +36,23 @@ def test_temporal_decay_mathematical_precision():
     weight_5yr = calculate_temporal_decay(claim_time=now, evidence_time=five_years_prior, decay_lambda=0.1)
     assert 0.59 <= weight_5yr <= 0.62
 
+
 def test_temporal_decay_missing_dates():
     """Graceful degradation when evidence publication date is missing."""
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     weight = calculate_temporal_decay(claim_time=now, evidence_time=None)
     assert weight == 0.85
+
 
 def test_temporal_decay_domain_adaptive():
     """Verify that domain-adaptive decay correctly differentiates political vs science halflives."""
     from src.nlp.temporal_decay import get_domain_lambda
+
     assert get_domain_lambda("Politics") == 0.35
     assert get_domain_lambda("Space & Astronomy") == 0.01
 
-    now = datetime(2025, 1, 1, tzinfo=timezone.utc)
-    two_years_prior = datetime(2023, 1, 1, tzinfo=timezone.utc)
+    now = datetime(2025, 1, 1, tzinfo=UTC)
+    two_years_prior = datetime(2023, 1, 1, tzinfo=UTC)
 
     # Political claim decays much faster than space science
     pol_weight = calculate_temporal_decay(now, two_years_prior, domain="politics")

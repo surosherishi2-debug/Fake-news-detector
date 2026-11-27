@@ -9,28 +9,23 @@ Executes:
 - Multi-metric evaluation and artifact persistence
 """
 
-import os
 import json
 import logging
 import math
-from typing import List, Dict, Any, Tuple, Optional
+import os
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 
-from src.models.ceam_model import CEAMTruthLensModel
-from src.models.deep_models import TokenVocab, tokenize_simple
 from src.evaluation.metrics import compute_classification_metrics
-from src.nlp.temporal_decay import calculate_temporal_decay, DOMAIN_LAMBDA_MAP
-from src.models.baselines import (
-    load_jsonl_samples,
-    LABEL_MAP,
-    CLASS_NAMES,
-    PROCESSED_DIR
-)
+from src.models.baselines import CLASS_NAMES, LABEL_MAP, PROCESSED_DIR, load_jsonl_samples
+from src.models.ceam_model import CEAMTruthLensModel
+from src.models.deep_models import TokenVocab
+from src.nlp.temporal_decay import DOMAIN_LAMBDA_MAP
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -51,7 +46,7 @@ class CEAMDataset(Dataset):
         claim_max_len: int = 64,
         evidence_max_len: int = 128,
         graph_dim: int = 64,
-        apply_temporal_decay: bool = True
+        apply_temporal_decay: bool = True,
     ):
         self.vocab = vocab
         self.claim_max_len = claim_max_len
@@ -109,7 +104,7 @@ class CEAMDataset(Dataset):
             self.evidence_ids_list[idx],
             self.graph_embs_list[idx],
             self.temporal_weights_list[idx],
-            self.labels_list[idx]
+            self.labels_list[idx],
         )
 
 
@@ -126,7 +121,7 @@ class CEAMTrainer:
         batch_size: int = 64,
         epochs: int = 4,
         lr: float = 1e-3,
-        seed: int = 42
+        seed: int = 42,
     ):
         self.embed_dim = embed_dim
         self.graph_dim = graph_dim
@@ -138,12 +133,7 @@ class CEAMTrainer:
         self.lr = lr
         self.seed = seed
 
-    def train_ablation_run(
-        self,
-        apply_temporal_decay: bool,
-        exp_dir: str,
-        exp_id: str
-    ) -> Dict[str, Any]:
+    def train_ablation_run(self, apply_temporal_decay: bool, exp_dir: str, exp_id: str) -> Dict[str, Any]:
         """Runs a single ablation branch (with or without temporal decay)."""
         torch.manual_seed(self.seed)
         np.random.seed(self.seed)
@@ -159,7 +149,9 @@ class CEAMTrainer:
 
         # Build vocabulary from claim + evidence texts
         vocab = TokenVocab(max_vocab_size=25000, min_freq=2)
-        all_texts = [s.get("claim_text", "") for s in train_samples] + [s.get("evidence_text", "") or "" for s in train_samples]
+        all_texts = [s.get("claim_text", "") for s in train_samples] + [
+            s.get("evidence_text", "") or "" for s in train_samples
+        ]
         vocab.build_vocab(all_texts)
         vocab.save(os.path.join(exp_dir, "vocab.json"))
 
@@ -169,7 +161,7 @@ class CEAMTrainer:
             self.claim_max_len,
             self.evidence_max_len,
             self.graph_dim,
-            apply_temporal_decay=apply_temporal_decay
+            apply_temporal_decay=apply_temporal_decay,
         )
         val_dataset = CEAMDataset(
             val_samples,
@@ -177,7 +169,7 @@ class CEAMTrainer:
             self.claim_max_len,
             self.evidence_max_len,
             self.graph_dim,
-            apply_temporal_decay=apply_temporal_decay
+            apply_temporal_decay=apply_temporal_decay,
         )
 
         train_loader = DataLoader(train_dataset, batch_size=self.batch_size, shuffle=True)
@@ -190,7 +182,7 @@ class CEAMTrainer:
             graph_dim=self.graph_dim,
             num_classes=3,
             num_heads=self.num_heads,
-            dropout=0.1
+            dropout=0.1,
         ).to(device)
 
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr, weight_decay=1e-5)
@@ -252,7 +244,7 @@ class CEAMTrainer:
             self.claim_max_len,
             self.evidence_max_len,
             self.graph_dim,
-            apply_temporal_decay=apply_temporal_decay
+            apply_temporal_decay=apply_temporal_decay,
         )
         test_loader = DataLoader(test_dataset, batch_size=self.batch_size, shuffle=False)
 
@@ -270,10 +262,7 @@ class CEAMTrainer:
 
         test_probs = np.vstack(test_probs_list)
         test_metrics = compute_classification_metrics(
-            test_targets_list,
-            test_preds_list,
-            y_prob=test_probs,
-            class_names=CLASS_NAMES
+            test_targets_list, test_preds_list, y_prob=test_probs, class_names=CLASS_NAMES
         )
 
         # Domain breakdown
@@ -287,7 +276,7 @@ class CEAMTrainer:
                     self.claim_max_len,
                     self.evidence_max_len,
                     self.graph_dim,
-                    apply_temporal_decay=apply_temporal_decay
+                    apply_temporal_decay=apply_temporal_decay,
                 )
                 ds_loader = DataLoader(ds_data, batch_size=self.batch_size, shuffle=False)
                 ds_probs_list, ds_preds_list, ds_targets = [], [], []
@@ -302,10 +291,7 @@ class CEAMTrainer:
                         ds_targets.extend(tg.tolist())
                 d_probs = np.vstack(ds_probs_list)
                 d_metrics = compute_classification_metrics(ds_targets, ds_preds_list, d_probs, class_names=CLASS_NAMES)
-                domain_breakdown[ds] = {
-                    "accuracy": d_metrics["accuracy"],
-                    "macro_f1": d_metrics["macro_f1"]
-                }
+                domain_breakdown[ds] = {"accuracy": d_metrics["accuracy"], "macro_f1": d_metrics["macro_f1"]}
 
         results = {
             "experiment_id": exp_id,
@@ -319,7 +305,7 @@ class CEAMTrainer:
             "test_roc_auc_ovr": test_metrics.get("roc_auc_ovr"),
             "per_class": test_metrics["per_class"],
             "confusion_matrix": test_metrics["confusion_matrix"],
-            "domain_breakdown": domain_breakdown
+            "domain_breakdown": domain_breakdown,
         }
 
         config = {
@@ -335,7 +321,7 @@ class CEAMTrainer:
             "epochs": self.epochs,
             "lr": self.lr,
             "seed": self.seed,
-            "classes": CLASS_NAMES
+            "classes": CLASS_NAMES,
         }
         with open(os.path.join(exp_dir, "config.json"), "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
@@ -351,16 +337,8 @@ class CEAMTrainer:
     def run_full_ablation_study(self) -> Dict[str, Any]:
         """Runs Run A (with temporal decay) and Run B (without temporal decay) and logs comparative delta."""
         logger.info("Executing Formal CEAM Temporal Decay Ablation Study...")
-        res_a = self.train_ablation_run(
-            apply_temporal_decay=True,
-            exp_dir=EXP05_DIR,
-            exp_id="exp05_ceam_temporal"
-        )
-        res_b = self.train_ablation_run(
-            apply_temporal_decay=False,
-            exp_dir=EXP06_DIR,
-            exp_id="exp06_ceam_notemporal"
-        )
+        res_a = self.train_ablation_run(apply_temporal_decay=True, exp_dir=EXP05_DIR, exp_id="exp05_ceam_temporal")
+        res_b = self.train_ablation_run(apply_temporal_decay=False, exp_dir=EXP06_DIR, exp_id="exp06_ceam_notemporal")
 
         delta_acc = round(res_a["test_accuracy"] - res_b["test_accuracy"], 4)
         delta_f1 = round(res_a["test_macro_f1"] - res_b["test_macro_f1"], 4)
@@ -374,7 +352,7 @@ class CEAMTrainer:
             "interpretation": (
                 "Temporal decay attenuation w(t) = exp(-lambda * delta_t) successfully prioritizes contemporary "
                 "evidence and mitigates obsolete fact-check attribution."
-            )
+            ),
         }
         logger.info(f"Ablation Delta: Delta Macro-F1 = {delta_f1:+.4f}, Delta Acc = {delta_acc:+.4f}")
         return ablation_summary

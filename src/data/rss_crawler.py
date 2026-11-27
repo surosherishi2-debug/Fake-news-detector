@@ -11,17 +11,17 @@ Performs automated HTML cleaning, claim segmentation, entity linking,
 and persists verified news feeds into SQLite.
 """
 
-import os
 import re
-import urllib.request
 import urllib.error
+import urllib.request
 import xml.etree.ElementTree as ET
-from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
-from pydantic import BaseModel, Field
+from datetime import UTC, datetime
+from typing import Any, Dict, List
 
-from src.nlp.claim_decomposer import ClaimDecomposer
+from pydantic import BaseModel
+
 from src.data.news_database import EpistemicDatabase
+from src.nlp.claim_decomposer import ClaimDecomposer
 
 RSS_FEEDS = [
     {
@@ -30,7 +30,7 @@ RSS_FEEDS = [
         "publisher": "Press Information Bureau (PIB)",
         "domain": "pib.gov.in",
         "category": "Governance & Policy",
-        "language": "en"
+        "language": "en",
     },
     {
         "name": "BBC Top News",
@@ -38,7 +38,7 @@ RSS_FEEDS = [
         "publisher": "BBC News",
         "domain": "bbc.com",
         "category": "World",
-        "language": "en"
+        "language": "en",
     },
     {
         "name": "ScienceDaily Breakthroughs",
@@ -46,8 +46,8 @@ RSS_FEEDS = [
         "publisher": "ScienceDaily",
         "domain": "sciencedaily.com",
         "category": "Science & Tech",
-        "language": "en"
-    }
+        "language": "en",
+    },
 ]
 
 # Offline fallback items when live network is unavailable
@@ -59,15 +59,20 @@ CACHED_FEED_FALLBACKS = [
         "publisher": "Press Information Bureau (PIB)",
         "domain": "pib.gov.in",
         "category": "Science & Tech",
-        "publish_date": datetime.now(timezone.utc).isoformat(),
+        "publish_date": datetime.now(UTC).isoformat(),
         "status": "REAL",
         "truth_score": 99.0,
         "cib_risk": 0.02,
         "language": "en",
         "is_synthetic": 0,
         "claims": [
-            ("ISRO qualified CE20 cryogenic engine for Gaganyaan human spaceflight.", 0.95, "VERIFIED", "ISRO Press Briefing 2024")
-        ]
+            (
+                "ISRO qualified CE20 cryogenic engine for Gaganyaan human spaceflight.",
+                0.95,
+                "VERIFIED",
+                "ISRO Press Briefing 2024",
+            )
+        ],
     },
     {
         "id": "live-bbc-climate-002",
@@ -76,15 +81,20 @@ CACHED_FEED_FALLBACKS = [
         "publisher": "BBC News",
         "domain": "bbc.com",
         "category": "Climate",
-        "publish_date": datetime.now(timezone.utc).isoformat(),
+        "publish_date": datetime.now(UTC).isoformat(),
         "status": "REAL",
         "truth_score": 97.5,
         "cib_risk": 0.03,
         "language": "en",
         "is_synthetic": 0,
         "claims": [
-            ("Copernicus recorded 12-month global mean temperature anomaly at 1.48C.", 0.92, "VERIFIED", "Copernicus Global Climate Highlights Report")
-        ]
+            (
+                "Copernicus recorded 12-month global mean temperature anomaly at 1.48C.",
+                0.92,
+                "VERIFIED",
+                "Copernicus Global Climate Highlights Report",
+            )
+        ],
     },
     {
         "id": "live-reuters-semicon-003",
@@ -93,17 +103,23 @@ CACHED_FEED_FALLBACKS = [
         "publisher": "Reuters / PIB",
         "domain": "reuters.com",
         "category": "Finance",
-        "publish_date": datetime.now(timezone.utc).isoformat(),
+        "publish_date": datetime.now(UTC).isoformat(),
         "status": "REAL",
         "truth_score": 98.2,
         "cib_risk": 0.04,
         "language": "en",
         "is_synthetic": 0,
         "claims": [
-            ("Union Cabinet approved three semiconductor packaging and fab plants totaling 1.26 lakh crore.", 0.94, "VERIFIED", "Cabinet Committee on Economic Affairs (CCEA) Press Release")
-        ]
-    }
+            (
+                "Union Cabinet approved three semiconductor packaging and fab plants totaling 1.26 lakh crore.",
+                0.94,
+                "VERIFIED",
+                "Cabinet Committee on Economic Affairs (CCEA) Press Release",
+            )
+        ],
+    },
 ]
+
 
 class FeedSyncResult(BaseModel):
     success: bool
@@ -113,10 +129,11 @@ class FeedSyncResult(BaseModel):
     mode: str  # LIVE_NETWORK or OFFLINE_ARCHIVE_FALLBACK
     message: str
 
+
 class RSSNewsCrawler:
     """Crawls external RSS feeds, extracts check-worthy assertions, and persists them."""
 
-    def __init__(self, db: Optional[EpistemicDatabase] = None, decomposer: Optional[ClaimDecomposer] = None):
+    def __init__(self, db: EpistemicDatabase | None = None, decomposer: ClaimDecomposer | None = None):
         self.db = db or EpistemicDatabase()
         self.decomposer = decomposer or ClaimDecomposer()
 
@@ -134,8 +151,7 @@ class RSSNewsCrawler:
                 sources_checked += 1
                 try:
                     req = urllib.request.Request(
-                        feed["url"],
-                        headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TruthLens/1.0"}
+                        feed["url"], headers={"User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) TruthLens/1.0"}
                     )
                     with urllib.request.urlopen(req, timeout=3) as resp:
                         xml_data = resp.read()
@@ -156,14 +172,14 @@ class RSSNewsCrawler:
                 self._persist_feed_item(item)
                 ingested_count += 1
                 claims_count += len(item.get("claims", []))
-            
+
             return FeedSyncResult(
                 success=True,
                 articles_ingested=ingested_count,
                 claims_extracted=claims_count,
                 feed_sources_checked=sources_checked,
                 mode="OFFLINE_ARCHIVE_FALLBACK",
-                message=f"Synchronized {ingested_count} articles and {claims_count} claims into epistemic database."
+                message=f"Synchronized {ingested_count} articles and {claims_count} claims into epistemic database.",
             )
 
         return FeedSyncResult(
@@ -172,14 +188,14 @@ class RSSNewsCrawler:
             claims_extracted=claims_count,
             feed_sources_checked=sources_checked,
             mode="LIVE_NETWORK",
-            message=f"Live feed sync complete: {ingested_count} articles ingested."
+            message=f"Live feed sync complete: {ingested_count} articles ingested.",
         )
 
     def _parse_rss_xml(self, xml_bytes: bytes, feed_meta: Dict[str, Any]) -> List[Dict[str, Any]]:
         """Parse standard RSS 2.0 XML tree."""
         root = ET.fromstring(xml_bytes)
         items = []
-        now = datetime.now(timezone.utc).isoformat()
+        now = datetime.now(UTC).isoformat()
 
         # Handle standard channel/item tags
         channel = root.find("channel")
@@ -196,7 +212,7 @@ class RSSNewsCrawler:
                 clean_desc = title
 
             art_id = f"rss-{feed_meta['domain'].replace('.', '-')}-{i}-{int(datetime.now().timestamp())}"
-            
+
             # Extract claims automatically using claim decomposer
             decomposed = self.decomposer.decompose(f"{title}. {clean_desc}")
             claims_tuples = [
@@ -204,21 +220,23 @@ class RSSNewsCrawler:
                 for c in decomposed[:2]
             ]
 
-            items.append({
-                "id": art_id,
-                "title": title,
-                "content": clean_desc,
-                "publisher": feed_meta["publisher"],
-                "domain": feed_meta["domain"],
-                "category": feed_meta["category"],
-                "publish_date": now,
-                "status": "REAL",
-                "truth_score": 95.0,
-                "cib_risk": 0.05,
-                "language": feed_meta.get("language", "en"),
-                "is_synthetic": 0,
-                "claims": claims_tuples
-            })
+            items.append(
+                {
+                    "id": art_id,
+                    "title": title,
+                    "content": clean_desc,
+                    "publisher": feed_meta["publisher"],
+                    "domain": feed_meta["domain"],
+                    "category": feed_meta["category"],
+                    "publish_date": now,
+                    "status": "REAL",
+                    "truth_score": 95.0,
+                    "cib_risk": 0.05,
+                    "language": feed_meta.get("language", "en"),
+                    "is_synthetic": 0,
+                    "claims": claims_tuples,
+                }
+            )
 
         return items
 
@@ -226,26 +244,37 @@ class RSSNewsCrawler:
         """Store article and claims in SQLite."""
         with self.db._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
-                INSERT OR REPLACE INTO articles 
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO articles
                 (id, title, content, publisher, domain, category, publish_date, status, truth_score, cib_risk, language, is_synthetic)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                item["id"], item["title"], item["content"], item["publisher"],
-                item["domain"], item["category"], item["publish_date"], item["status"],
-                item["truth_score"], item["cib_risk"], item.get("language", "en"),
-                item.get("is_synthetic", 0)
-            ))
+            """,
+                (
+                    item["id"],
+                    item["title"],
+                    item["content"],
+                    item["publisher"],
+                    item["domain"],
+                    item["category"],
+                    item["publish_date"],
+                    item["status"],
+                    item["truth_score"],
+                    item["cib_risk"],
+                    item.get("language", "en"),
+                    item.get("is_synthetic", 0),
+                ),
+            )
 
             for j, claim in enumerate(item.get("claims", [])):
                 claim_id = f"{item['id']}-c{j}"
-                cursor.execute("""
-                    INSERT OR REPLACE INTO claims 
+                cursor.execute(
+                    """
+                    INSERT OR REPLACE INTO claims
                     (id, article_id, text, check_worthiness, status, citation)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    claim_id, item["id"], claim[0], claim[1], claim[2], claim[3]
-                ))
+                """,
+                    (claim_id, item["id"], claim[0], claim[1], claim[2], claim[3]),
+                )
 
             conn.commit()
-

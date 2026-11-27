@@ -1,17 +1,17 @@
 """Unit and regression tests for Phase 3 Model Ladder & Evaluation components."""
 
 import os
+
+import joblib
+import numpy as np
 import pytest
 import torch
-import numpy as np
-import joblib
 
-from src.models.ceam_model import CEAMTruthLensModel
-from src.models.deep_models import BiLSTMClassifier, TokenVocab
-from src.models.transformer_models import TransformerClassifier
-from src.evaluation.metrics import compute_classification_metrics, compute_ece
 from src.evaluation.generate_results_table import generate_results_table
 from src.models.adversarial_tester import AdversarialAttackSimulator
+from src.models.ceam_model import CEAMTruthLensModel
+from src.models.deep_models import BiLSTMClassifier
+from src.models.transformer_models import TransformerClassifier
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 EXPERIMENTS_DIR = os.path.join(BASE_DIR, "experiments")

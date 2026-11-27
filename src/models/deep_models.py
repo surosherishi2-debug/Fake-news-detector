@@ -8,28 +8,22 @@ Provides:
 - Artifact persistence in experiments/exp02_bilstm/
 """
 
-import os
 import json
 import logging
+import os
 import re
 import unicodedata
 from collections import Counter
-from typing import List, Dict, Any, Tuple, Optional
+from typing import Any, Dict, List, Tuple
 
 import numpy as np
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import DataLoader, Dataset
 
 from src.evaluation.metrics import compute_classification_metrics
-from src.models.baselines import (
-    get_combined_splits,
-    load_jsonl_samples,
-    LABEL_MAP,
-    CLASS_NAMES,
-    PROCESSED_DIR
-)
+from src.models.baselines import CLASS_NAMES, LABEL_MAP, PROCESSED_DIR, get_combined_splits, load_jsonl_samples
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -83,7 +77,7 @@ class TokenVocab:
     @classmethod
     def load(cls, filepath: str) -> "TokenVocab":
         vocab = cls()
-        with open(filepath, "r", encoding="utf-8") as f:
+        with open(filepath, encoding="utf-8") as f:
             data = json.load(f)
             vocab.token2id = data["token2id"]
             vocab.id2token = {int(v): k for k, v in vocab.token2id.items()}
@@ -114,7 +108,7 @@ class BiLSTMClassifier(nn.Module):
         hidden_dim: int = 128,
         num_layers: int = 2,
         num_classes: int = 3,
-        dropout: float = 0.2
+        dropout: float = 0.2,
     ):
         super().__init__()
         self.embedding = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
@@ -124,25 +118,22 @@ class BiLSTMClassifier(nn.Module):
             num_layers=num_layers,
             bidirectional=True,
             batch_first=True,
-            dropout=dropout if num_layers > 1 else 0.0
+            dropout=dropout if num_layers > 1 else 0.0,
         )
         self.dropout = nn.Dropout(dropout)
         self.fc = nn.Sequential(
-            nn.Linear(hidden_dim * 2, 64),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(64, num_classes)
+            nn.Linear(hidden_dim * 2, 64), nn.ReLU(), nn.Dropout(dropout), nn.Linear(64, num_classes)
         )
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
         # x: [Batch, SeqLen]
         emb = self.dropout(self.embedding(x))
         lstm_out, _ = self.lstm(emb)  # [Batch, SeqLen, hidden_dim * 2]
-        
+
         # Mean pooling across tokens ignoring padding (token 0)
         mask = (x != 0).unsqueeze(-1).float()
         pooled = torch.sum(lstm_out * mask, dim=1) / torch.clamp(mask.sum(dim=1), min=1.0)
-        
+
         logits = self.fc(pooled)
         return logits
 
@@ -159,7 +150,7 @@ class BiLSTMTrainer:
         batch_size: int = 64,
         epochs: int = 4,
         lr: float = 1e-3,
-        seed: int = 42
+        seed: int = 42,
     ):
         self.embed_dim = embed_dim
         self.hidden_dim = hidden_dim
@@ -197,7 +188,7 @@ class BiLSTMTrainer:
             hidden_dim=self.hidden_dim,
             num_layers=self.num_layers,
             num_classes=3,
-            dropout=0.2
+            dropout=0.2,
         ).to(device)
 
         optimizer = torch.optim.Adam(model.parameters(), lr=self.lr, weight_decay=1e-5)
@@ -272,10 +263,7 @@ class BiLSTMTrainer:
 
         test_probs = np.vstack(test_probs_list)
         test_metrics = compute_classification_metrics(
-            test_labels,
-            test_preds_list,
-            y_prob=test_probs,
-            class_names=CLASS_NAMES
+            test_labels, test_preds_list, y_prob=test_probs, class_names=CLASS_NAMES
         )
 
         # Domain breakdown
@@ -297,10 +285,7 @@ class BiLSTMTrainer:
                 d_probs = np.vstack(d_probs_list)
                 d_preds = np.argmax(d_probs, axis=1).tolist()
                 d_metrics = compute_classification_metrics(d_labels, d_preds, d_probs, class_names=CLASS_NAMES)
-                domain_breakdown[ds] = {
-                    "accuracy": d_metrics["accuracy"],
-                    "macro_f1": d_metrics["macro_f1"]
-                }
+                domain_breakdown[ds] = {"accuracy": d_metrics["accuracy"], "macro_f1": d_metrics["macro_f1"]}
 
         results = {
             "experiment_id": "exp02_bilstm",
@@ -314,7 +299,7 @@ class BiLSTMTrainer:
             "test_roc_auc_ovr": test_metrics.get("roc_auc_ovr"),
             "per_class": test_metrics["per_class"],
             "confusion_matrix": test_metrics["confusion_matrix"],
-            "domain_breakdown": domain_breakdown
+            "domain_breakdown": domain_breakdown,
         }
 
         # Save config and metrics
@@ -330,7 +315,7 @@ class BiLSTMTrainer:
             "lr": self.lr,
             "seed": self.seed,
             "vocab_size": len(vocab.token2id),
-            "classes": CLASS_NAMES
+            "classes": CLASS_NAMES,
         }
         with open(os.path.join(EXP02_DIR, "config.json"), "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
@@ -338,7 +323,9 @@ class BiLSTMTrainer:
         with open(os.path.join(EXP02_DIR, "metrics.json"), "w", encoding="utf-8") as f:
             json.dump({"experiment_id": "exp02_bilstm", "status": "COMPLETED", "metrics": results}, f, indent=2)
 
-        logger.info(f"BiLSTM Experiment exp02_bilstm finished: Test Acc={test_metrics['accuracy']}, Macro-F1={test_metrics['macro_f1']}, ECE={test_metrics.get('ece')}")
+        logger.info(
+            f"BiLSTM Experiment exp02_bilstm finished: Test Acc={test_metrics['accuracy']}, Macro-F1={test_metrics['macro_f1']}, ECE={test_metrics.get('ece')}"
+        )
         return results
 
 

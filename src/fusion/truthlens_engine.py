@@ -7,24 +7,25 @@ Adheres strictly to the Neuro-Symbolic & Zero-Assumption Verification Standards:
 4. Generates an FDA-style Contextual Nutrition Card (Feature 1) and Sentence Highlighting (Feature 2).
 """
 
-import time
 import re
-from typing import List, Optional, Tuple
-from datetime import datetime, timezone
+import time
+from datetime import UTC, datetime
+from typing import List
+
 from src.core.types import (
     Claim,
-    Evidence,
     ClaimEvidenceAlignment,
     ClaimStance,
+    Evidence,
     HighlightStatus,
     NutritionCard,
-    VerificationVerdict,
-    VerificationResult,
     VerificationRequest,
+    VerificationResult,
+    VerificationVerdict,
 )
+from src.graph.hgt_encoder import CascadeTopologyAnalyzer
 from src.nlp.claim_decomposer import ClaimDecomposer
 from src.retrieval.fact_check_client import FactCheckClient
-from src.graph.hgt_encoder import CascadeTopologyAnalyzer
 
 # Curated domain reputation registry (NewsGuard 9-point criteria)
 TRUSTED_PUBLISHERS = {
@@ -52,14 +53,15 @@ SATIRICAL_PUBLISHERS = {
     "fakingnews.com": 0.80,
 }
 
+
 class TruthLensEngine:
     """The central Neuro-Symbolic end-to-end verification engine."""
 
     def __init__(
         self,
-        claim_decomposer: Optional[ClaimDecomposer] = None,
-        fact_checker: Optional[FactCheckClient] = None,
-        graph_analyzer: Optional[CascadeTopologyAnalyzer] = None,
+        claim_decomposer: ClaimDecomposer | None = None,
+        fact_checker: FactCheckClient | None = None,
+        graph_analyzer: CascadeTopologyAnalyzer | None = None,
     ):
         self.decomposer = claim_decomposer or ClaimDecomposer()
         self.fact_checker = fact_checker or FactCheckClient()
@@ -71,7 +73,7 @@ class TruthLensEngine:
         Enforces strict zero-assumption factual grounding.
         """
         start_time = time.perf_counter()
-        now = request.publication_date or datetime.now(timezone.utc)
+        now = request.publication_date or datetime.now(UTC)
 
         # 1. Decompose input into atomic claims (Feature 2)
         raw_claims = self.decomposer.decompose(request.text)
@@ -84,7 +86,9 @@ class TruthLensEngine:
         # 2. Retrieve evidence & compute CEAM alignments with temporal decay
         domain_context = request.category or request.publisher
         for claim in raw_claims:
-            evidences = self.fact_checker.search_evidence(claim.text, claim_time=now, max_results=3, domain=domain_context)
+            evidences = self.fact_checker.search_evidence(
+                claim.text, claim_time=now, max_results=3, domain=domain_context
+            )
             best_stance = ClaimStance.NEUTRAL
             best_citation = None
             best_refute_score = -1.0
@@ -143,17 +147,9 @@ class TruthLensEngine:
         semantic_refute = max(refute_scores) if refute_scores else 0.0
         semantic_support = max(support_scores) if support_scores else 0.0
 
-        fake_probability = (
-            0.55 * semantic_refute
-            + 0.25 * graph_risk
-            + 0.20 * (1.0 - pub_trust)
-        )
+        fake_probability = 0.55 * semantic_refute + 0.25 * graph_risk + 0.20 * (1.0 - pub_trust)
 
-        real_probability = (
-            0.55 * semantic_support
-            + 0.25 * (1.0 - graph_risk)
-            + 0.20 * pub_trust
-        )
+        real_probability = 0.55 * semantic_support + 0.25 * (1.0 - graph_risk) + 0.20 * pub_trust
 
         # 6. Apply Zero-Assumption Hard Grounding Constraints
         # Rule 1: Accredited IFCN Fact-Checker Veto
@@ -202,7 +198,10 @@ class TruthLensEngine:
         avg_freshness = (sum(temporal_weights) / len(temporal_weights)) if temporal_weights else 0.85
 
         nutrition_card = NutritionCard(
-            factual_grounding_score=round(max(0.0, 100.0 * (1.0 - semantic_refute if verdict == VerificationVerdict.FAKE else semantic_support)), 1),
+            factual_grounding_score=round(
+                max(0.0, 100.0 * (1.0 - semantic_refute if verdict == VerificationVerdict.FAKE else semantic_support)),
+                1,
+            ),
             source_transparency_score=round(pub_trust * 100.0, 1),
             organic_diffusion_score=round((1.0 - graph_risk) * 100.0, 1),
             sensationalism_score=round(sensationalism * 100.0, 1),
@@ -247,13 +246,36 @@ class TruthLensEngine:
 
         combined = f"{evidence.source_title} {evidence.snippet}".lower()
         refute_cues = [
-            "false", "debunk", "misleading", "fabricated", "untrue", "pants on fire",
-            "do not cause", "do not contain", "no evidence", "myth", "fake",
-            "खोटा", "असत्य", "अफवा", "दिशाभूल", "निराधार", "दावा खोटा"
+            "false",
+            "debunk",
+            "misleading",
+            "fabricated",
+            "untrue",
+            "pants on fire",
+            "do not cause",
+            "do not contain",
+            "no evidence",
+            "myth",
+            "fake",
+            "खोटा",
+            "असत्य",
+            "अफवा",
+            "दिशाभूल",
+            "निराधार",
+            "दावा खोटा",
         ]
         support_cues = [
-            "true", "confirmed", "verified", "correct", "safe and proven", "approves", "approved",
-            "खरे", "सत्य", "सत्यापित", "प्रमाणित"
+            "true",
+            "confirmed",
+            "verified",
+            "correct",
+            "safe and proven",
+            "approves",
+            "approved",
+            "खरे",
+            "सत्य",
+            "सत्यापित",
+            "प्रमाणित",
         ]
         if any(term in combined for term in refute_cues):
             return ClaimStance.REFUTES
@@ -261,7 +283,7 @@ class TruthLensEngine:
             return ClaimStance.SUPPORTS
         return ClaimStance.NEUTRAL
 
-    def _evaluate_publisher_trust(self, publisher: Optional[str]) -> float:
+    def _evaluate_publisher_trust(self, publisher: str | None) -> float:
         """Lookup publisher domain in credibility index with neutral fallback."""
         if not publisher:
             return 0.50
@@ -274,7 +296,7 @@ class TruthLensEngine:
                 return score
         return 0.50
 
-    def _check_satire(self, publisher: Optional[str]) -> bool:
+    def _check_satire(self, publisher: str | None) -> bool:
         """Check if publisher is a recognized satire outlet."""
         if not publisher:
             return False
@@ -284,7 +306,7 @@ class TruthLensEngine:
     def _detect_sensationalism(self, text: str) -> float:
         """Heuristic detection of clickbait and emotional exaggeration cues."""
         score = 0.10
-        lower = text.lower()
+        text.lower()
         sensational_cues = [
             r"\b(shocking|you won't believe|viral|exposed|secret|mindblowing|jaw-dropping)\b",
             r"!{2,}",

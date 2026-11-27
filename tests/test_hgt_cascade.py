@@ -1,20 +1,23 @@
 """Unit tests for Propagation Graph Encoder (PGE) and cascade analysis."""
 
 import torch
-from src.core.types import SocialCascade, SocialNode, SocialEdge, NodeType, RelationType
-from src.graph.hgt_encoder import HeteroGraphEncoder, CascadeTopologyAnalyzer
+
+from src.core.types import NodeType, RelationType, SocialCascade, SocialEdge, SocialNode
+from src.graph.hgt_encoder import CascadeTopologyAnalyzer, HeteroGraphEncoder
+
 
 def test_hetero_graph_encoder_forward():
     encoder = HeteroGraphEncoder(in_features=8, hidden_dim=16, out_dim=8)
     features = torch.randn(2, 8)
-    
+
     art_out = encoder(features, NodeType.ARTICLE)
     user_out = encoder(features, NodeType.USER)
     pub_out = encoder(features, NodeType.PUBLISHER)
-    
+
     assert art_out.shape == (2, 16)
     assert user_out.shape == (2, 16)
     assert pub_out.shape == (2, 16)
+
 
 def test_cascade_topology_normal_diffusion():
     analyzer = CascadeTopologyAnalyzer()
@@ -35,6 +38,7 @@ def test_cascade_topology_normal_diffusion():
     metrics = analyzer.analyze_cascade(cascade)
     assert metrics["verified_ratio"] > 0.50
     assert metrics["cascade_risk_score"] < 0.40
+
 
 def test_cascade_topology_botnet_cluster():
     analyzer = CascadeTopologyAnalyzer()

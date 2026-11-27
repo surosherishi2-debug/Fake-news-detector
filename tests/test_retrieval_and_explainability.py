@@ -1,13 +1,10 @@
 """Unit and integration tests for Phase 4: Retrieval, Explainability, and Calibrated Abstention."""
 
-import pytest
-from datetime import datetime, timezone
-
-from src.retrieval.knowledge_store import KnowledgeStore
-from src.retrieval.evidence_retriever import TwoStageEvidenceRetriever
-from src.nlp.explainer import TruthLensExplainer
+from src.core.types import HighlightStatus, VerificationRequest, VerificationVerdict
 from src.fusion.truthlens_engine import TruthLensEngine
-from src.core.types import VerificationRequest, VerificationVerdict, HighlightStatus
+from src.nlp.explainer import TruthLensExplainer
+from src.retrieval.evidence_retriever import TwoStageEvidenceRetriever
+from src.retrieval.knowledge_store import KnowledgeStore
 
 
 def test_knowledge_store_initialization():
@@ -89,7 +86,7 @@ def test_truthlens_engine_full_integration():
     engine = TruthLensEngine()
     req = VerificationRequest(
         text="Viral posts claim COVID-19 vaccines contain secret microchips designed for human tracking.",
-        publisher="dailyconspiracy.net"
+        publisher="dailyconspiracy.net",
     )
     result = engine.verify(req)
 

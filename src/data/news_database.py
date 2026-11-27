@@ -4,14 +4,14 @@ Provides data persistence, real-world benchmark datasets (PuneFakeNews-2024, Fak
 curated daily multi-domain news streams, and entity-relationship knowledge graph mappings.
 """
 
-import sqlite3
 import os
-import json
-from datetime import datetime, timezone, timedelta
-from typing import List, Dict, Any, Optional
+import sqlite3
+from datetime import UTC, datetime, timedelta
+from typing import Any, Dict, List
 
 DB_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "data")
 DB_PATH = os.path.join(DB_DIR, "epistemic_store.sqlite3")
+
 
 class EpistemicDatabase:
     """SQLite-backed persistent knowledge base for real-time news and fact-checking records."""
@@ -30,7 +30,7 @@ class EpistemicDatabase:
     def _init_tables(self):
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            
+
             # Articles Table
             cursor.execute("""
                 CREATE TABLE IF NOT EXISTS articles (
@@ -93,8 +93,8 @@ class EpistemicDatabase:
             if count >= 12:
                 return
 
-            now = datetime.now(timezone.utc)
-            
+            now = datetime.now(UTC)
+
             # Curated multi-domain dataset spanning real news, debunks, satire, and AI hallucinations
             seed_articles = [
                 # 1. Authentic Science & Space News
@@ -112,8 +112,18 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("LIBS instrument confirmed elemental sulphur on lunar south pole.", 0.96, "VERIFIED", "ISRO Official Press Release"),
-                        ("Pragyan rover completed in-situ elemental spectroscopy.", 0.88, "VERIFIED", "Current Science Journal vol. 125"),
+                        (
+                            "LIBS instrument confirmed elemental sulphur on lunar south pole.",
+                            0.96,
+                            "VERIFIED",
+                            "ISRO Official Press Release",
+                        ),
+                        (
+                            "Pragyan rover completed in-situ elemental spectroscopy.",
+                            0.88,
+                            "VERIFIED",
+                            "Current Science Journal vol. 125",
+                        ),
                     ],
                 },
                 # 2. Viral Health Misinformation (Debunked)
@@ -131,8 +141,18 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("COVID mRNA vaccines contain self-assembling graphene oxide microcircuits.", 0.95, "REFUTED", "Nature Nanotechnology / FDA Ingredient Disclosure"),
-                        ("Lipid nanoparticles transmit wireless biometric telemetry to 5G cellular towers.", 0.89, "REFUTED", "FDA Biological Product Characterization Division"),
+                        (
+                            "COVID mRNA vaccines contain self-assembling graphene oxide microcircuits.",
+                            0.95,
+                            "REFUTED",
+                            "Nature Nanotechnology / FDA Ingredient Disclosure",
+                        ),
+                        (
+                            "Lipid nanoparticles transmit wireless biometric telemetry to 5G cellular towers.",
+                            0.89,
+                            "REFUTED",
+                            "FDA Biological Product Characterization Division",
+                        ),
                     ],
                 },
                 # 3. Political Fact-Check
@@ -150,8 +170,18 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("EVMs communicate via external wireless Bluetooth transceivers.", 0.92, "REFUTED", "Election Commission of India Technical Security Whitepaper"),
-                        ("Voting tally was remotely updated via mobile application.", 0.86, "REFUTED", "PIB Fact Check Press Release ID 19842"),
+                        (
+                            "EVMs communicate via external wireless Bluetooth transceivers.",
+                            0.92,
+                            "REFUTED",
+                            "Election Commission of India Technical Security Whitepaper",
+                        ),
+                        (
+                            "Voting tally was remotely updated via mobile application.",
+                            0.86,
+                            "REFUTED",
+                            "PIB Fact Check Press Release ID 19842",
+                        ),
                     ],
                 },
                 # 4. Global Economics (Real News)
@@ -169,8 +199,18 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("RBI MPC kept benchmark policy repo rate steady at 6.50 percent.", 0.94, "VERIFIED", "Reserve Bank of India Governor Press Statement"),
-                        ("Monetary policy committee voted unanimously on benchmark rate.", 0.82, "VERIFIED", "RBI MPC Resolution Minutes"),
+                        (
+                            "RBI MPC kept benchmark policy repo rate steady at 6.50 percent.",
+                            0.94,
+                            "VERIFIED",
+                            "Reserve Bank of India Governor Press Statement",
+                        ),
+                        (
+                            "Monetary policy committee voted unanimously on benchmark rate.",
+                            0.82,
+                            "VERIFIED",
+                            "RBI MPC Resolution Minutes",
+                        ),
                     ],
                 },
                 # 5. Satirical News Parody (The Onion)
@@ -188,7 +228,12 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("NASA plans night-time landing on the solar surface.", 0.88, "OPINION", "Recognized Satirical Publication: The Onion"),
+                        (
+                            "NASA plans night-time landing on the solar surface.",
+                            0.88,
+                            "OPINION",
+                            "Recognized Satirical Publication: The Onion",
+                        ),
                     ],
                 },
                 # 6. AI-Generated Synthetic Hallucination ("The Real Fake")
@@ -206,8 +251,18 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 1,
                     "claims": [
-                        ("Hexagonal alkaline water activates quantum resonance in human telomeres.", 0.94, "REFUTED", "No indexed scientific journal matches 'International Journal of Quantum Hydration'"),
-                        ("Quantum water reverses cellular genetic aging in 14 days.", 0.91, "REFUTED", "American Chemical Society Biochemical Review"),
+                        (
+                            "Hexagonal alkaline water activates quantum resonance in human telomeres.",
+                            0.94,
+                            "REFUTED",
+                            "No indexed scientific journal matches 'International Journal of Quantum Hydration'",
+                        ),
+                        (
+                            "Quantum water reverses cellular genetic aging in 14 days.",
+                            0.91,
+                            "REFUTED",
+                            "American Chemical Society Biochemical Review",
+                        ),
                     ],
                 },
                 # 7. Bilingual Hindi News (PuneFakeNews Benchmark)
@@ -225,7 +280,12 @@ class EpistemicDatabase:
                     "language": "hi",
                     "is_synthetic": 0,
                     "claims": [
-                        ("तुलसी और गिलोय कोरोना वायरस को 100% नष्ट कर देते हैं।", 0.92, "REFUTED", "आयुष मंत्रालय एवं विश्व स्वास्थ्य संगठन तथ्य जांच"),
+                        (
+                            "तुलसी और गिलोय कोरोना वायरस को 100% नष्ट कर देते हैं।",
+                            0.92,
+                            "REFUTED",
+                            "आयुष मंत्रालय एवं विश्व स्वास्थ्य संगठन तथ्य जांच",
+                        ),
                     ],
                 },
                 # 8. Developing Breaking Event (Data-Void)
@@ -243,7 +303,12 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("Private orbital booster lost telemetry over Pacific Ocean tracking zone.", 0.85, "DATA_VOID", "Pending official flight telemetry data release"),
+                        (
+                            "Private orbital booster lost telemetry over Pacific Ocean tracking zone.",
+                            0.85,
+                            "DATA_VOID",
+                            "Pending official flight telemetry data release",
+                        ),
                     ],
                 },
                 # 9. Climate Science (Real News)
@@ -261,7 +326,12 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("Global ocean surface temperatures reached 21.1C all-time marine record.", 0.95, "VERIFIED", "NOAA National Centers for Environmental Information"),
+                        (
+                            "Global ocean surface temperatures reached 21.1C all-time marine record.",
+                            0.95,
+                            "VERIFIED",
+                            "NOAA National Centers for Environmental Information",
+                        ),
                     ],
                 },
                 # 10. Regional Marathi Civic News (PuneFakeNews Benchmark)
@@ -279,7 +349,12 @@ class EpistemicDatabase:
                     "language": "mr",
                     "is_synthetic": 0,
                     "claims": [
-                        ("महामेट्रोने बंडगार्डन मेट्रो बोगद्यात पाणी शिरल्याचा दावा फेटाळला.", 0.93, "VERIFIED", "महामेट्रो अधिकृत प्रसिद्धीपत्रक"),
+                        (
+                            "महामेट्रोने बंडगार्डन मेट्रो बोगद्यात पाणी शिरल्याचा दावा फेटाळला.",
+                            0.93,
+                            "VERIFIED",
+                            "महामेट्रो अधिकृत प्रसिद्धीपत्रक",
+                        ),
                     ],
                 },
                 # 11. Tech/AI Deepfake Scandal
@@ -297,7 +372,12 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("Fraudsters used real-time AI deepfake video call to conduct $25M heist.", 0.94, "VERIFIED", "Hong Kong Police Cyber Security Bureau Press Briefing"),
+                        (
+                            "Fraudsters used real-time AI deepfake video call to conduct $25M heist.",
+                            0.94,
+                            "VERIFIED",
+                            "Hong Kong Police Cyber Security Bureau Press Briefing",
+                        ),
                     ],
                 },
                 # 12. Satirical Parody (Faking News / Babble)
@@ -315,23 +395,47 @@ class EpistemicDatabase:
                     "language": "en",
                     "is_synthetic": 0,
                     "claims": [
-                        ("Individual resolved to enter Olympic deadlift regime next Monday.", 0.70, "OPINION", "Satirical lifestyle commentary"),
+                        (
+                            "Individual resolved to enter Olympic deadlift regime next Monday.",
+                            0.70,
+                            "OPINION",
+                            "Satirical lifestyle commentary",
+                        ),
                     ],
-                }
+                },
             ]
 
             for a in seed_articles:
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT OR REPLACE INTO articles (id, title, content, publisher, domain, category, publish_date, status, truth_score, cib_risk, language, is_synthetic)
                     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (a["id"], a["title"], a["content"], a["publisher"], a["domain"], a["category"], a["publish_date"], a["status"], a["truth_score"], a["cib_risk"], a["language"], a["is_synthetic"]))
+                """,
+                    (
+                        a["id"],
+                        a["title"],
+                        a["content"],
+                        a["publisher"],
+                        a["domain"],
+                        a["category"],
+                        a["publish_date"],
+                        a["status"],
+                        a["truth_score"],
+                        a["cib_risk"],
+                        a["language"],
+                        a["is_synthetic"],
+                    ),
+                )
 
                 for c_text, c_worth, c_stat, c_cit in a["claims"]:
                     c_id = f"clm-{abs(hash(c_text)) % 1000000}"
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         INSERT OR REPLACE INTO claims (id, article_id, text, check_worthiness, status, citation)
                         VALUES (?, ?, ?, ?, ?, ?)
-                    """, (c_id, a["id"], c_text, c_worth, c_stat, c_cit))
+                    """,
+                        (c_id, a["id"], c_text, c_worth, c_stat, c_cit),
+                    )
 
             # Seed Knowledge Graph Entities & Relationships
             entities = [
@@ -372,10 +476,10 @@ class EpistemicDatabase:
 
     def get_articles(
         self,
-        category: Optional[str] = None,
-        status: Optional[str] = None,
-        language: Optional[str] = None,
-        search_query: Optional[str] = None,
+        category: str | None = None,
+        status: str | None = None,
+        language: str | None = None,
+        search_query: str | None = None,
         limit: int = 50,
     ) -> List[Dict[str, Any]]:
         """Retrieve articles matching filter criteria."""
@@ -439,7 +543,7 @@ class EpistemicDatabase:
         self,
         article_data: Dict[str, Any],
         claims_data: List[Dict[str, Any]],
-        entities_data: Optional[List[Dict[str, Any]]] = None,
+        entities_data: List[Dict[str, Any]] | None = None,
     ) -> str:
         """
         Publish newly audited draft from Self-News Studio into the persistent epistemic store.
@@ -448,57 +552,69 @@ class EpistemicDatabase:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             art_id = article_data.get("id") or f"art-self-{int(datetime.now().timestamp())}"
-            cursor.execute("""
-                INSERT OR REPLACE INTO articles 
+            cursor.execute(
+                """
+                INSERT OR REPLACE INTO articles
                 (id, title, content, publisher, domain, category, publish_date, status, truth_score, cib_risk, language, is_synthetic)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                art_id,
-                article_data["title"],
-                article_data["content"],
-                article_data.get("publisher", "Independent Journalist"),
-                article_data.get("domain", "self-published.org"),
-                article_data.get("category", "General"),
-                article_data.get("publish_date", datetime.now(timezone.utc).isoformat()),
-                article_data.get("status", "VERIFIED"),
-                article_data.get("truth_score", 85.0),
-                article_data.get("cib_risk", 0.05),
-                article_data.get("language", "en"),
-                article_data.get("is_synthetic", 0)
-            ))
+            """,
+                (
+                    art_id,
+                    article_data["title"],
+                    article_data["content"],
+                    article_data.get("publisher", "Independent Journalist"),
+                    article_data.get("domain", "self-published.org"),
+                    article_data.get("category", "General"),
+                    article_data.get("publish_date", datetime.now(UTC).isoformat()),
+                    article_data.get("status", "VERIFIED"),
+                    article_data.get("truth_score", 85.0),
+                    article_data.get("cib_risk", 0.05),
+                    article_data.get("language", "en"),
+                    article_data.get("is_synthetic", 0),
+                ),
+            )
 
             for j, c in enumerate(claims_data):
                 c_id = f"{art_id}-c{j}"
-                cursor.execute("""
-                    INSERT OR REPLACE INTO claims 
+                cursor.execute(
+                    """
+                    INSERT OR REPLACE INTO claims
                     (id, article_id, text, check_worthiness, status, citation)
                     VALUES (?, ?, ?, ?, ?, ?)
-                """, (
-                    c_id,
-                    art_id,
-                    c.get("text", ""),
-                    c.get("check_worthiness", 0.75),
-                    c.get("status", "VERIFIED"),
-                    c.get("citation", "Author Grounded Source")
-                ))
+                """,
+                    (
+                        c_id,
+                        art_id,
+                        c.get("text", ""),
+                        c.get("check_worthiness", 0.75),
+                        c.get("status", "VERIFIED"),
+                        c.get("citation", "Author Grounded Source"),
+                    ),
+                )
 
             if entities_data:
                 for ent in entities_data:
                     e_id = ent.get("id", f"ent-{ent['name'].lower().replace(' ', '-')}")
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         INSERT OR IGNORE INTO entities (id, name, entity_type, trust_score)
                         VALUES (?, ?, ?, ?)
-                    """, (e_id, ent["name"], ent.get("type", "TOPIC"), ent.get("trust_score", 0.90)))
+                    """,
+                        (e_id, ent["name"], ent.get("type", "TOPIC"), ent.get("trust_score", 0.90)),
+                    )
 
-                    cursor.execute("""
+                    cursor.execute(
+                        """
                         INSERT OR IGNORE INTO entity_edges (source, target, relation, weight)
                         VALUES (?, ?, ?, ?)
-                    """, (art_id, e_id, "DISCUSSES_ENTITY", 1.0))
+                    """,
+                        (art_id, e_id, "DISCUSSES_ENTITY", 1.0),
+                    )
 
             conn.commit()
             return art_id
 
-    def get_entity_details(self, entity_id: str) -> Optional[Dict[str, Any]]:
+    def get_entity_details(self, entity_id: str) -> Dict[str, Any] | None:
         """Retrieve detailed relational subgraph and connected articles for an entity."""
         with self._get_connection() as conn:
             cursor = conn.cursor()
@@ -512,13 +628,17 @@ class EpistemicDatabase:
             result["connections"] = [dict(r) for r in cursor.fetchall()]
 
             # Fetch related articles mentioning this entity
-            cursor.execute("""
-                SELECT * FROM articles 
-                WHERE title LIKE ? OR content LIKE ? 
+            cursor.execute(
+                """
+                SELECT * FROM articles
+                WHERE title LIKE ? OR content LIKE ?
                 LIMIT 5
-            """, (f"%{result['name']}%", f"%{result['name']}%"))
+            """,
+                (f"%{result['name']}%", f"%{result['name']}%"),
+            )
             result["related_articles"] = [dict(r) for r in cursor.fetchall()]
 
             return result
+
 
 db = EpistemicDatabase()

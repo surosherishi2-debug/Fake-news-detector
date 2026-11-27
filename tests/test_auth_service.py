@@ -1,14 +1,15 @@
 """Unit tests for TruthLens Enterprise IAM and Cryptographic Authentication Service."""
 
-import pytest
-import time
 from datetime import timedelta
+
+import pytest
+
 from src.core.auth import (
-    hash_password,
-    verify_password,
-    create_access_token,
-    verify_access_token,
     UserDatabase,
+    create_access_token,
+    hash_password,
+    verify_access_token,
+    verify_password,
 )
 
 
@@ -18,22 +19,17 @@ def test_password_hashing_and_verification():
 
     assert pwd_hash is not None
     assert len(pwd_hash) == 64  # sha256 hex
-    assert len(salt) == 32      # 16 bytes hex
+    assert len(salt) == 32  # 16 bytes hex
 
     assert verify_password(raw, pwd_hash, salt) is True
     assert verify_password("WrongPassword123!", pwd_hash, salt) is False
 
 
 def test_jwt_token_creation_and_tampering():
-    payload = {
-        "sub": "usr_test_123",
-        "email": "test@truthlens.ai",
-        "role": "OFFICER",
-        "clearance_level": 5
-    }
+    payload = {"sub": "usr_test_123", "email": "test@truthlens.ai", "role": "OFFICER", "clearance_level": 5}
     token = create_access_token(payload, expires_delta=timedelta(minutes=5))
     assert token is not None
-    assert len(token.split('.')) == 3
+    assert len(token.split(".")) == 3
 
     # Verify authentic token
     verified = verify_access_token(token)
@@ -43,7 +39,7 @@ def test_jwt_token_creation_and_tampering():
     assert verified["clearance_level"] == 5
 
     # Test tampering with payload
-    parts = token.split('.')
+    parts = token.split(".")
     tampered_token = f"{parts[0]}.eyJyYW5kb20iOiJmYWtlIn0.{parts[2]}"
     assert verify_access_token(tampered_token) is None
 
@@ -80,7 +76,7 @@ def test_user_registration_and_duplicates(tmp_path):
         full_name="Dr. Alan Turing",
         role="ACADEMIC",
         organization="IEEE Computing Society",
-        clearance_level=4
+        clearance_level=4,
     )
     assert new_user is not None
     assert new_user["email"] == "auditor@ieee.org"
@@ -88,11 +84,7 @@ def test_user_registration_and_duplicates(tmp_path):
 
     # Duplicate registration should raise ValueError
     with pytest.raises(ValueError):
-        db.create_user(
-            email="auditor@ieee.org",
-            password="AnotherPassword",
-            full_name="Duplicate Name"
-        )
+        db.create_user(email="auditor@ieee.org", password="AnotherPassword", full_name="Duplicate Name")
 
 
 def test_enterprise_sso_handshake(tmp_path):

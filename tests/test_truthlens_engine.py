@@ -1,27 +1,22 @@
 """Unit tests for Neuro-Symbolic TruthLens-Omni Platform."""
 
-from src.core.types import VerificationRequest, VerificationVerdict, HighlightStatus
-from src.fusion.truthlens_engine import TruthLensEngine
 from src.api.server import (
-    health_check,
-    get_domain_trust,
-    verify_article,
-    scrape_article_url,
-    score_community_notes,
-    get_sample_cascade,
-    get_daily_news_feed,
-    get_living_knowledge_graph,
-    audit_story_draft,
-    detect_synthetic_ai_text,
-    ScrapeRequest,
-    ConsensusRequest,
     AuditRequest,
     ForensicsRequest,
+    audit_story_draft,
+    detect_synthetic_ai_text,
+    get_daily_news_feed,
+    get_domain_trust,
+    get_living_knowledge_graph,
+    health_check,
+    verify_article,
 )
-from src.graph.consensus_matrix import NoteRating
+from src.core.types import HighlightStatus, VerificationRequest, VerificationVerdict
 from src.data.news_database import db
+from src.fusion.truthlens_engine import TruthLensEngine
 from src.nlp.preflight_auditor import PreflightAuditor
 from src.nlp.synthetic_detector import SyntheticDetector
+
 
 def test_truthlens_engine_fake_claim_with_nutrition_card():
     engine = TruthLensEngine()
@@ -38,6 +33,7 @@ def test_truthlens_engine_fake_claim_with_nutrition_card():
     assert result.claims[0].highlight_status == HighlightStatus.REFUTED
     assert "Reuters" in result.claims[0].citation or "WHO" in result.claims[0].citation
 
+
 def test_truthlens_engine_satire_disentanglement():
     engine = TruthLensEngine()
     req = VerificationRequest(
@@ -47,6 +43,7 @@ def test_truthlens_engine_satire_disentanglement():
     result = engine.verify(req)
     assert "Satirical Parody" in result.explanation
     assert result.nutrition_card is not None
+
 
 def test_truthlens_engine_zero_assumption_data_void():
     """System must strictly refuse to guess when zero accredited evidence exists."""
@@ -59,6 +56,7 @@ def test_truthlens_engine_zero_assumption_data_void():
     assert result.verdict == VerificationVerdict.UNCERTAIN
     assert "Data-Void" in result.explanation
 
+
 def test_database_persistence_and_seed():
     """Verify database contains persistent multi-domain articles and entity graph."""
     articles = db.get_articles(limit=50)
@@ -70,6 +68,7 @@ def test_database_persistence_and_seed():
     graph = db.get_knowledge_graph()
     assert len(graph["nodes"]) >= 5
     assert len(graph["edges"]) >= 3
+
 
 def test_preflight_auditor():
     """Test Self-News Studio authoring auditor."""
@@ -84,10 +83,11 @@ def test_preflight_auditor():
     assert report.audit_readiness_score < 100.0
     assert len(report.recommendations) >= 1
 
+
 def test_synthetic_detector():
     """Test AI Hallucination & Synthetic Text Forensics."""
     detector = SyntheticDetector()
-    
+
     # Synthetic style text with low burstiness and signature transitions
     synthetic_sample = (
         "In today's digital age, it is crucial to note that quantum computing plays a pivotal role. "
@@ -106,6 +106,7 @@ def test_synthetic_detector():
     report_human = detector.analyze_text(human_sample)
     assert report_human.burstiness_score > 4.0
     assert report_human.classification in ["HUMAN_AUTHORED", "HYBRID_HUMAN_EDITED"]
+
 
 def test_api_endpoints():
     # 1. Health check
@@ -144,7 +145,13 @@ def test_api_endpoints():
     assert forensics.ai_generated_probability >= 0.0
 
     # 7. Benchmarks & Guide Dossier endpoints
-    from src.api.server import get_empirical_benchmarks, get_guide_presentation_dossier, run_adversarial_perturbation, AdversarialRequest
+    from src.api.server import (
+        AdversarialRequest,
+        get_empirical_benchmarks,
+        get_guide_presentation_dossier,
+        run_adversarial_perturbation,
+    )
+
     bench = get_empirical_benchmarks("pune_fakenews_2024")
     assert len(bench.models) >= 4
 
@@ -153,18 +160,28 @@ def test_api_endpoints():
     assert len(dossier["datasets_integrated"]) == 4
 
     # 8. Adversarial endpoint
-    adv_res = run_adversarial_perturbation(AdversarialRequest(text="The FDA approved the safe medicine in trials.", budget=0.30))
+    adv_res = run_adversarial_perturbation(
+        AdversarialRequest(text="The FDA approved the safe medicine in trials.", budget=0.30)
+    )
     assert "perturbed_text" in adv_res
     assert "clean_verdict" in adv_res
 
     # 9. Preflight Publish to Daily Feed & Knowledge Graph
-    from src.api.server import publish_story_draft, PublishDraftRequest, get_entity_subgraph, export_guide_dossier_markdown
-    pub_res = publish_story_draft(PublishDraftRequest(
-        title="Student Grounded Investigation: Local Clean Energy Microgrid",
-        content="Engineers validated 100kW rooftop solar microgrid deployment.",
-        category="Climate",
-        assertions=[{"text": "Rooftop solar microgrid generated 100kW power.", "is_supported": True}]
-    ))
+    from src.api.server import (
+        PublishDraftRequest,
+        export_guide_dossier_markdown,
+        get_entity_subgraph,
+        publish_story_draft,
+    )
+
+    pub_res = publish_story_draft(
+        PublishDraftRequest(
+            title="Student Grounded Investigation: Local Clean Energy Microgrid",
+            content="Engineers validated 100kW rooftop solar microgrid deployment.",
+            category="Climate",
+            assertions=[{"text": "Rooftop solar microgrid generated 100kW power.", "is_supported": True}],
+        )
+    )
     assert pub_res["success"] is True
     assert "article_id" in pub_res
 
@@ -180,6 +197,7 @@ def test_api_endpoints():
 
     # 12. Feed Sync Endpoint
     from src.api.server import sync_news_feeds
+
     sync_res = sync_news_feeds(force_live=False)
     assert sync_res.success is True
     assert sync_res.articles_ingested >= 1
@@ -187,6 +205,7 @@ def test_api_endpoints():
     # 13. Multilingual Synthetic Forensics (Indic text)
     indic_sample = "आयुष मंत्रालय ने स्पष्ट किया कि गिलोय और तुलसी का काढ़ा कोरोना संक्रमण का शत प्रतिशत इलाज नहीं है।"
     from src.nlp.synthetic_detector import SyntheticDetector
+
     synth_det = SyntheticDetector()
     rep_indic = synth_det.analyze_text(indic_sample)
     assert rep_indic.lexical_diversity > 0

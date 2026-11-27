@@ -14,20 +14,24 @@ Where:
     - q_i is the note latent factor vector
 """
 
-from typing import Dict, List, Tuple, Optional
-from enum import Enum
+from enum import StrEnum
+from typing import Dict, List, Tuple
+
 import numpy as np
 from pydantic import BaseModel, Field
 
-class NoteStatus(str, Enum):
+
+class NoteStatus(StrEnum):
     CURRENTLY_RATED_HELPFUL = "CURRENTLY_RATED_HELPFUL"
     CURRENTLY_RATED_NOT_HELPFUL = "CURRENTLY_RATED_NOT_HELPFUL"
     NEEDS_MORE_RATINGS = "NEEDS_MORE_RATINGS"
+
 
 class NoteRating(BaseModel):
     rater_id: str
     note_id: str
     rating: float = Field(..., ge=-1.0, le=1.0, description="1.0 = Helpful, 0.0 = Somewhat, -1.0 = Not Helpful")
+
 
 class NoteScoringResult(BaseModel):
     note_id: str
@@ -36,6 +40,7 @@ class NoteScoringResult(BaseModel):
     rater_agreement_variance: float
     total_ratings: int
     latent_polarization_factor: float
+
 
 class BridgingConsensusEngine:
     """
@@ -64,10 +69,10 @@ class BridgingConsensusEngine:
     def fit_and_score(self, ratings: List[NoteRating]) -> Dict[str, NoteScoringResult]:
         """
         Fit matrix factorization model on rater-note ratings matrix and compute bridging scores.
-        
+
         Args:
             ratings: List of NoteRating objects.
-            
+
         Returns:
             Dict[note_id, NoteScoringResult]: Calibrated note statuses and scores.
         """
@@ -77,7 +82,7 @@ class BridgingConsensusEngine:
         # 1. Map IDs to matrix indices
         unique_raters = list({r.rater_id for r in ratings})
         unique_notes = list({r.note_id for r in ratings})
-        
+
         rater_map = {r_id: idx for idx, r_id in enumerate(unique_raters)}
         note_map = {n_id: idx for idx, n_id in enumerate(unique_notes)}
 
@@ -86,8 +91,7 @@ class BridgingConsensusEngine:
 
         # 2. Extract rating triples (u, i, r)
         triples: List[Tuple[int, int, float]] = [
-            (rater_map[r.rater_id], note_map[r.note_id], r.rating)
-            for r in ratings
+            (rater_map[r.rater_id], note_map[r.note_id], r.rating) for r in ratings
         ]
 
         # Global mean rating
@@ -100,7 +104,7 @@ class BridgingConsensusEngine:
         Q = np.random.normal(0.0, 0.1, size=(n_notes, self.latent_dim))
 
         # 4. Stochastic Gradient Descent with L2 Regularization
-        for epoch in range(self.max_epochs):
+        for _epoch in range(self.max_epochs):
             np.random.shuffle(triples)
             for u, i, r in triples:
                 # Prediction
@@ -149,4 +153,3 @@ class BridgingConsensusEngine:
             )
 
         return results
-

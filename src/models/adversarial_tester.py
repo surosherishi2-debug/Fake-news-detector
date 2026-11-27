@@ -6,9 +6,9 @@ Evaluates whether a text-only classifier flips predictions when words are swappe
 and verifies how multimodal graph context shields TruthLens against attacks.
 """
 
-import re
 import random
-from typing import List, Dict, Any, Tuple
+import re
+from typing import Dict, List, Tuple
 
 # Context-preserving synonym mapping dictionary for adversarial stress testing
 SYNONYM_REPLACEMENTS = {
@@ -23,8 +23,9 @@ SYNONYM_REPLACEMENTS = {
     "record": ["unprecedented", "historic", "benchmark", "milestone"],
     "secret": ["covert", "confidential", "undisclosed", "clandestine"],
     "fake": ["fabricated", "counterfeit", "spurious", "inauthentic"],
-    "banned": ["prohibited", "interdicted", "outlawed", "disallowed"]
+    "banned": ["prohibited", "interdicted", "outlawed", "disallowed"],
 }
+
 
 class AdversarialAttackSimulator:
     """Generates perturbed adversarial variants of claims using synonym substitution."""
@@ -55,10 +56,7 @@ class AdversarialAttackSimulator:
             return self.perturb_deepwordbug(text, perturbation_budget)
 
         words = re.findall(r"\b\w+\b|[^\w\s]", text)
-        eligible_indices = [
-            i for i, w in enumerate(words)
-            if w.lower() in self.synonym_map and len(w) > 3
-        ]
+        eligible_indices = [i for i, w in enumerate(words) if w.lower() in self.synonym_map and len(w) > 3]
 
         if not eligible_indices:
             # Fallback to typo perturbation if no keywords match synonym dictionary
@@ -75,7 +73,7 @@ class AdversarialAttackSimulator:
             lower_orig = orig.lower()
             replacement_candidates = self.synonym_map[lower_orig]
             replacement = random.choice(replacement_candidates)
-            
+
             # Preserve capitalization
             if orig.istitle():
                 replacement = replacement.capitalize()
@@ -83,15 +81,11 @@ class AdversarialAttackSimulator:
                 replacement = replacement.upper()
 
             perturbed_words[idx] = replacement
-            substitutions.append({
-                "original": orig,
-                "replacement": replacement,
-                "position": idx
-            })
+            substitutions.append({"original": orig, "replacement": replacement, "position": idx})
 
         # Reconstruct sentence with punctuation handling
         result_text = ""
-        for i, token in enumerate(perturbed_words):
+        for _i, token in enumerate(perturbed_words):
             if re.match(r"[^\w\s]", token):
                 result_text = result_text.rstrip() + token + " "
             else:
@@ -103,19 +97,14 @@ class AdversarialAttackSimulator:
         return perturbed_final, substitutions, round(actual_mod_rate, 4)
 
     def perturb_deepwordbug(
-        self,
-        text: str,
-        perturbation_budget: float = 0.20
+        self, text: str, perturbation_budget: float = 0.20
     ) -> Tuple[str, List[Dict[str, str]], float]:
         """
         DeepWordBug Heuristic: Generates character-level adversarial noise (Swap, Drop, Substitute).
         Exposes extreme fragility of naive NLP transformers vs multimodal cascade grounding.
         """
         words = re.findall(r"\b\w+\b|[^\w\s]", text)
-        eligible_indices = [
-            i for i, w in enumerate(words)
-            if len(w) > 4 and w.isalpha()
-        ]
+        eligible_indices = [i for i, w in enumerate(words) if len(w) > 4 and w.isalpha()]
 
         if not eligible_indices:
             return text, [], 0.0
@@ -128,7 +117,7 @@ class AdversarialAttackSimulator:
         for idx in swap_indices:
             orig = words[idx]
             op = random.choice(["swap", "drop", "sub"])
-            
+
             if op == "swap" and len(orig) > 3:
                 pos = random.randint(1, len(orig) - 2)
                 chars = list(orig)
@@ -136,24 +125,29 @@ class AdversarialAttackSimulator:
                 replacement = "".join(chars)
             elif op == "drop" and len(orig) > 4:
                 pos = random.randint(1, len(orig) - 2)
-                replacement = orig[:pos] + orig[pos + 1:]
+                replacement = orig[:pos] + orig[pos + 1 :]
             else:
-                keyboard_typos = {"a": "s", "e": "r", "i": "o", "o": "p", "u": "y", "s": "d", "n": "m", "t": "y", "c": "v"}
+                keyboard_typos = {
+                    "a": "s",
+                    "e": "r",
+                    "i": "o",
+                    "o": "p",
+                    "u": "y",
+                    "s": "d",
+                    "n": "m",
+                    "t": "y",
+                    "c": "v",
+                }
                 chars = list(orig)
                 pos = random.randint(0, len(chars) - 1)
                 chars[pos] = keyboard_typos.get(chars[pos].lower(), "x")
                 replacement = "".join(chars)
 
             perturbed_words[idx] = replacement
-            substitutions.append({
-                "original": orig,
-                "replacement": replacement,
-                "position": idx,
-                "technique": op
-            })
+            substitutions.append({"original": orig, "replacement": replacement, "position": idx, "technique": op})
 
         result_text = ""
-        for i, token in enumerate(perturbed_words):
+        for _i, token in enumerate(perturbed_words):
             if re.match(r"[^\w\s]", token):
                 result_text = result_text.rstrip() + token + " "
             else:
@@ -162,4 +156,3 @@ class AdversarialAttackSimulator:
         perturbed_final = result_text.strip()
         actual_mod_rate = len(substitutions) / max(1, len(words))
         return perturbed_final, substitutions, round(actual_mod_rate, 4)
-

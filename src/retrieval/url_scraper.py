@@ -4,16 +4,19 @@ Extracts article body, metadata, author, publish date, and domain reputation
 from live web links for real-time TruthLens verification.
 """
 
-from typing import Optional, Dict, Any, Tuple
-import urllib.request
-import urllib.parse
-from bs4 import BeautifulSoup
-from datetime import datetime, timezone
-import re
 import logging
+import re
+import urllib.parse
+import urllib.request
+from datetime import UTC, datetime
+from typing import Any, Dict, Tuple
+
+from bs4 import BeautifulSoup
+
 from src.core.types import VerificationRequest
 
 logger = logging.getLogger(__name__)
+
 
 class URLScraper:
     """Extracts clean article text and publisher metadata from raw URLs."""
@@ -24,13 +27,25 @@ class URLScraper:
             "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36 TruthLens/1.0"
         }
 
-    def scrape_url(self, url: str) -> Tuple[Optional[VerificationRequest], Dict[str, Any]]:
+    def _extract_publish_date(self, soup: BeautifulSoup) -> datetime | None:
+        """Extract publication datetime from metadata tags if available."""
+        date_meta = soup.find("meta", property=re.compile(r"(published_time|date|pubdate)", re.I))
+        if not date_meta:
+            date_meta = soup.find("meta", attrs={"name": re.compile(r"(published_time|date|pubdate)", re.I)})
+        if date_meta and date_meta.get("content"):
+            try:
+                return datetime.fromisoformat(date_meta["content"].replace("Z", "+00:00"))
+            except Exception:
+                return None
+        return None
+
+    def scrape_url(self, url: str) -> Tuple[VerificationRequest | None, Dict[str, Any]]:
         """
         Scrape and parse article content from a live URL.
-        
+
         Args:
             url: Target web page URL.
-            
+
         Returns:
             Tuple[VerificationRequest, Dict[str, Any]]: Structured request payload and metadata.
         """
@@ -76,13 +91,7 @@ class URLScraper:
                     body_text = title
 
             # Extract publish date
-            pub_date = None
-            date_meta = soup.find("meta", property=re.compile(r"(published_time|date|pubdate)", re.I))
-            if date_meta and date_meta.get("content"):
-                try:
-                    pub_date = datetime.fromisoformat(date_meta["content"].replace("Z", "+00:00"))
-                except Exception:
-                    pub_date = None
+            pub_date = self._extract_publish_date(soup)
 
             metadata["title"] = title
             metadata["word_count"] = len(body_text.split())
@@ -94,7 +103,7 @@ class URLScraper:
             v_req = VerificationRequest(
                 text=combined_text[:4000],  # Bound to 4000 chars for prompt & model safety
                 publisher=domain,
-                publication_date=pub_date or datetime.now(timezone.utc),
+                publication_date=pub_date or datetime.now(UTC),
             )
             return v_req, metadata
 
@@ -102,4 +111,3 @@ class URLScraper:
             logger.warning("Failed to scrape URL %s: %s", url, e)
             metadata["error"] = str(e)
             return None, metadata
-

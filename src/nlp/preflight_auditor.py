@@ -5,10 +5,13 @@ before publication: identifies unsupported factual claims, detects cognitive bia
 and suggests accredited primary citations.
 """
 
-from typing import List, Dict, Any, Optional
 import re
+from typing import Any, List
+
 from pydantic import BaseModel, Field
+
 from src.nlp.claim_decomposer import ClaimDecomposer
+
 
 class PreflightAssertionAudit(BaseModel):
     sentence_index: int
@@ -19,6 +22,7 @@ class PreflightAssertionAudit(BaseModel):
     suggested_action: str
     recommended_citations: List[str] = Field(default_factory=list)
 
+
 class PreflightAuditReport(BaseModel):
     audit_readiness_score: float = Field(..., ge=0.0, le=100.0, description="Overall publication readiness")
     total_assertions: int
@@ -27,13 +31,15 @@ class PreflightAuditReport(BaseModel):
     assertions: List[PreflightAssertionAudit]
     recommendations: List[str]
 
+
 class PreflightAuditor:
     """Audits draft articles for factual integrity prior to publication."""
 
-    def __init__(self, decomposer: Optional[ClaimDecomposer] = None, fact_client: Optional[Any] = None):
+    def __init__(self, decomposer: ClaimDecomposer | None = None, fact_client: Any | None = None):
         self.decomposer = decomposer or ClaimDecomposer()
         if fact_client is None:
             from src.retrieval.fact_check_client import FactCheckClient
+
             self.fact_client = FactCheckClient()
         else:
             self.fact_client = fact_client
@@ -41,10 +47,10 @@ class PreflightAuditor:
     def audit_draft(self, draft_text: str) -> PreflightAuditReport:
         """
         Execute comprehensive pre-flight verification on author's draft.
-        
+
         Args:
             draft_text: Full draft article text.
-            
+
         Returns:
             PreflightAuditReport: Actionable integrity scorecard and citation suggestions.
         """
@@ -64,7 +70,9 @@ class PreflightAuditor:
                 high_risk_count += 1
             elif not has_support and claim.check_worthiness >= 0.75:
                 risk = "HIGH"
-                action = "Factual assertion lacks primary source citation. Add verifiable data or link official release."
+                action = (
+                    "Factual assertion lacks primary source citation. Add verifiable data or link official release."
+                )
                 high_risk_count += 1
             elif not has_support and claim.check_worthiness >= 0.55:
                 risk = "MEDIUM"
@@ -91,16 +99,20 @@ class PreflightAuditor:
         sensationalism_score = self._compute_bias_score(draft_text)
 
         # Publication Readiness Score: penalize high-risk claims and sensationalism
-        total_claims = max(1, len(claims))
+        max(1, len(claims))
         readiness = max(10.0, 100.0 - (high_risk_count * 25.0) - (sensationalism_score * 0.3))
 
         recommendations = []
         if high_risk_count > 0:
             recommendations.append(f"Resolve {high_risk_count} high-risk ungrounded assertions before publishing.")
         if sensationalism_score > 40.0:
-            recommendations.append("Tone audit: Reduce clickbait adjectives ('shocking', 'exposed', 'unbelievable') to improve institutional trust.")
+            recommendations.append(
+                "Tone audit: Reduce clickbait adjectives ('shocking', 'exposed', 'unbelievable') to improve institutional trust."
+            )
         if not recommendations:
-            recommendations.append("Excellent epistemic grounding: All verifiable assertions are backed by accredited citations.")
+            recommendations.append(
+                "Excellent epistemic grounding: All verifiable assertions are backed by accredited citations."
+            )
 
         return PreflightAuditReport(
             audit_readiness_score=round(readiness, 1),
@@ -114,9 +126,12 @@ class PreflightAuditor:
     def _compute_bias_score(self, text: str) -> float:
         """Measure clickbait and rhetorical bias markers."""
         score = 15.0
-        cues = [r"\b(shocking|exposed|miracle|secret cure|banned by doctors|you won't believe)\b", r"!{2,}", r"\b[A-Z]{4,}\b"]
+        cues = [
+            r"\b(shocking|exposed|miracle|secret cure|banned by doctors|you won't believe)\b",
+            r"!{2,}",
+            r"\b[A-Z]{4,}\b",
+        ]
         for c in cues:
             if re.search(c, text, re.I):
                 score += 25.0
         return min(95.0, score)
-

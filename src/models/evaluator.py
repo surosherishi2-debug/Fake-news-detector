@@ -8,11 +8,13 @@ academic baseline models on PuneFakeNews-2024, LIAR-Plus, and CoAID:
 - Inference Latency (ms)
 """
 
-from typing import List, Dict, Any
+from typing import List
+
 from pydantic import BaseModel, Field
 
-from src.data.dataset_loader import DatasetLoader, BenchmarkSample
+from src.data.dataset_loader import DatasetLoader
 from src.models.adversarial_tester import AdversarialAttackSimulator
+
 
 class ModelBenchmarkRow(BaseModel):
     model_name: str
@@ -27,11 +29,13 @@ class ModelBenchmarkRow(BaseModel):
     indic_f1: float = Field(..., description="Performance on Devanagari Hindi/Marathi")
     avg_latency_ms: float
 
+
 class BenchmarkSummaryReport(BaseModel):
     dataset_evaluated: str
     sample_size: int
     models: List[ModelBenchmarkRow]
     key_findings: List[str]
+
 
 class ModelEvaluator:
     """Evaluates multi-modal architectures against text-only baseline models."""
@@ -43,10 +47,10 @@ class ModelEvaluator:
     def run_benchmark_suite(self, dataset_name: str = "pune_fakenews_2024") -> BenchmarkSummaryReport:
         """
         Executes formal empirical benchmark comparing TruthLens against standard baselines.
-        
+
         Args:
             dataset_name: Dataset to evaluate ("pune_fakenews_2024", "liar_plus", "coaid").
-            
+
         Returns:
             BenchmarkSummaryReport: Full comparative metrics matrix.
         """
@@ -67,7 +71,7 @@ class ModelEvaluator:
                 adversarial_f1=39.5,
                 robustness_retention=57.9,
                 indic_f1=44.2,
-                avg_latency_ms=1.8
+                avg_latency_ms=1.8,
             ),
             ModelBenchmarkRow(
                 model_name="BiLSTM + Static Embeddings",
@@ -80,7 +84,7 @@ class ModelEvaluator:
                 adversarial_f1=51.2,
                 robustness_retention=68.9,
                 indic_f1=58.6,
-                avg_latency_ms=8.4
+                avg_latency_ms=8.4,
             ),
             ModelBenchmarkRow(
                 model_name="BERT-Base (Text-Only)",
@@ -93,7 +97,7 @@ class ModelEvaluator:
                 adversarial_f1=43.1,
                 robustness_retention=49.8,
                 indic_f1=67.4,
-                avg_latency_ms=28.5
+                avg_latency_ms=28.5,
             ),
             ModelBenchmarkRow(
                 model_name="RoBERTa-Base (Text-Only)",
@@ -106,7 +110,7 @@ class ModelEvaluator:
                 adversarial_f1=49.4,
                 robustness_retention=55.4,
                 indic_f1=71.2,
-                avg_latency_ms=31.2
+                avg_latency_ms=31.2,
             ),
             ModelBenchmarkRow(
                 model_name="TruthLens-Omni (Ours)",
@@ -119,21 +123,17 @@ class ModelEvaluator:
                 adversarial_f1=87.6,
                 robustness_retention=92.4,
                 indic_f1=91.8,
-                avg_latency_ms=14.2
-            )
+                avg_latency_ms=14.2,
+            ),
         ]
 
         findings = [
             "Text-Only BERT/RoBERTa models experience severe adversarial decay (-40% to -49% F1) under 20% synonym substitution because they over-index on surface lexical tokens.",
             "TruthLens-Omni preserves 92.4% of its F1 performance under identical adversarial perturbation due to Heterogeneous Graph cascade grounding and temporal decay weighting.",
             "Cross-lingual performance on Indic vernacular texts (Marathi/Hindi) reaches 91.8% F1 by coupling cross-lingual entity alignments with accredited IFCN fact-check knowledge records.",
-            "Temporal decay weighting w(t) = exp(-λΔt) eliminates temporal obsolescence, preventing out-of-date debunks from misclassifying contemporary verified events."
+            "Temporal decay weighting w(t) = exp(-λΔt) eliminates temporal obsolescence, preventing out-of-date debunks from misclassifying contemporary verified events.",
         ]
 
         return BenchmarkSummaryReport(
-            dataset_evaluated=dataset_name,
-            sample_size=n,
-            models=models_data,
-            key_findings=findings
+            dataset_evaluated=dataset_name, sample_size=n, models=models_data, key_findings=findings
         )
-

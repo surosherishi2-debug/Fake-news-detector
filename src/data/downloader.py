@@ -9,12 +9,12 @@ Fetches the approved benchmark datasets from official repositories:
 Computes SHA-256 hashes and outputs data/checksums.sha256 for deterministic reproducibility.
 """
 
-import os
 import hashlib
 import json
 import logging
+import os
 import urllib.request
-from typing import Dict, List, Tuple
+from typing import Dict
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
@@ -32,15 +32,28 @@ DOWNLOAD_TARGETS = {
         ("test2.tsv", "https://raw.githubusercontent.com/Tariq60/LIAR-PLUS/master/dataset/tsv/test2.tsv"),
     ],
     "coaid": [
-        ("ClaimFakeCOVID-19.csv", "https://raw.githubusercontent.com/cuilimeng/CoAID/master/05-01-2020/ClaimFakeCOVID-19.csv"),
-        ("ClaimRealCOVID-19.csv", "https://raw.githubusercontent.com/cuilimeng/CoAID/master/05-01-2020/ClaimRealCOVID-19.csv"),
-        ("NewsFakeCOVID-19.csv", "https://raw.githubusercontent.com/cuilimeng/CoAID/master/05-01-2020/NewsFakeCOVID-19.csv"),
-        ("NewsRealCOVID-19.csv", "https://raw.githubusercontent.com/cuilimeng/CoAID/master/05-01-2020/NewsRealCOVID-19.csv"),
+        (
+            "ClaimFakeCOVID-19.csv",
+            "https://raw.githubusercontent.com/cuilimeng/CoAID/master/05-01-2020/ClaimFakeCOVID-19.csv",
+        ),
+        (
+            "ClaimRealCOVID-19.csv",
+            "https://raw.githubusercontent.com/cuilimeng/CoAID/master/05-01-2020/ClaimRealCOVID-19.csv",
+        ),
+        (
+            "NewsFakeCOVID-19.csv",
+            "https://raw.githubusercontent.com/cuilimeng/CoAID/master/05-01-2020/NewsFakeCOVID-19.csv",
+        ),
+        (
+            "NewsRealCOVID-19.csv",
+            "https://raw.githubusercontent.com/cuilimeng/CoAID/master/05-01-2020/NewsRealCOVID-19.csv",
+        ),
     ],
     "fever": [
         ("train.jsonl", "https://fever.ai/download/fever/train.jsonl"),
     ],
 }
+
 
 def compute_sha256(filepath: str) -> str:
     """Compute SHA-256 checksum of a file."""
@@ -49,6 +62,7 @@ def compute_sha256(filepath: str) -> str:
         for chunk in iter(lambda: f.read(65536), b""):
             hasher.update(chunk)
     return hasher.hexdigest()
+
 
 def download_file(url: str, dest_path: str, max_lines: int = None) -> str:
     """Download a file with user-agent headers and optional line streaming limit for huge archives."""
@@ -59,7 +73,7 @@ def download_file(url: str, dest_path: str, max_lines: int = None) -> str:
 
     logger.info(f"Downloading from {url} to {dest_path}...")
     req = urllib.request.Request(url, headers={"User-Agent": "TruthLens-DataPipeline/1.0"})
-    
+
     if max_lines:
         # Stream first N lines (for multi-gigabyte datasets like full FEVER)
         with urllib.request.urlopen(req, timeout=30) as resp:
@@ -76,6 +90,7 @@ def download_file(url: str, dest_path: str, max_lines: int = None) -> str:
     sha256 = compute_sha256(dest_path)
     logger.info(f"Downloaded {dest_path} (SHA-256: {sha256})")
     return sha256
+
 
 def seed_indic_multilingual_benchmark() -> str:
     """
@@ -96,7 +111,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "hi",
             "source": "PIB Fact Check Hindi",
             "url": "https://factcheck.pib.gov.in",
-            "date": "2021-05-10"
+            "date": "2021-05-10",
         },
         {
             "id": "indic-hi-002",
@@ -106,7 +121,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "hi",
             "source": "PIB Fact Check",
             "url": "https://factcheck.pib.gov.in/free-laptop-scam",
-            "date": "2023-08-15"
+            "date": "2023-08-15",
         },
         {
             "id": "indic-hi-003",
@@ -116,7 +131,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "hi",
             "source": "ISRO Press Briefing",
             "url": "https://www.isro.gov.in/chandrayaan3_details.html",
-            "date": "2023-08-30"
+            "date": "2023-08-30",
         },
         {
             "id": "indic-hi-004",
@@ -126,7 +141,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "hi",
             "source": "RBI Press Release",
             "url": "https://rbi.org.in",
-            "date": "2023-05-19"
+            "date": "2023-05-19",
         },
         {
             "id": "indic-hi-005",
@@ -136,7 +151,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "hi",
             "source": "Unverified Social Media Forward",
             "url": None,
-            "date": "2024-01-12"
+            "date": "2024-01-12",
         },
         # Marathi Verified Claims
         {
@@ -147,7 +162,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "mr",
             "source": "MahaMetro Press Release",
             "url": "https://punemetrorail.org",
-            "date": "2024-07-25"
+            "date": "2024-07-25",
         },
         {
             "id": "indic-mr-002",
@@ -157,7 +172,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "mr",
             "source": "PMC Official Twitter",
             "url": "https://pmc.gov.in",
-            "date": "2024-02-14"
+            "date": "2024-02-14",
         },
         {
             "id": "indic-mr-003",
@@ -167,7 +182,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "mr",
             "source": "MSBSHSE Official Notification",
             "url": "https://mahahsscboard.in",
-            "date": "2024-06-10"
+            "date": "2024-06-10",
         },
         {
             "id": "indic-mr-004",
@@ -177,7 +192,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "mr",
             "source": "Serum Institute of India / WHO",
             "url": "https://seruminstitute.com",
-            "date": "2023-10-04"
+            "date": "2023-10-04",
         },
         {
             "id": "indic-mr-005",
@@ -187,7 +202,7 @@ def seed_indic_multilingual_benchmark() -> str:
             "language": "mr",
             "source": "Local WhatsApp Group",
             "url": None,
-            "date": "2024-03-22"
+            "date": "2024-03-22",
         },
     ]
 
@@ -198,6 +213,7 @@ def seed_indic_multilingual_benchmark() -> str:
     sha256 = compute_sha256(dest_path)
     logger.info(f"Generated Indic Multilingual Benchmark: {dest_path} (SHA-256: {sha256})")
     return sha256
+
 
 def download_all_datasets() -> Dict[str, str]:
     """Download all approved datasets and generate data/checksums.sha256."""
@@ -231,6 +247,7 @@ def download_all_datasets() -> Dict[str, str]:
 
     logger.info(f"Master checksum file written: {CHECKSUM_FILE}")
     return checksums
+
 
 if __name__ == "__main__":
     download_all_datasets()

@@ -2,6 +2,7 @@
 
 from src.retrieval.url_scraper import URLScraper
 
+
 def test_url_scraper_domain_parsing():
     scraper = URLScraper()
     # Test on an invalid/nonexistent URL: must gracefully return None with error metadata
@@ -10,4 +11,3 @@ def test_url_scraper_domain_parsing():
     assert meta["domain"] == "invalid-nonexistent-domain-xyz992.com"
     assert meta["status"] == "failed"
     assert "error" in meta
-

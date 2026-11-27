@@ -8,15 +8,15 @@ Implements:
 - Real-time cryptographic security telemetry for Zero-Trust posture inspection.
 """
 
-import os
-import json
-import hmac
+import base64
 import hashlib
+import hmac
+import json
+import os
 import secrets
 import sqlite3
-import base64
-from datetime import datetime, timezone, timedelta
-from typing import Optional, Dict, Any, Tuple, List
+from datetime import UTC, datetime, timedelta
+from typing import Any, Dict, Tuple
 
 from src.core.config import settings
 
@@ -27,20 +27,20 @@ AUTH_DB_PATH = os.path.join(DB_DIR, "auth_store.sqlite3")
 
 def _b64url_encode(data: bytes) -> str:
     """Base64 URL-safe encoding without padding."""
-    return base64.urlsafe_b64encode(data).rstrip(b'=').decode('utf-8')
+    return base64.urlsafe_b64encode(data).rstrip(b"=").decode("utf-8")
 
 
 def _b64url_decode(data_str: str) -> bytes:
     """Base64 URL-safe decoding with restored padding."""
     padding = 4 - (len(data_str) % 4)
     if padding != 4:
-        data_str += '=' * padding
-    return base64.urlsafe_b64decode(data_str.encode('utf-8'))
+        data_str += "=" * padding
+    return base64.urlsafe_b64decode(data_str.encode("utf-8"))
 
 
-def hash_password(password: str, salt: Optional[str] = None) -> Tuple[str, str]:
+def hash_password(password: str, salt: str | None = None) -> Tuple[str, str]:
     """Hash password using PBKDF2-HMAC-SHA256 with 100,000 rounds.
-    
+
     Returns:
         (password_hash_hex, salt_hex)
     """
@@ -49,13 +49,8 @@ def hash_password(password: str, salt: Optional[str] = None) -> Tuple[str, str]:
         salt = salt_bytes.hex()
     else:
         salt_bytes = bytes.fromhex(salt)
-    
-    derived = hashlib.pbkdf2_hmac(
-        'sha256',
-        password.encode('utf-8'),
-        salt_bytes,
-        100_000
-    )
+
+    derived = hashlib.pbkdf2_hmac("sha256", password.encode("utf-8"), salt_bytes, 100_000)
     return derived.hex(), salt
 
 
@@ -68,13 +63,13 @@ def verify_password(password: str, password_hash: str, salt: str) -> bool:
         return False
 
 
-def create_access_token(payload: Dict[str, Any], expires_delta: Optional[timedelta] = None) -> str:
+def create_access_token(payload: Dict[str, Any], expires_delta: timedelta | None = None) -> str:
     """Issue a cryptographically signed HS256 JWT-compatible token."""
     header = {"alg": "HS256", "typ": "JWT"}
-    header_json = json.dumps(header, separators=(',', ':')).encode('utf-8')
+    header_json = json.dumps(header, separators=(",", ":")).encode("utf-8")
     header_b64 = _b64url_encode(header_json)
 
-    now = datetime.now(timezone.utc)
+    now = datetime.now(UTC)
     if expires_delta:
         exp = now + expires_delta
     else:
@@ -84,35 +79,35 @@ def create_access_token(payload: Dict[str, Any], expires_delta: Optional[timedel
     payload_copy["iat"] = int(now.timestamp())
     payload_copy["exp"] = int(exp.timestamp())
 
-    payload_json = json.dumps(payload_copy, separators=(',', ':')).encode('utf-8')
+    payload_json = json.dumps(payload_copy, separators=(",", ":")).encode("utf-8")
     payload_b64 = _b64url_encode(payload_json)
 
-    signing_input = f"{header_b64}.{payload_b64}".encode('utf-8')
-    signature = hmac.new(SECRET_KEY.encode('utf-8'), signing_input, hashlib.sha256).digest()
+    signing_input = f"{header_b64}.{payload_b64}".encode()
+    signature = hmac.new(SECRET_KEY.encode("utf-8"), signing_input, hashlib.sha256).digest()
     sig_b64 = _b64url_encode(signature)
 
     return f"{header_b64}.{payload_b64}.{sig_b64}"
 
 
-def verify_access_token(token: str) -> Optional[Dict[str, Any]]:
+def verify_access_token(token: str) -> Dict[str, Any] | None:
     """Verify token signature and expiration; return payload if authentic."""
     try:
-        parts = token.split('.')
+        parts = token.split(".")
         if len(parts) != 3:
             return None
         header_b64, payload_b64, sig_b64 = parts
 
-        signing_input = f"{header_b64}.{payload_b64}".encode('utf-8')
-        expected_sig = hmac.new(SECRET_KEY.encode('utf-8'), signing_input, hashlib.sha256).digest()
+        signing_input = f"{header_b64}.{payload_b64}".encode()
+        expected_sig = hmac.new(SECRET_KEY.encode("utf-8"), signing_input, hashlib.sha256).digest()
         provided_sig = _b64url_decode(sig_b64)
 
         if not hmac.compare_digest(expected_sig, provided_sig):
             return None
 
         payload_bytes = _b64url_decode(payload_b64)
-        payload = json.loads(payload_bytes.decode('utf-8'))
+        payload = json.loads(payload_bytes.decode("utf-8"))
 
-        now_ts = int(datetime.now(timezone.utc).timestamp())
+        now_ts = int(datetime.now(UTC).timestamp())
         if payload.get("exp") and now_ts > payload["exp"]:
             return None
 
@@ -175,7 +170,7 @@ class UserDatabase:
             if cursor.fetchone()["cnt"] > 0:
                 return
 
-            now_iso = datetime.now(timezone.utc).isoformat()
+            now_iso = datetime.now(UTC).isoformat()
 
             default_users = [
                 {
@@ -242,26 +237,39 @@ class UserDatabase:
 
             for u in default_users:
                 pwd_hash, salt = hash_password(u["password"])
-                cursor.execute("""
+                cursor.execute(
+                    """
                     INSERT INTO users (
                         id, email, password_hash, salt, full_name, role, organization,
                         clearance_level, avatar_url, sso_provider, mfa_enabled, created_at, last_login
                     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-                """, (
-                    u["id"], u["email"], pwd_hash, salt, u["full_name"], u["role"],
-                    u["organization"], u["clearance_level"], u["avatar_url"],
-                    u["sso_provider"], u["mfa_enabled"], now_iso, now_iso
-                ))
+                """,
+                    (
+                        u["id"],
+                        u["email"],
+                        pwd_hash,
+                        salt,
+                        u["full_name"],
+                        u["role"],
+                        u["organization"],
+                        u["clearance_level"],
+                        u["avatar_url"],
+                        u["sso_provider"],
+                        u["mfa_enabled"],
+                        now_iso,
+                        now_iso,
+                    ),
+                )
             conn.commit()
 
-    def get_user_by_email(self, email: str) -> Optional[Dict[str, Any]]:
+    def get_user_by_email(self, email: str) -> Dict[str, Any] | None:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE LOWER(email) = LOWER(?)", (email.strip(),))
             row = cursor.fetchone()
             return dict(row) if row else None
 
-    def get_user_by_id(self, user_id: str) -> Optional[Dict[str, Any]]:
+    def get_user_by_id(self, user_id: str) -> Dict[str, Any] | None:
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
@@ -276,8 +284,8 @@ class UserDatabase:
         role: str = "CITIZEN",
         organization: str = "Independent Organization",
         clearance_level: int = 1,
-        avatar_url: Optional[str] = None,
-        sso_provider: str = "local"
+        avatar_url: str | None = None,
+        sso_provider: str = "local",
     ) -> Dict[str, Any]:
         email_clean = email.lower().strip()
         if self.get_user_by_email(email_clean):
@@ -285,7 +293,7 @@ class UserDatabase:
 
         user_id = f"usr_{secrets.token_hex(6)}"
         pwd_hash, salt = hash_password(password)
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_iso = datetime.now(UTC).isoformat()
 
         if not avatar_url:
             # Default avatar placeholder with initials
@@ -293,24 +301,41 @@ class UserDatabase:
 
         with self._get_connection() as conn:
             cursor = conn.cursor()
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO users (
                     id, email, password_hash, salt, full_name, role, organization,
                     clearance_level, avatar_url, sso_provider, mfa_enabled, created_at, last_login
                 ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-            """, (
-                user_id, email_clean, pwd_hash, salt, full_name.strip(), role.upper(),
-                organization.strip(), clearance_level, avatar_url, sso_provider, 0, now_iso, now_iso
-            ))
-            cursor.execute("""
+            """,
+                (
+                    user_id,
+                    email_clean,
+                    pwd_hash,
+                    salt,
+                    full_name.strip(),
+                    role.upper(),
+                    organization.strip(),
+                    clearance_level,
+                    avatar_url,
+                    sso_provider,
+                    0,
+                    now_iso,
+                    now_iso,
+                ),
+            )
+            cursor.execute(
+                """
                 INSERT INTO audit_logs (user_id, event_type, details, timestamp)
                 VALUES (?, 'USER_REGISTERED', ?, ?)
-            """, (user_id, f"Registered new identity with role {role.upper()}", now_iso))
+            """,
+                (user_id, f"Registered new identity with role {role.upper()}", now_iso),
+            )
             conn.commit()
 
         return self.get_user_by_id(user_id)
 
-    def authenticate_credentials(self, email: str, password: str) -> Optional[Dict[str, Any]]:
+    def authenticate_credentials(self, email: str, password: str) -> Dict[str, Any] | None:
         user = self.get_user_by_email(email)
         if not user:
             return None
@@ -318,23 +343,26 @@ class UserDatabase:
             return None
 
         # Update last login
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_iso = datetime.now(UTC).isoformat()
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("UPDATE users SET last_login = ? WHERE id = ?", (now_iso, user["id"]))
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO audit_logs (user_id, event_type, details, timestamp)
                 VALUES (?, 'USER_LOGIN', 'Successful password authentication', ?)
-            """, (user["id"], now_iso))
+            """,
+                (user["id"], now_iso),
+            )
             conn.commit()
 
         user["last_login"] = now_iso
         return user
 
-    def authenticate_sso(self, provider: str, identity_claim: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+    def authenticate_sso(self, provider: str, identity_claim: Dict[str, Any] | None = None) -> Dict[str, Any]:
         """Simulate enterprise SSO / SAML 2.0 / OIDC handshake."""
         provider = provider.lower()
-        now_iso = datetime.now(timezone.utc).isoformat()
+        now_iso = datetime.now(UTC).isoformat()
 
         if identity_claim and identity_claim.get("email"):
             email = identity_claim["email"].lower().strip()
@@ -342,11 +370,17 @@ class UserDatabase:
             if existing:
                 with self._get_connection() as conn:
                     cursor = conn.cursor()
-                    cursor.execute("UPDATE users SET last_login = ?, sso_provider = ? WHERE id = ?", (now_iso, provider, existing["id"]))
-                    cursor.execute("""
+                    cursor.execute(
+                        "UPDATE users SET last_login = ?, sso_provider = ? WHERE id = ?",
+                        (now_iso, provider, existing["id"]),
+                    )
+                    cursor.execute(
+                        """
                         INSERT INTO audit_logs (user_id, event_type, details, timestamp)
                         VALUES (?, 'SSO_LOGIN', ?, ?)
-                    """, (existing["id"], f"Authenticated via {provider.upper()} SSO", now_iso))
+                    """,
+                        (existing["id"], f"Authenticated via {provider.upper()} SSO", now_iso),
+                    )
                     conn.commit()
                 existing["last_login"] = now_iso
                 return existing
@@ -376,7 +410,7 @@ class UserDatabase:
                 "organization": "EduID InCommon / IISc Research Council",
                 "clearance_level": 5,
                 "avatar_url": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&w=120&h=120&q=80",
-            }
+            },
         }
 
         profile = sso_profiles.get(provider, sso_profiles["google"])
@@ -391,16 +425,19 @@ class UserDatabase:
                 organization=profile["organization"],
                 clearance_level=profile["clearance_level"],
                 avatar_url=profile["avatar_url"],
-                sso_provider=provider
+                sso_provider=provider,
             )
 
         with self._get_connection() as conn:
             cursor = conn.cursor()
             cursor.execute("UPDATE users SET last_login = ? WHERE id = ?", (now_iso, existing["id"]))
-            cursor.execute("""
+            cursor.execute(
+                """
                 INSERT INTO audit_logs (user_id, event_type, details, timestamp)
                 VALUES (?, 'SSO_LOGIN', ?, ?)
-            """, (existing["id"], f"SSO handshake validated with {provider.upper()}", now_iso))
+            """,
+                (existing["id"], f"SSO handshake validated with {provider.upper()}", now_iso),
+            )
             conn.commit()
 
         existing["last_login"] = now_iso
@@ -424,7 +461,11 @@ class UserDatabase:
             "kdf_algorithm": "PBKDF2-HMAC-SHA256 (100,000 iterations)",
             "token_specification": "RFC 7519 JWT / HS256 Signed",
             "zero_trust_status": "ENFORCED (Role-Based Least Privilege)",
-            "compliance_standards": ["IFCN Section 2 (Transparency)", "GDPR Art 22 (Algorithmic Auditing)", "NIST SP 800-63B"],
+            "compliance_standards": [
+                "IFCN Section 2 (Transparency)",
+                "GDPR Art 22 (Algorithmic Auditing)",
+                "NIST SP 800-63B",
+            ],
             "total_registered_identities": total_users,
             "total_audit_events": total_events,
             "roles_distribution": roles_distribution,

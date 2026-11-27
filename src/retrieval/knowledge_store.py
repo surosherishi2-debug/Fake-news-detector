@@ -10,11 +10,10 @@ Maintains an indexed corpus of verified evidence documents from:
 Computes and caches dense semantic embeddings for zero-latency, offline retrieval.
 """
 
-import os
 import json
 import logging
-from typing import List, Dict, Any, Optional
-from datetime import datetime, timezone
+import os
+from typing import Any, Dict, List
 
 import numpy as np
 
@@ -152,18 +151,22 @@ CORE_EVIDENCE_REGISTRY: List[Dict[str, Any]] = [
         "publish_date": "2024-02-01T00:00:00Z",
         "grounded_verdict": "SATIRICAL",
         "snippet": "Local resident confirmed he burned approximately 600 calories merely by observing the monthly gym deduction on his bank statement.",
-    }
+    },
 ]
 
 
 class KnowledgeStore:
     """Manages verified evidence documents with disk-cached dense embeddings."""
 
-    def __init__(self, model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2", force_recompute: bool = False):
+    def __init__(
+        self,
+        model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2",
+        force_recompute: bool = False,
+    ):
         self.model_name = model_name
         self.force_recompute = force_recompute
         self.documents: List[Dict[str, Any]] = []
-        self.embeddings: Optional[np.ndarray] = None
+        self.embeddings: np.ndarray | None = None
         self._initialize_store()
 
     def _initialize_store(self):
@@ -172,7 +175,7 @@ class KnowledgeStore:
 
         if os.path.exists(KB_FILE) and not self.force_recompute:
             logger.info(f"Loading evidence corpus from {KB_FILE}...")
-            with open(KB_FILE, "r", encoding="utf-8") as f:
+            with open(KB_FILE, encoding="utf-8") as f:
                 self.documents = [json.loads(line) for line in f if line.strip()]
         else:
             logger.info("Seeding knowledge corpus with accredited IFCN & reference records...")
@@ -191,6 +194,7 @@ class KnowledgeStore:
     def _compute_and_save_embeddings(self):
         """Encodes all evidence snippets into a dense vector index."""
         from sentence_transformers import SentenceTransformer
+
         logger.info(f"Computing dense embeddings using {self.model_name}...")
         encoder = SentenceTransformer(self.model_name)
         texts = [f"{d['title']}. {d['snippet']}" for d in self.documents]
@@ -208,4 +212,6 @@ class KnowledgeStore:
 
 if __name__ == "__main__":
     store = KnowledgeStore()
-    print(f"Knowledge store initialized with {len(store.get_corpus())} documents, embeddings shape: {store.get_embeddings().shape}")
+    print(
+        f"Knowledge store initialized with {len(store.get_corpus())} documents, embeddings shape: {store.get_embeddings().shape}"
+    )

@@ -8,45 +8,61 @@ Provides:
 4. Formal Calibrated Abstention (DATA_VOID): Safe zero-assumption fallback when evidence is absent.
 """
 
-import re
-import math
 import logging
-from typing import List, Dict, Any, Optional, Tuple
-from pydantic import BaseModel, Field
+import re
+from typing import Any, Dict, List
 
-from src.core.types import (
-    Evidence,
-    NutritionCard,
-    VerificationVerdict,
-    HighlightStatus
-)
+import numpy as np
+from pydantic import BaseModel
+
+from src.core.types import Evidence, NutritionCard
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
 logger = logging.getLogger(__name__)
 
 # Lexical keywords signaling epistemic status
 SENSATIONAL_MARKERS = {
-    "shocking", "unbelievable", "secret", "exposed", "miracle", "hidden",
-    "mainstream", "media", "banned", "conspiracy", "hacked", "covert"
+    "shocking",
+    "unbelievable",
+    "secret",
+    "exposed",
+    "miracle",
+    "hidden",
+    "mainstream",
+    "media",
+    "banned",
+    "conspiracy",
+    "hacked",
+    "covert",
 }
 
 FACTUAL_AUTHORITY_MARKERS = {
-    "fda", "who", "cdc", "official", "confirmed", "clinical", "trials",
-    "peer-reviewed", "published", "telemetry", "authorities", "study"
+    "fda",
+    "who",
+    "cdc",
+    "official",
+    "confirmed",
+    "clinical",
+    "trials",
+    "peer-reviewed",
+    "published",
+    "telemetry",
+    "authorities",
+    "study",
 }
 
 
 class TokenAttribution(BaseModel):
     token: str
     importance_score: float  # [-1.0, 1.0]
-    category: str            # "DECEPTIVE_SIGNAL", "FACTUAL_GROUNDING", "NEUTRAL"
+    category: str  # "DECEPTIVE_SIGNAL", "FACTUAL_GROUNDING", "NEUTRAL"
 
 
 class EpistemicExplanation(BaseModel):
     verdict: str
     confidence: float
     is_abstained: bool
-    abstention_reason: Optional[str] = None
+    abstention_reason: str | None = None
     token_attributions: List[TokenAttribution]
     evidence_trail: List[Dict[str, Any]]
     nutrition_card: NutritionCard
@@ -60,10 +76,7 @@ class TruthLensExplainer:
         self.abstention_threshold = abstention_threshold
 
     def compute_token_attributions(
-        self,
-        claim_text: str,
-        verdict: str,
-        retrieved_evidences: List[Evidence]
+        self, claim_text: str, verdict: str, retrieved_evidences: List[Evidence]
     ) -> List[TokenAttribution]:
         """
         Computes saliency scores for individual tokens in the claim.
@@ -93,41 +106,31 @@ class TruthLensExplainer:
                 score = 0.10
                 category = "NEUTRAL"
 
-            attributions.append(TokenAttribution(
-                token=t,
-                importance_score=round(score, 3),
-                category=category
-            ))
+            attributions.append(TokenAttribution(token=t, importance_score=round(score, 3), category=category))
 
         return attributions
 
-    def build_evidence_trail(
-        self,
-        retrieved_evidences: List[Evidence]
-    ) -> List[Dict[str, Any]]:
+    def build_evidence_trail(self, retrieved_evidences: List[Evidence]) -> List[Dict[str, Any]]:
         """Formats the retrieved evidence documents into a human-readable audit trail."""
         trail = []
         for idx, ev in enumerate(retrieved_evidences, 1):
-            trail.append({
-                "citation_rank": idx,
-                "title": ev.source_title,
-                "publisher": ev.publisher,
-                "url": ev.url,
-                "publication_date": ev.publish_date.strftime("%Y-%m-%d") if ev.publish_date else "Unknown",
-                "snippet": ev.snippet,
-                "semantic_similarity": ev.semantic_similarity,
-                "temporal_decay_factor": ev.temporal_weight,
-                "composite_relevance_score": ev.final_score
-            })
+            trail.append(
+                {
+                    "citation_rank": idx,
+                    "title": ev.source_title,
+                    "publisher": ev.publisher,
+                    "url": ev.url,
+                    "publication_date": ev.publish_date.strftime("%Y-%m-%d") if ev.publish_date else "Unknown",
+                    "snippet": ev.snippet,
+                    "semantic_similarity": ev.semantic_similarity,
+                    "temporal_decay_factor": ev.temporal_weight,
+                    "composite_relevance_score": ev.final_score,
+                }
+            )
         return trail
 
     def build_nutrition_card(
-        self,
-        claim_text: str,
-        verdict: str,
-        confidence: float,
-        evidences: List[Evidence],
-        is_satire: bool = False
+        self, claim_text: str, verdict: str, confidence: float, evidences: List[Evidence], is_satire: bool = False
     ) -> NutritionCard:
         """Generates the FDA-style multi-dimensional epistemic nutrition card."""
         avg_pub_cred = 0.90 if evidences else 0.50
@@ -139,16 +142,17 @@ class TruthLensExplainer:
         if verdict == "DATA_VOID":
             factual_grounding = 0.0
         elif verdict in ("VERIFIED", "REAL"):
-            factual_grounding = 100.0 if not evidences else float(np.mean([e.semantic_similarity for e in evidences])) * 100.0
+            factual_grounding = (
+                100.0 if not evidences else float(np.mean([e.semantic_similarity for e in evidences])) * 100.0
+            )
         elif verdict in ("REFUTED", "FAKE"):
-            factual_grounding = float(np.mean([1.0 - e.semantic_similarity for e in evidences])) * 100.0 if evidences else 20.0
+            factual_grounding = (
+                float(np.mean([1.0 - e.semantic_similarity for e in evidences])) * 100.0 if evidences else 20.0
+            )
         else:
             factual_grounding = 50.0
 
-        summary = (
-            f"Verdict: {verdict}. Confidence: {confidence*100:.1f}%. "
-            f"Accredited citations: {len(evidences)}."
-        )
+        summary = f"Verdict: {verdict}. Confidence: {confidence * 100:.1f}%. Accredited citations: {len(evidences)}."
 
         return NutritionCard(
             factual_grounding_score=min(100.0, max(0.0, round(factual_grounding, 1))),
@@ -165,9 +169,9 @@ class TruthLensExplainer:
         claim_text: str,
         retrieved_evidences: List[Evidence],
         retrieval_meta: Dict[str, Any],
-        raw_classifier_verdict: Optional[str] = None,
-        raw_classifier_confidence: Optional[float] = None,
-        is_satirical_source: bool = False
+        raw_classifier_verdict: str | None = None,
+        raw_classifier_confidence: float | None = None,
+        is_satirical_source: bool = False,
     ) -> EpistemicExplanation:
         """
         Synthesizes transparent verdict, token attributions, evidence trail, and abstention logic.
@@ -208,7 +212,9 @@ class TruthLensExplainer:
             if verdict == "REFUTED":
                 summary = f"Refuted by accredited fact-checker '{top_ev.publisher}'. Summary: {top_ev.snippet[:120]}..."
             else:
-                summary = f"Corroborated by verified publication '{top_ev.publisher}'. Summary: {top_ev.snippet[:120]}..."
+                summary = (
+                    f"Corroborated by verified publication '{top_ev.publisher}'. Summary: {top_ev.snippet[:120]}..."
+                )
 
         # Compute attributions and trail
         attributions = self.compute_token_attributions(claim_text, verdict, retrieved_evidences)
@@ -223,8 +229,5 @@ class TruthLensExplainer:
             token_attributions=attributions,
             evidence_trail=evidence_trail,
             nutrition_card=nutrition_card,
-            plain_language_summary=summary
+            plain_language_summary=summary,
         )
-
-
-import numpy as np

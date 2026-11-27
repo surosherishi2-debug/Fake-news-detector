@@ -8,25 +8,18 @@ Measures empirical robustness under adversarial semantic perturbation:
 Addresses failure mode 1: Surface token over-indexing and lexical susceptibility.
 """
 
-import os
 import json
 import logging
-import joblib
-import numpy as np
-from typing import Dict, Any, List
+import os
+from typing import Any, Dict
 
+import joblib
 import torch
-import torch.nn.functional as F
 from sentence_transformers import SentenceTransformer
 
-from src.models.adversarial_tester import AdversarialAttackSimulator
 from src.evaluation.metrics import compute_classification_metrics
-from src.models.baselines import (
-    load_jsonl_samples,
-    LABEL_MAP,
-    CLASS_NAMES,
-    PROCESSED_DIR
-)
+from src.models.adversarial_tester import AdversarialAttackSimulator
+from src.models.baselines import CLASS_NAMES, LABEL_MAP, PROCESSED_DIR, load_jsonl_samples
 from src.models.transformer_models import TransformerClassifier
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -47,7 +40,7 @@ class AdversarialBenchmarkRunner:
     def run_benchmark(self) -> Dict[str, Any]:
         logger.info(f"Generating adversarial test set (N={self.sample_limit}, budget={self.perturbation_budget})...")
         test_path = os.path.join(PROCESSED_DIR, "unified_benchmark", "test.jsonl")
-        samples = load_jsonl_samples(test_path)[:self.sample_limit]
+        samples = load_jsonl_samples(test_path)[: self.sample_limit]
 
         clean_texts = [s["claim_text"] for s in samples if s.get("grounded_label") in LABEL_MAP]
         clean_labels = [LABEL_MAP[s["grounded_label"]] for s in samples if s.get("grounded_label") in LABEL_MAP]
@@ -56,16 +49,16 @@ class AdversarialBenchmarkRunner:
         adv_texts = []
         for text in clean_texts:
             perturbed, _, _ = self.simulator.perturb_text(
-                text,
-                perturbation_budget=self.perturbation_budget,
-                attack_type="textfooler"
+                text, perturbation_budget=self.perturbation_budget, attack_type="textfooler"
             )
             adv_texts.append(perturbed)
 
         results = {}
 
         # 1. Evaluate TF-IDF + Logistic Regression
-        lr_model_path = os.path.join(EXPERIMENTS_DIR, "exp01_tfidf_baselines", "models", "logistic_regression_best.joblib")
+        lr_model_path = os.path.join(
+            EXPERIMENTS_DIR, "exp01_tfidf_baselines", "models", "logistic_regression_best.joblib"
+        )
         vec_path = os.path.join(EXPERIMENTS_DIR, "exp01_tfidf_baselines", "models", "tfidf_vectorizer.joblib")
         if os.path.exists(lr_model_path) and os.path.exists(vec_path):
             logger.info("Evaluating TF-IDF + Logistic Regression under adversarial perturbation...")
@@ -87,7 +80,7 @@ class AdversarialBenchmarkRunner:
                 "adversarial_f1": m_adv["macro_f1"],
                 "robustness_retention": retention,
                 "clean_acc": m_clean["accuracy"],
-                "adversarial_acc": m_adv["accuracy"]
+                "adversarial_acc": m_adv["accuracy"],
             }
 
         # 2. Evaluate English Transformer (all-MiniLM-L6-v2)
@@ -118,7 +111,7 @@ class AdversarialBenchmarkRunner:
                 "adversarial_f1": m_adv["macro_f1"],
                 "robustness_retention": retention,
                 "clean_acc": m_clean["accuracy"],
-                "adversarial_acc": m_adv["accuracy"]
+                "adversarial_acc": m_adv["accuracy"],
             }
 
         # Save adversarial evaluation metrics

@@ -233,3 +233,33 @@
 
 
 
+
+---
+
+## [2026-11-27 21:38] Phase 6.Tasks 6.1–6.4 - Engineering, Refactoring, Test Coverage, Containerization & Single-Command Reproduction
+- **Goal:** Elevate TruthLens-Omni to enterprise production and MLOps standards: refactor to clean layers, enforce type hints and ruff/black formatting, configure pre-commit hooks, achieve $\ge 70\%$ test coverage across real components, containerize via Docker/docker-compose, and establish a single-command reproduction pipeline.
+- **What I did (files created/changed):**
+  - Created `pyproject.toml` with strict Ruff linter/formatter rules, pytest options, and coverage source/omit boundaries (excluding simulated graph and one-shot downloader scripts).
+  - Created `.pre-commit-config.yaml` specifying pre-commit hooks (trailing whitespace, end-of-file fixer, check-yaml, check-json, check-added-large-files, ruff lint, ruff format).
+  - Executed `ruff check --fix` and `ruff format` across all 55 source and test files.
+  - Authored 4 comprehensive unit test suites: `tests/test_data_pipeline_units.py`, `tests/test_evaluation_pipeline.py`, `tests/test_scraper_extended.py`, `tests/test_baselines_unit.py`.
+  - Expanded automated test suite from 69 to 89 tests.
+  - Achieved **70.1% test coverage** (2,785 stmts, 833 missed) across real components (data, models, evaluation, retrieval, core API).
+  - Authored `Dockerfile` (Python 3.12-slim, locked dependencies, healthcheck on `/api/v1/health`, port 8000).
+  - Authored `docker-compose.yml` (`truthlens-api` and `truthlens-demo` services) and `.dockerignore`.
+  - Authored single-command reproduction scripts: `scripts/reproduce.sh` (Bash/Linux/macOS) and `scripts/reproduce.ps1` (PowerShell/Windows).
+  - Appended `coverage`, `pytest-cov`, and `ruff` to `requirements-lock.txt`.
+  - Logged architectural decision `D14` in `docs/DECISIONS.md`.
+  - Updated `docs/paper/04_experiments.md` (Section 4.5) and `docs/paper/06_discussion.md`.
+- **Commands run + result:**
+  - `python -m ruff check src tests` -> 0 errors!
+  - `python -m ruff format --check src tests` -> All 55 files properly formatted!
+  - `python -m pytest --cov=src tests` -> **89 passed in 238.79s with 70.1% coverage**!
+- **Evidence it works:**
+  - `Dockerfile`, `docker-compose.yml`, `scripts/reproduce.sh`, `scripts/reproduce.ps1`, `pyproject.toml`, `.pre-commit-config.yaml` present on disk.
+  - Full pytest log shows 89/89 tests passing with 70.1% line coverage.
+- **Sources used:** Scikit-learn, PyTorch, Sentence-Transformers, Ruff, Coverage.py.
+- **Decisions made:** `D14` (Layered Architecture, Ruff/Black Toolchain, Docker Containerization, and Single-Command Reproduction Protocol).
+- **Open questions raised:** None.
+- **Status:** DONE.
+- **Next task:** Phase 6 Gate Review: Fresh clone reproduction verification and presentation to user.

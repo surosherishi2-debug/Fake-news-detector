@@ -5,12 +5,13 @@ and maps ClaimReview schema records to TruthLens-Omni Evidence objects.
 Includes local fallback knowledge store for offline research and testing.
 """
 
-from datetime import datetime, timezone
-from typing import List, Optional, Dict, Any
-import urllib.parse
-import urllib.request
 import json
 import logging
+import urllib.parse
+import urllib.request
+from datetime import datetime
+from typing import Any, Dict, List, Tuple
+
 from src.core.config import settings
 from src.core.types import Evidence
 from src.nlp.temporal_decay import calculate_temporal_decay
@@ -48,10 +49,11 @@ OFFLINE_FACT_REGISTRY: List[Dict[str, Any]] = [
     },
 ]
 
+
 class FactCheckClient:
     """Client for retrieving verified claim reviews and evidence documents."""
 
-    def __init__(self, api_key: Optional[str] = None):
+    def __init__(self, api_key: str | None = None):
         self.api_key = api_key or settings.GOOGLE_FACT_CHECK_API_KEY
         self.endpoint = "https://factchecktools.googleapis.com/v1alpha1/claims:search"
         self._retriever = None
@@ -60,25 +62,26 @@ class FactCheckClient:
     def retriever(self):
         if self._retriever is None:
             from src.retrieval.evidence_retriever import TwoStageEvidenceRetriever
+
             self._retriever = TwoStageEvidenceRetriever()
         return self._retriever
 
     def search_evidence(
         self,
         query: str,
-        claim_time: Optional[datetime] = None,
+        claim_time: datetime | None = None,
         max_results: int = 5,
-        domain: Optional[str] = None,
+        domain: str | None = None,
     ) -> List[Evidence]:
         """
         Search external evidence for a given claim query.
-        
+
         Args:
             query: Claim assertion text.
             claim_time: Publication date of the claim to assess temporal decay.
             max_results: Maximum evidence sentences to return.
             domain: Optional topic domain/category for adaptive temporal decay.
-            
+
         Returns:
             List[Evidence]: Top evidence records with calculated temporal decay weights.
         """
@@ -110,9 +113,9 @@ class FactCheckClient:
     def _fetch_google_fact_check(
         self,
         query: str,
-        claim_time: Optional[datetime],
+        claim_time: datetime | None,
         max_results: int,
-        domain: Optional[str] = None,
+        domain: str | None = None,
     ) -> List[Evidence]:
         """Query Google Fact Check Tools API."""
         params = {
@@ -153,16 +156,18 @@ class FactCheckClient:
     def _search_local_registry(
         self,
         query: str,
-        claim_time: Optional[datetime],
+        claim_time: datetime | None,
         max_results: int,
-        domain: Optional[str] = None,
+        domain: str | None = None,
     ) -> List[Evidence]:
         """Fallback keyword-weighted search over offline fact store."""
         query_words = set(query.lower().split())
         matched: List[Tuple[float, Dict[str, Any]]] = []
 
         for record in OFFLINE_FACT_REGISTRY:
-            overlap = sum(1 for kw in record["keywords"] if kw in query_words or any(kw in word for word in query_words))
+            overlap = sum(
+                1 for kw in record["keywords"] if kw in query_words or any(kw in word for word in query_words)
+            )
             if overlap > 0:
                 score = min(0.95, 0.40 + 0.15 * overlap)
                 matched.append((score, record))
@@ -191,7 +196,7 @@ class FactCheckClient:
         return results
 
     @staticmethod
-    def _parse_iso_date(date_str: Optional[str]) -> Optional[datetime]:
+    def _parse_iso_date(date_str: str | None) -> datetime | None:
         """Safely parse various ISO date strings."""
         if not date_str:
             return None

@@ -135,3 +135,13 @@
 
 
 
+
+---
+
+### [D14] Layered Architecture, Ruff Toolchain, Docker Containerization, and Single-Command Reproduction Protocol
+- **Context:** Phase 6 mandates enterprise engineering rigor: type safety, automated code formatting/linting, test coverage $\ge 70\%$ across real components, containerization, and zero-effort single-command reproduction for judging panels.
+- **Options Considered:**
+  1. Rely on manual developer environment setup and loose formatting conventions.
+  2. Enforce standard pyproject toolchains (`ruff` for 10x faster linting/formatting than flake8+black, `pytest-cov` for verifiable line coverage), package via lightweight multi-stage `Dockerfile` + `docker-compose.yml`, and deliver dual cross-platform reproduction scripts (`scripts/reproduce.sh` and `scripts/reproduce.ps1`).
+- **Choice:** Option 2.
+- **Rationale:** Strict adherence to R1 (No assumptions), R4 (External memory), R5 (Verification), and R9 (Determinism). Judges and CI systems can spin up the environment with a single command (`docker compose up` or `./scripts/reproduce.sh`) and independently verify all 89 test cases and headline benchmark metrics in `docs/RESULTS.md`.

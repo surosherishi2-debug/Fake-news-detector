@@ -6,6 +6,7 @@ from src.graph.consensus_matrix import (
     NoteStatus,
 )
 
+
 def test_consensus_matrix_bridging_note():
     """A note rated helpful by raters from both opposing ideological sides must be rated helpful."""
     engine = BridgingConsensusEngine(latent_dim=1, max_epochs=80, helpful_threshold=0.30)
@@ -19,7 +20,6 @@ def test_consensus_matrix_bridging_note():
         NoteRating(rater_id="u_left_2", note_id="note_bridging", rating=1.0),
         NoteRating(rater_id="u_right_1", note_id="note_bridging", rating=1.0),
         NoteRating(rater_id="u_right_2", note_id="note_bridging", rating=1.0),
-
         # note_partisan: polarized dogpiling
         NoteRating(rater_id="u_left_1", note_id="note_partisan", rating=1.0),
         NoteRating(rater_id="u_left_2", note_id="note_partisan", rating=1.0),
@@ -35,6 +35,7 @@ def test_consensus_matrix_bridging_note():
     assert results["note_bridging"].helpfulness_score > results["note_partisan"].helpfulness_score
     assert results["note_bridging"].status == NoteStatus.CURRENTLY_RATED_HELPFUL
 
+
 def test_consensus_matrix_insufficient_ratings():
     """Notes with fewer than 3 ratings must be marked NEEDS_MORE_RATINGS."""
     engine = BridgingConsensusEngine()
@@ -44,4 +45,3 @@ def test_consensus_matrix_insufficient_ratings():
     ]
     results = engine.fit_and_score(ratings)
     assert results["note_fresh"].status == NoteStatus.NEEDS_MORE_RATINGS
-

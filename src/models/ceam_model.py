@@ -6,17 +6,20 @@ and Heterogeneous Graph Transformer (HGT) social cascade embeddings via Gated Cr
 """
 
 import math
-from typing import Optional, Tuple, Dict, Any
+from typing import Any, Dict, Tuple
+
 try:
     import torch
     import torch.nn as nn
     import torch.nn.functional as F
+
     ModuleBase = nn.Module
 except ImportError:
     torch = None
     nn = None
     F = None
     ModuleBase = object
+
 
 class CrossAttentionLayer(ModuleBase):
     """
@@ -39,11 +42,7 @@ class CrossAttentionLayer(ModuleBase):
         self.dropout = nn.Dropout(dropout)
 
     def forward(
-        self,
-        query: torch.Tensor,
-        key: torch.Tensor,
-        value: torch.Tensor,
-        temporal_weight: Optional[torch.Tensor] = None
+        self, query: torch.Tensor, key: torch.Tensor, value: torch.Tensor, temporal_weight: torch.Tensor | None = None
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Args:
@@ -77,6 +76,7 @@ class CrossAttentionLayer(ModuleBase):
 
         return output, attn_weights
 
+
 class MultimodalGatedFusion(ModuleBase):
     """
     Gated Fusion mechanism combining textual cross-attended context with
@@ -89,10 +89,7 @@ class MultimodalGatedFusion(ModuleBase):
         super().__init__()
         self.proj_graph = nn.Linear(graph_dim, text_dim)
         self.gate_layer = nn.Sequential(
-            nn.Linear(text_dim + text_dim, hidden_dim),
-            nn.ReLU(),
-            nn.Linear(hidden_dim, text_dim),
-            nn.Sigmoid()
+            nn.Linear(text_dim + text_dim, hidden_dim), nn.ReLU(), nn.Linear(hidden_dim, text_dim), nn.Sigmoid()
         )
         self.layer_norm = nn.LayerNorm(text_dim)
 
@@ -108,6 +105,7 @@ class MultimodalGatedFusion(ModuleBase):
         fused = gate * h_text + (1.0 - gate) * h_graph_proj
         return self.layer_norm(fused)
 
+
 class CEAMTruthLensModel(ModuleBase):
     """
     Full PyTorch implementation of the Context-Enhanced Attention TruthLens architecture.
@@ -121,25 +119,22 @@ class CEAMTruthLensModel(ModuleBase):
         graph_dim: int = 64,
         num_classes: int = 4,
         num_heads: int = 4,
-        dropout: float = 0.1
+        dropout: float = 0.1,
     ):
         super().__init__()
         self.embed_dim = embed_dim
         self.token_embeddings = nn.Embedding(vocab_size, embed_dim, padding_idx=0)
-        
+
         # Cross-Attention between Claim and Evidence
         self.cross_attention = CrossAttentionLayer(embed_dim=embed_dim, num_heads=num_heads, dropout=dropout)
         self.self_attention = nn.MultiheadAttention(embed_dim=embed_dim, num_heads=num_heads, batch_first=True)
-        
+
         # Multimodal Gate
         self.fusion_gate = MultimodalGatedFusion(text_dim=embed_dim, graph_dim=graph_dim)
-        
+
         # Epistemic Classification MLP Head
         self.classifier = nn.Sequential(
-            nn.Linear(embed_dim, 64),
-            nn.ReLU(),
-            nn.Dropout(dropout),
-            nn.Linear(64, num_classes)
+            nn.Linear(embed_dim, 64), nn.ReLU(), nn.Dropout(dropout), nn.Linear(64, num_classes)
         )
 
     def forward(
@@ -147,7 +142,7 @@ class CEAMTruthLensModel(ModuleBase):
         claim_token_ids: torch.Tensor,
         evidence_token_ids: torch.Tensor,
         graph_cascade_emb: torch.Tensor,
-        temporal_decay_weights: Optional[torch.Tensor] = None
+        temporal_decay_weights: torch.Tensor | None = None,
     ) -> Tuple[torch.Tensor, torch.Tensor]:
         """
         Args:
@@ -165,10 +160,7 @@ class CEAMTruthLensModel(ModuleBase):
 
         # 1. Cross-Attention with Temporal Weighting
         cross_out, attn_weights = self.cross_attention(
-            query=claim_emb,
-            key=ev_emb,
-            value=ev_emb,
-            temporal_weight=temporal_decay_weights
+            query=claim_emb, key=ev_emb, value=ev_emb, temporal_weight=temporal_decay_weights
         )
 
         # 2. Mean Pooling across sequence dimension
@@ -188,23 +180,24 @@ class CEAMTruthLensModel(ModuleBase):
         claim_token_ids: torch.Tensor,
         evidence_token_ids: torch.Tensor,
         graph_cascade_emb: torch.Tensor,
-        temporal_decay_weights: Optional[torch.Tensor] = None
+        temporal_decay_weights: torch.Tensor | None = None,
     ) -> Dict[str, Any]:
         """Inference helper returning normalized probabilities and verdict label."""
         self.eval()
         logits, attn = self.forward(claim_token_ids, evidence_token_ids, graph_cascade_emb, temporal_decay_weights)
         probs = F.softmax(logits, dim=-1).squeeze(0).tolist()
-        
+
         if logits.size(-1) == 3:
             labels = ["VERIFIED", "REFUTED", "DATA_VOID"]
         else:
             labels = ["REAL", "FAKE", "SATIRE", "DATA_VOID"]
         max_idx = int(torch.argmax(logits, dim=-1).item())
-        
+
         return {
             "verdict": labels[max_idx],
             "confidence": probs[max_idx],
             "probabilities": {labels[i]: round(probs[i], 4) for i in range(len(labels))},
-            "temporal_weight_applied": float(temporal_decay_weights.item()) if temporal_decay_weights is not None else 1.0
+            "temporal_weight_applied": float(temporal_decay_weights.item())
+            if temporal_decay_weights is not None
+            else 1.0,
         }
-

@@ -6,6 +6,7 @@ following the ClaimBuster paradigm established in TruthLens Section 3.1.
 
 import re
 from typing import List, Tuple
+
 from src.core.types import Claim
 
 # High-frequency linguistic markers of verifiable assertions (ClaimBuster heuristics)
@@ -25,10 +26,22 @@ NON_CLAIM_INDICATORS = [
 
 DOMAIN_KEYWORDS = {
     "health": ["vaccine", "virus", "cancer", "hospital", "doctor", "medicine", "covid", "disease", "treatment", "cure"],
-    "politics": ["election", "parliament", "congress", "bjp", "president", "minister", "senate", "vote", "government", "policy"],
+    "politics": [
+        "election",
+        "parliament",
+        "congress",
+        "bjp",
+        "president",
+        "minister",
+        "senate",
+        "vote",
+        "government",
+        "policy",
+    ],
     "finance": ["market", "economy", "inflation", "gdp", "stock", "bank", "rbi", "interest rate", "revenue", "crypto"],
     "tech": ["ai", "google", "apple", "microsoft", "algorithm", "software", "cyber", "data", "robot"],
 }
+
 
 class ClaimDecomposer:
     """Decomposes unstructured article text into atomic verifiable claims."""
@@ -40,10 +53,10 @@ class ClaimDecomposer:
     def decompose(self, text: str) -> List[Claim]:
         """
         Split text into atomic sentences and score each for factual check-worthiness.
-        
+
         Args:
             text: Raw input article or headline.
-            
+
         Returns:
             List[Claim]: Extracted claims exceeding check_worthy_threshold.
         """

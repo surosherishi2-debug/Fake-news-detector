@@ -4,17 +4,18 @@ Provides reproducible training, multi-seed evaluation (seeds 42, 43, 44),
 cross-domain benchmark reporting, calibration analysis (ECE), and artifact persistence in experiments/.
 """
 
-import os
 import json
 import logging
+import os
+from typing import Any, Dict, List, Tuple
+
 import joblib
 import numpy as np
-from typing import Dict, Any, List, Tuple
+from sklearn.calibration import CalibratedClassifierCV
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.linear_model import LogisticRegression
-from sklearn.svm import LinearSVC
-from sklearn.calibration import CalibratedClassifierCV
 from sklearn.naive_bayes import MultinomialNB
+from sklearn.svm import LinearSVC
 
 from src.evaluation.metrics import compute_classification_metrics
 
@@ -37,7 +38,7 @@ def load_jsonl_samples(filepath: str) -> List[Dict[str, Any]]:
     if not os.path.exists(filepath):
         logger.warning(f"File not found: {filepath}")
         return samples
-    with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+    with open(filepath, encoding="utf-8", errors="replace") as f:
         for line in f:
             line = line.strip()
             if line:
@@ -45,7 +46,9 @@ def load_jsonl_samples(filepath: str) -> List[Dict[str, Any]]:
     return samples
 
 
-def get_combined_splits(datasets: List[str] = ("liar_plus", "coaid", "fever")) -> Tuple[List[str], List[int], List[str], List[int]]:
+def get_combined_splits(
+    datasets: List[str] = ("liar_plus", "coaid", "fever"),
+) -> Tuple[List[str], List[int], List[str], List[int]]:
     """Combines training and validation splits across approved datasets."""
     train_texts, train_labels = [], []
     val_texts, val_labels = [], []
@@ -72,10 +75,7 @@ class ClassicalBaselinesTrainer:
     """Trains and evaluates classical ML baselines with multi-seed stability and calibration."""
 
     def __init__(
-        self,
-        max_features: int = 10000,
-        ngram_range: Tuple[int, int] = (1, 2),
-        seeds: List[int] = (42, 43, 44)
+        self, max_features: int = 10000, ngram_range: Tuple[int, int] = (1, 2), seeds: List[int] = (42, 43, 44)
     ):
         self.max_features = max_features
         self.ngram_range = ngram_range
@@ -105,16 +105,12 @@ class ClassicalBaselinesTrainer:
             ds_samples = load_jsonl_samples(ds_path)
             domain_tests[ds] = {
                 "texts": [s["claim_text"] for s in ds_samples if s.get("grounded_label") in LABEL_MAP],
-                "labels": [LABEL_MAP[s["grounded_label"]] for s in ds_samples if s.get("grounded_label") in LABEL_MAP]
+                "labels": [LABEL_MAP[s["grounded_label"]] for s in ds_samples if s.get("grounded_label") in LABEL_MAP],
             }
 
         # Vectorize
         logger.info(f"Fitting TfidfVectorizer (ngrams={self.ngram_range}, max_features={self.max_features})...")
-        vectorizer = TfidfVectorizer(
-            ngram_range=self.ngram_range,
-            max_features=self.max_features,
-            sublinear_tf=True
-        )
+        vectorizer = TfidfVectorizer(ngram_range=self.ngram_range, max_features=self.max_features, sublinear_tf=True)
         x_train = vectorizer.fit_transform(train_texts)
         x_val = vectorizer.transform(val_texts)
         x_test = vectorizer.transform(test_texts)
@@ -123,16 +119,11 @@ class ClassicalBaselinesTrainer:
         joblib.dump(vectorizer, os.path.join(models_dir, "tfidf_vectorizer.joblib"))
 
         model_factories = {
-            "Logistic_Regression": lambda seed: LogisticRegression(
-                C=1.0,
-                max_iter=1000,
-                random_state=seed
-            ),
+            "Logistic_Regression": lambda seed: LogisticRegression(C=1.0, max_iter=1000, random_state=seed),
             "Linear_SVM": lambda seed: CalibratedClassifierCV(
-                estimator=LinearSVC(C=1.0, max_iter=2000, random_state=seed),
-                cv=3
+                estimator=LinearSVC(C=1.0, max_iter=2000, random_state=seed), cv=3
             ),
-            "Multinomial_NB": lambda seed: MultinomialNB(alpha=0.1)
+            "Multinomial_NB": lambda seed: MultinomialNB(alpha=0.1),
         }
 
         results_by_model: Dict[str, Any] = {}
@@ -169,7 +160,7 @@ class ClassicalBaselinesTrainer:
                         )
                         domain_breakdown[d_name] = {
                             "accuracy": dom_metrics["accuracy"],
-                            "macro_f1": dom_metrics["macro_f1"]
+                            "macro_f1": dom_metrics["macro_f1"],
                         }
 
                 run_result = {
@@ -184,7 +175,7 @@ class ClassicalBaselinesTrainer:
                     "test_roc_auc_ovr": test_metrics.get("roc_auc_ovr"),
                     "per_class": test_metrics["per_class"],
                     "confusion_matrix": test_metrics["confusion_matrix"],
-                    "domain_breakdown": domain_breakdown
+                    "domain_breakdown": domain_breakdown,
                 }
                 seed_runs.append(run_result)
 
@@ -210,7 +201,7 @@ class ClassicalBaselinesTrainer:
                 "mean_ece": round(float(np.mean(eces)), 4) if eces else None,
                 "mean_brier": round(float(np.mean(briers)), 4) if briers else None,
                 "mean_roc_auc_ovr": round(float(np.mean(aucs)), 4) if aucs else None,
-                "runs": seed_runs
+                "runs": seed_runs,
             }
             results_by_model[model_name] = summary
             logger.info(
@@ -231,16 +222,12 @@ class ClassicalBaselinesTrainer:
             "validation_samples": len(val_texts),
             "unified_test_samples": len(test_texts),
             "seeds": self.seeds,
-            "classes": CLASS_NAMES
+            "classes": CLASS_NAMES,
         }
         with open(os.path.join(EXP01_DIR, "config.json"), "w", encoding="utf-8") as f:
             json.dump(config, f, indent=2)
 
-        master_metrics = {
-            "experiment_id": "exp01_tfidf_baselines",
-            "status": "COMPLETED",
-            "models": results_by_model
-        }
+        master_metrics = {"experiment_id": "exp01_tfidf_baselines", "status": "COMPLETED", "models": results_by_model}
         with open(os.path.join(EXP01_DIR, "metrics.json"), "w", encoding="utf-8") as f:
             json.dump(master_metrics, f, indent=2)
 

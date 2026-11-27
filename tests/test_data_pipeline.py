@@ -8,12 +8,12 @@ Verifies:
 5. Non-empty claims, valid schema parsing, and metadata integrity.
 """
 
-import os
-import json
 import hashlib
-import re
-from typing import List, Set, Dict
+import os
+from typing import List
+
 import pytest
+
 from src.data.pipeline import ProcessedClaimSample, compute_char_ngrams, jaccard_similarity
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -22,20 +22,22 @@ RAW_DIR = os.path.join(DATA_DIR, "raw")
 PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
 CHECKSUM_FILE = os.path.join(DATA_DIR, "checksums.sha256")
 
+
 def load_jsonl(filepath: str) -> List[ProcessedClaimSample]:
     """Helper to parse a processed JSONL file into Pydantic models."""
     samples = []
-    with open(filepath, "r", encoding="utf-8") as f:
+    with open(filepath, encoding="utf-8") as f:
         for line in f:
             if line.strip():
                 samples.append(ProcessedClaimSample.model_validate_json(line))
     return samples
 
+
 def test_raw_checksum_registry_integrity():
     """Verify all raw files match their recorded SHA-256 checksums."""
     assert os.path.exists(CHECKSUM_FILE), f"Missing checksum registry: {CHECKSUM_FILE}"
-    
-    with open(CHECKSUM_FILE, "r", encoding="utf-8") as f:
+
+    with open(CHECKSUM_FILE, encoding="utf-8") as f:
         for line in f:
             line = line.strip()
             if not line or line.startswith("#"):
@@ -43,14 +45,17 @@ def test_raw_checksum_registry_integrity():
             expected_sha, rel_path = line.split(maxsplit=1)
             full_path = os.path.join(DATA_DIR, rel_path.strip())
             assert os.path.exists(full_path), f"Raw file listed in checksums not found: {full_path}"
-            
+
             # Recompute hash
             hasher = hashlib.sha256()
             with open(full_path, "rb") as rf:
                 for chunk in iter(lambda: rf.read(65536), b""):
                     hasher.update(chunk)
             computed_sha = hasher.hexdigest()
-            assert computed_sha == expected_sha, f"Checksum mismatch for {rel_path}: expected {expected_sha}, got {computed_sha}"
+            assert computed_sha == expected_sha, (
+                f"Checksum mismatch for {rel_path}: expected {expected_sha}, got {computed_sha}"
+            )
+
 
 @pytest.mark.parametrize("dataset_name", ["liar_plus", "coaid", "fever", "indic"])
 def test_zero_train_test_exact_leakage(dataset_name: str):
@@ -68,7 +73,10 @@ def test_zero_train_test_exact_leakage(dataset_name: str):
     test_texts = {s.claim_text.lower().strip() for s in test_samples}
 
     overlap = train_texts & test_texts
-    assert len(overlap) == 0, f"Detected {len(overlap)} leaked claims between train and test in {dataset_name}: {list(overlap)[:3]}"
+    assert len(overlap) == 0, (
+        f"Detected {len(overlap)} leaked claims between train and test in {dataset_name}: {list(overlap)[:3]}"
+    )
+
 
 @pytest.mark.parametrize("dataset_name", ["liar_plus", "coaid", "fever", "indic"])
 def test_zero_near_duplicate_cross_split_leakage(dataset_name: str):
@@ -98,6 +106,7 @@ def test_zero_near_duplicate_cross_split_leakage(dataset_name: str):
             # Strict barrier: no near-identical duplicates cross the train/test split boundary
             assert sim < 0.85, f"Near-duplicate cross-split leak detected in {dataset_name} with Jaccard={sim:.3f}"
 
+
 @pytest.mark.parametrize("dataset_name", ["liar_plus", "coaid", "fever", "indic"])
 def test_grounded_label_taxonomy_validity(dataset_name: str):
     """Assert that 100% of samples possess a valid grounded label in {VERIFIED, REFUTED, DATA_VOID}."""
@@ -112,6 +121,7 @@ def test_grounded_label_taxonomy_validity(dataset_name: str):
             assert s.grounded_label in valid_labels, f"Invalid grounded label '{s.grounded_label}' in {s.id}"
             assert len(s.claim_text) >= 10, f"Suspiciously short claim text in {s.id}: '{s.claim_text}'"
 
+
 def test_unified_benchmark_test_set():
     """Verify that unified_benchmark/test.jsonl contains balanced multi-domain samples."""
     bench_file = os.path.join(PROCESSED_DIR, "unified_benchmark", "test.jsonl")
@@ -119,7 +129,7 @@ def test_unified_benchmark_test_set():
     samples = load_jsonl(bench_file)
     assert len(samples) >= 100, f"Unified benchmark too small: {len(samples)} samples"
 
-    domains = set(s.domain for s in samples)
+    domains = {s.domain for s in samples}
     assert "politics" in domains
     assert "health" in domains
     assert "general" in domains

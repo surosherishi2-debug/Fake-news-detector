@@ -12,14 +12,15 @@ Outputs standardized JSONL splits in data/processed/ and verifies:
 3. 3-way grounded label taxonomy (VERIFIED, REFUTED, DATA_VOID).
 """
 
-import os
 import csv
 import json
+import logging
+import os
+import random
 import re
 import unicodedata
-import random
-import logging
-from typing import List, Dict, Any, Tuple, Set, Optional
+from typing import Any, Dict, List, Set
+
 from pydantic import BaseModel, Field
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s [%(levelname)s] %(message)s")
@@ -30,17 +31,19 @@ DATA_DIR = os.path.join(BASE_DIR, "data")
 RAW_DIR = os.path.join(DATA_DIR, "raw")
 PROCESSED_DIR = os.path.join(DATA_DIR, "processed")
 
+
 class ProcessedClaimSample(BaseModel):
     id: str
     dataset: str
     claim_text: str
-    evidence_text: Optional[str] = None
+    evidence_text: str | None = None
     raw_label: str
     grounded_label: str  # "VERIFIED", "REFUTED", "DATA_VOID"
-    domain: str          # "politics", "health", "general", "regional"
-    language: str        # "en", "hi", "mr"
-    publication_date: Optional[str] = None
+    domain: str  # "politics", "health", "general", "regional"
+    language: str  # "en", "hi", "mr"
+    publication_date: str | None = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
+
 
 def clean_text(text: str) -> str:
     """Normalize Unicode and clean whitespace while preserving linguistic structure."""
@@ -51,12 +54,14 @@ def clean_text(text: str) -> str:
     text = re.sub(r"\s+", " ", text)
     return text.strip()
 
+
 def compute_char_ngrams(text: str, n: int = 4) -> Set[str]:
     """Compute character n-grams for near-duplicate Jaccard estimation."""
     cleaned = re.sub(r"\s+", "", text.lower())
     if len(cleaned) < n:
         return {cleaned}
-    return {cleaned[i:i+n] for i in range(len(cleaned) - n + 1)}
+    return {cleaned[i : i + n] for i in range(len(cleaned) - n + 1)}
+
 
 def jaccard_similarity(set_a: Set[str], set_b: Set[str]) -> float:
     """Compute Jaccard similarity between two sets of n-grams."""
@@ -65,6 +70,7 @@ def jaccard_similarity(set_a: Set[str], set_b: Set[str]) -> float:
     intersection = len(set_a & set_b)
     union = len(set_a | set_b)
     return intersection / union if union > 0 else 0.0
+
 
 class DataPipeline:
     """Deterministic ingestion, cleaning, deduplication and splitting engine."""
@@ -78,7 +84,7 @@ class DataPipeline:
         raw_liar_dir = os.path.join(RAW_DIR, "liar_plus")
         splits_files = {"test": "test2.tsv", "val": "val2.tsv", "train": "train2.tsv"}
         processed_splits = {}
-        
+
         # Load test and val first to protect evaluation sets from training contamination
         evaluation_claims: Set[str] = set()
 
@@ -92,7 +98,7 @@ class DataPipeline:
 
             seen_in_split: Set[str] = set()
 
-            with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+            with open(filepath, encoding="utf-8", errors="replace") as f:
                 reader = csv.reader(f, delimiter="\t")
                 for row in reader:
                     if len(row) < 16:
@@ -109,7 +115,7 @@ class DataPipeline:
                         continue
 
                     norm_key = claim_text.lower()
-                    
+
                     # Deduplication within split
                     if norm_key in seen_in_split:
                         continue
@@ -145,7 +151,7 @@ class DataPipeline:
                             "subject": subject,
                             "speaker": speaker,
                             "context": context,
-                        }
+                        },
                     )
                     samples.append(sample)
 
@@ -156,9 +162,8 @@ class DataPipeline:
         return {
             "train": processed_splits.get("train", []),
             "val": processed_splits.get("val", []),
-            "test": processed_splits.get("test", [])
+            "test": processed_splits.get("test", []),
         }
-
 
     def process_coaid(self) -> Dict[str, List[ProcessedClaimSample]]:
         """Process CoAID claim and news CSV files with deterministic split."""
@@ -178,7 +183,7 @@ class DataPipeline:
             if not os.path.exists(filepath):
                 continue
 
-            with open(filepath, "r", encoding="utf-8", errors="replace") as f:
+            with open(filepath, encoding="utf-8", errors="replace") as f:
                 reader = csv.DictReader(f)
                 for idx, row in enumerate(reader):
                     title = clean_text(row.get("title", ""))
@@ -204,7 +209,7 @@ class DataPipeline:
                         domain="health",
                         language="en",
                         publication_date=publish_date,
-                        metadata={"fact_check_url": fact_url, "news_url": news_url}
+                        metadata={"fact_check_url": fact_url, "news_url": news_url},
                     )
                     all_samples.append(sample)
 
@@ -217,8 +222,8 @@ class DataPipeline:
 
         splits = {
             "train": all_samples[:n_train],
-            "val": all_samples[n_train:n_train + n_val],
-            "test": all_samples[n_train + n_val:],
+            "val": all_samples[n_train : n_train + n_val],
+            "test": all_samples[n_train + n_val :],
         }
         for s_name, s_list in splits.items():
             logger.info(f"CoAID [{s_name}]: {len(s_list)} samples processed.")
@@ -231,14 +236,10 @@ class DataPipeline:
             logger.warning(f"FEVER raw file not found: {fever_path}")
             return {"train": [], "val": [], "test": []}
 
-        by_label: Dict[str, List[ProcessedClaimSample]] = {
-            "VERIFIED": [],
-            "REFUTED": [],
-            "DATA_VOID": []
-        }
+        by_label: Dict[str, List[ProcessedClaimSample]] = {"VERIFIED": [], "REFUTED": [], "DATA_VOID": []}
         seen_claims: Set[str] = set()
 
-        with open(fever_path, "r", encoding="utf-8", errors="replace") as f:
+        with open(fever_path, encoding="utf-8", errors="replace") as f:
             for line in f:
                 if not line.strip():
                     continue
@@ -274,14 +275,14 @@ class DataPipeline:
                     domain="general",
                     language="en",
                     publication_date=None,
-                    metadata={"verifiable": item.get("verifiable", "")}
+                    metadata={"verifiable": item.get("verifiable", "")},
                 )
                 by_label[grounded].append(sample)
 
         # Equal stratified balancing
         per_class_limit = max_samples // 3
         balanced: List[ProcessedClaimSample] = []
-        for l_key, l_samples in by_label.items():
+        for _l_key, l_samples in by_label.items():
             random.seed(self.seed)
             random.shuffle(l_samples)
             balanced.extend(l_samples[:per_class_limit])
@@ -294,8 +295,8 @@ class DataPipeline:
 
         splits = {
             "train": balanced[:n_train],
-            "val": balanced[n_train:n_train + n_val],
-            "test": balanced[n_train + n_val:],
+            "val": balanced[n_train : n_train + n_val],
+            "test": balanced[n_train + n_val :],
         }
         for s_name, s_list in splits.items():
             logger.info(f"FEVER [{s_name}]: {len(s_list)} samples processed.")
@@ -308,7 +309,7 @@ class DataPipeline:
             return {"train": [], "val": [], "test": []}
 
         samples: List[ProcessedClaimSample] = []
-        with open(indic_path, "r", encoding="utf-8") as f:
+        with open(indic_path, encoding="utf-8") as f:
             for line in f:
                 if not line.strip():
                     continue
@@ -323,7 +324,7 @@ class DataPipeline:
                     domain="regional",
                     language=item["language"],
                     publication_date=item.get("date"),
-                    metadata={"source": item.get("source"), "url": item.get("url")}
+                    metadata={"source": item.get("source"), "url": item.get("url")},
                 )
                 samples.append(sample)
 
@@ -335,16 +336,21 @@ class DataPipeline:
 
         splits = {
             "train": samples[:n_train],
-            "val": samples[n_train:n_train + n_val],
-            "test": samples[n_train + n_val:],
+            "val": samples[n_train : n_train + n_val],
+            "test": samples[n_train + n_val :],
         }
         for s_name, s_list in splits.items():
             logger.info(f"Indic [{s_name}]: {len(s_list)} samples processed.")
         return splits
 
-    def save_splits(self, dataset_name: str, splits: Dict[str, List[ProcessedClaimSample]]):
+    def save_splits(
+        self,
+        dataset_name: str,
+        splits: Dict[str, List[ProcessedClaimSample]],
+        output_dir: str | None = None,
+    ):
         """Save processed splits to JSONL format."""
-        out_dir = os.path.join(PROCESSED_DIR, dataset_name)
+        out_dir = os.path.join(output_dir or PROCESSED_DIR, dataset_name)
         os.makedirs(out_dir, exist_ok=True)
         for split_name, sample_list in splits.items():
             out_file = os.path.join(out_dir, f"{split_name}.jsonl")
@@ -359,7 +365,7 @@ class DataPipeline:
         os.makedirs(bench_dir, exist_ok=True)
         test_samples: List[ProcessedClaimSample] = []
 
-        for ds_name, splits in all_splits.items():
+        for _ds_name, splits in all_splits.items():
             test_samples.extend(splits.get("test", []))
 
         random.seed(self.seed)
@@ -388,6 +394,7 @@ class DataPipeline:
 
         self.build_unified_benchmark(all_splits)
         return stats
+
 
 if __name__ == "__main__":
     pipeline = DataPipeline()
