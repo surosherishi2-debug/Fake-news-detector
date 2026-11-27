@@ -123,5 +123,15 @@
 - **Choice:** Option 2.
 - **Rationale:** Zero-assumption doctrine (R1). An expert evaluation panel will reject any system that invents verdicts on unverified claims. The calibrated boundary transparently distinguishes known verified/refuted facts from unconfirmed rumors.
 
+---
+
+### [D13] Honest Scope: Relabel Graph/Cascade Module as 'SIMULATED DEMO' and Exclude from Headline Metrics
+- **Context:** The base repository contained an unweighted PyTorch architecture (`HeteroGraphEncoder`) and a heuristic topology analyzer (`CascadeTopologyAnalyzer`) while claiming published tri-modal neuro-symbolic benchmark superiority. Phase 5 requires deciding whether to train a GNN on genuine social propagation data or formally relabel the module as `SIMULATED DEMO` in adherence with Operating Rules R2 & R3.
+- **Options Considered:**
+  1. Attempt to train a toy GNN on synthetic or incomplete social networks and report it as empirical results.
+  2. Adhere strictly to R1 (No assumptions), R2 (No fabricated numbers), and R3 (Label simulated components). Relabel the propagation graph module as `SIMULATED DEMO` across code, UI, and documentation; exclude it from headline accuracy/F1 tables in `docs/RESULTS.md`; and focus headline verification on the verified text + multi-stage evidence retrieval + temporal calibration pipeline.
+- **Choice:** Option 2.
+- **Rationale:** High academic and industry rigor. Real-time social propagation data requires platform API firehoses (Twitter/X enterprise API, Meta CrowdTangle) that are gated or non-reproducible for an open benchmark. Being completely transparent about the simulated status of the graph module ensures the system cannot be accused of fabricated benchmark metrics.
+
 
 

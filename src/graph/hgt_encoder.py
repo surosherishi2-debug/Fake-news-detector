@@ -1,7 +1,9 @@
-"""Propagation Graph Encoder (PGE) and Cascade Topology Analyzer.
+"""[SIMULATED DEMO / HEURISTIC] Propagation Graph Encoder (PGE) & Cascade Topology Analyzer.
 
-Implements the social propagation graph modeling defined in TruthLens Section 3.2:
-Heterogeneous representation of Article, User, and Publisher nodes and their sharing cascades.
+Phase 5 Honest Scope Protocol (Adherence to Operating Rules R2 & R3 and Decision D13):
+- The HeteroGraphEncoder architecture is an unweighted PyTorch structural prototype.
+- The CascadeTopologyAnalyzer calculates heuristic topology and CIB features for demo simulation.
+- Formally excluded from headline empirical benchmark tables in docs/RESULTS.md.
 """
 
 from typing import Dict, List, Optional

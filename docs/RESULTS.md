@@ -1,6 +1,6 @@
 # TruthLens-Omni Master Benchmark Results (RESULTS.md)
 
-**Generated At:** `2026-11-27 13:40:08 UTC`  
+**Generated At:** `2026-11-27 13:51:52 UTC`  
 **Source of Truth:** Programmatically compiled strictly from `experiments/*/metrics.json`.  
 **Non-Negotiable Rule Adherence:** R2 (Zero fabricated numbers; every metric cites exact file path and run id).
 

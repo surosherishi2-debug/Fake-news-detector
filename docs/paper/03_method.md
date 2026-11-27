@@ -45,7 +45,8 @@ Every evaluated assertion produces an FDA-style 5-dimensional Epistemic Nutritio
 4. **Sensationalism / Clickbait Score:** Saliency penalty from hyperbolic rhetoric, punctuation bursts, and emotional triggers.
 5. **Temporal Freshness Score:** Minimum evidence temporal retention weight $w(t) \times 100$.
 
-```
-[NOTE ON GRAPH MODULE]
-- Graph cascade representations are presently evaluated under Phase 5 governance (Decision pending Phase 5 Gate).
-```
+## 3.9 Social Cascade Modeling: Honest Simulated Demo Protocol
+In adherence to the Non-Negotiable Operating Rules (R2: Zero Fabricated Numbers, R3: Explicit Simulation Labeling) and Decision D13:
+- **Heuristic Diffusion Analyzer:** The propagation analyzer evaluates diffusion metrics (e.g. verified user ratio, low-follower anomaly, degree concentration) via rule-based heuristic scoring rather than learned GNN weights.
+- **Architectural Prototype:** While a PyTorch heterogeneous projection unit (`HeteroGraphEncoder`) is specified in `src/graph/hgt_encoder.py`, production claim verification relies strictly on verified textual evidence retrieval and temporal calibration.
+- **Exclusion from Headline Benchmarks:** Propagation graph anomaly metrics are excluded from master accuracy and F1 benchmark tables in `docs/RESULTS.md` and are explicitly tagged as `[SIMULATED DEMO]` in all UI displays and provenance logs.

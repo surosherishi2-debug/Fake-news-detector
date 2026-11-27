@@ -82,11 +82,11 @@ def run_demo():
         if res.nutrition_card:
             card = res.nutrition_card
             print("\n[Contextual Nutrition Card (Feature 1)]:")
-            print(f"  * Factual Grounding:       {card.factual_grounding_score:.1f} / 100")
-            print(f"  * Source Transparency:     {card.source_transparency_score:.1f} / 100")
-            print(f"  * Organic Diffusion:       {card.organic_diffusion_score:.1f} / 100")
-            print(f"  * Rhetorical Clickbait:    {card.sensationalism_score:.1f} / 100")
-            print(f"  * Temporal Freshness w(t): {card.temporal_freshness_score:.1f} / 100")
+            print(f"  * Factual Grounding:                 {card.factual_grounding_score:.1f} / 100")
+            print(f"  * Source Transparency:               {card.source_transparency_score:.1f} / 100")
+            print(f"  * Organic Diffusion [SIMULATED]:     {card.organic_diffusion_score:.1f} / 100")
+            print(f"  * Rhetorical Clickbait:              {card.sensationalism_score:.1f} / 100")
+            print(f"  * Temporal Freshness w(t):           {card.temporal_freshness_score:.1f} / 100")
 
         print("\n[Sentence-Level Check-Worthiness Highlighting (Feature 2)]:")
         for c in res.claims:

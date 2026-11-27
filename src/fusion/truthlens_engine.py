@@ -216,7 +216,7 @@ class TruthLensEngine:
             f"Segmented {len(claims)} atomic assertions with check-worthiness evaluation.",
             f"Ground-Truth: {len(alignments)} accredited ClaimReview evidence records evaluated.",
             f"Temporal Obsolescence Factor w(t): avg {avg_freshness:.2f} (learned λ = 0.1).",
-            f"Cascade Network Topology: CIB anomaly score {cib_anomaly:.2f}, verified user ratio {graph_metrics['verified_ratio']:.1%}.",
+            f"[SIMULATED DEMO] Cascade Network Topology: CIB anomaly score {cib_anomaly:.2f}, verified user ratio {graph_metrics['verified_ratio']:.1%}.",
             f"Domain Reputation: {request.publisher or 'Unknown'} rated {pub_trust:.2f}/1.00.",
         ]
 

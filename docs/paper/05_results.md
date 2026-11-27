@@ -67,3 +67,8 @@ To test susceptibility to lexical synonym attacks, $N=500$ held-out claims were 
 | **CEAM TruthLens (+ Temporal)** | 39.16% | **63.28%** | 18.17% | **33.33%** |
 
 *Key Takeaway:* On biomedical COVID-19 claims (CoAID), the cross-attention evidence mechanism achieved **63.28% Macro-F1**, outperforming text-only models by +8.65% F1 due to strong justification sentence grounding. On Indic Devanagari text, English-only tokenizers suffered a complete breakdown (0.0% accuracy), whereas the multilingual model achieved zero-shot cross-lingual transfer.
+
+---
+
+## 5.5 Scope Note on Propagation Graph & Cascade Module
+In strict adherence to Non-Negotiable Operating Rules R2 (Zero Fabricated Numbers) and R3 (Explicit Simulation Labeling) and Decision D13, social propagation graph metrics are formally excluded from the Table 1 headline benchmark. The `HeteroGraphEncoder` and `CascadeTopologyAnalyzer` operate under a declared `[SIMULATED DEMO]` protocol with heuristic diffusion topology, awaiting non-gated social platform firehose integrations for genuine empirical graph training.
